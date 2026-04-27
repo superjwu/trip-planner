@@ -150,6 +150,26 @@ export async function computeRecommendations(tripId: string): Promise<{
 }
 
 /**
+ * Toggle a trip between draft / saved / archived.
+ */
+export async function setTripStatus(args: {
+  tripId: string;
+  status: "draft" | "saved" | "archived";
+}): Promise<{ ok: boolean; error?: string }> {
+  const sb = isClerkConfigured()
+    ? await createServerSupabase()
+    : createAdminSupabase();
+  const { error } = await sb
+    .from("trips")
+    .update({ user_status: args.status })
+    .eq("id", args.tripId);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath(`/trips/${args.tripId}`);
+  revalidatePath(`/trips`);
+  return { ok: true };
+}
+
+/**
  * Lazy itinerary generation for a single recommendation. Idempotent: if the
  * itinerary already exists on the row, returns immediately.
  */

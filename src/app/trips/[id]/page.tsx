@@ -4,6 +4,7 @@ import { MainNav } from "@/components/nav/MainNav";
 import { CompareHeader } from "@/components/recs/CompareHeader";
 import { DestinationCard } from "@/components/recs/DestinationCard";
 import { ExpandedDestination } from "@/components/recs/ExpandedDestination";
+import { SaveTripButton } from "@/components/trip/SaveTripButton";
 import { isClerkConfigured } from "@/lib/clerk-config";
 import { createAdminSupabase, createServerSupabase } from "@/lib/supabase/server";
 import type {
@@ -117,7 +118,19 @@ export default async function TripPage({
     <>
       <MainNav />
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
-        {normalized && <CompareHeader input={normalized} destinationCount={4} />}
+        {normalized && (
+          <div className="mb-8">
+            <CompareHeader input={normalized} destinationCount={4} />
+            {trip.compute_status === "ready" && (
+              <div className="mt-4 flex justify-end">
+                <SaveTripButton
+                  tripId={id}
+                  initialStatus={trip.user_status as "draft" | "saved" | "archived"}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         {trip.compute_status === "computing" && <ComputingState />}
         {trip.compute_status === "failed" && (
