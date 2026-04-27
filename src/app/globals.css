@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────
+   Theme tokens — adapted from superjwu/tourist-plan v25-immersive.
+   Editorial dark palette with glassmorphic surfaces.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  /* Background layers */
+  --bg: #1e2030;
+  --bg-alt: #272a40;
+  --bg-card: #2a2e48;
+
+  /* Brand */
+  --primary: #a78bfa;
+  --primary-dark: #7c3aed;
+  --primary-text: #0b0d18;
+  --primary-glow: rgba(167, 139, 250, 0.3);
+  --accent: #c4b5fd;
+
+  /* Text */
+  --text: #f0f0f0;
+  --text-muted: rgba(255, 255, 255, 0.65);
+
+  /* Surfaces */
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-bg-strong: rgba(255, 255, 255, 0.07);
+  --card-border: rgba(255, 255, 255, 0.1);
+
+  /* Effects */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.45);
+
+  /* Motion */
+  --t-fast: 0.15s;
+  --t-normal: 0.25s;
+  --t-slow: 0.4s;
+  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Geometry */
+  --radius: 14px;
+  --nav-h: 56px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-alt: var(--bg-alt);
+  --color-bg-card: var(--bg-card);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-text: var(--primary-text);
+  --color-accent: var(--accent);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-card-border: var(--card-border);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-merriweather);
+  --font-italic: var(--font-cormorant);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Smooth scroll for anchor jumps */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ─── Mesh background ──────────────────────────────────────── */
+.mesh-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.mesh-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.2;
+  animation: blobFloat 22s ease-in-out infinite;
+}
+.mesh-blob-1 {
+  width: 500px;
+  height: 500px;
+  background: var(--primary);
+  top: -10%;
+  left: -5%;
+  animation-duration: 18s;
+}
+.mesh-blob-2 {
+  width: 400px;
+  height: 400px;
+  background: #06b6d4;
+  bottom: -5%;
+  right: -5%;
+  animation-duration: 22s;
+  animation-delay: -5s;
+}
+.mesh-blob-3 {
+  width: 350px;
+  height: 350px;
+  background: #f59e0b;
+  top: 40%;
+  left: 40%;
+  animation-duration: 25s;
+  animation-delay: -10s;
+}
+@keyframes blobFloat {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(30px, -40px);
+  }
+  50% {
+    transform: translate(-20px, 30px);
+  }
+  75% {
+    transform: translate(40px, 20px);
+  }
+}
+
+/* ─── Glass surface utility ────────────────────────────────── */
+.glass {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+}
+.glass-strong {
+  background: var(--card-bg-strong);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+}
+.glass-hover {
+  transition: transform 0.2s, box-shadow 0.3s, border-color 0.3s;
+}
+.glass-hover:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 0 1px var(--primary),
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 30px var(--primary-glow);
+  border-color: var(--primary);
+}
+
+/* ─── Ken Burns image effect ───────────────────────────────── */
+@keyframes kenBurns {
+  from {
+    transform: scale(1);
+    transform-origin: center;
+  }
+  to {
+    transform: scale(1.06) translate(-1%, 1%);
+  }
+}
+.ken-burns {
+  animation: kenBurns 12s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* ─── Hero text styling ────────────────────────────────────── */
+.hero-eyebrow {
+  font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+.hero-title {
+  font-family: var(--font-merriweather), Georgia, serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, #fff 40%, rgba(255, 255, 255, 0.7) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-tagline {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+
+/* ─── Scrollbar trim for sub-panels ────────────────────────── */
+.scroll-trim {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+.scroll-trim::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-trim::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
