@@ -2,14 +2,32 @@
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { requireUserId } from "@/lib/auth";
-import { createServerSupabase, createAdminSupabase } from "@/lib/supabase/server";
-import { isClerkConfigured } from "@/lib/clerk-config";
+import { createOwnerScopedSupabase } from "@/lib/supabase/server";
 import { normalize } from "@/lib/normalize";
 import {
   REC_PROMPT_VERSION,
   SEED_VERSION,
   type RawTripInput,
 } from "@/lib/types";
+
+const FREE_TEXT_MAX = 280;
+
+// Strip C0 control chars except \t (\x09) and \n (\x0A); strip DEL.
+// Use a string-built RegExp to avoid embedding raw control bytes in source.
+const CONTROL_CHAR_RE = new RegExp(
+  "[\\x00-\\x08\\x0B-\\x1F\\x7F]",
+  "g",
+);
+
+const FreeText = z
+  .string()
+  .max(FREE_TEXT_MAX)
+  .transform((s) =>
+    s
+      .replace(CONTROL_CHAR_RE, "")
+      .replace(/\r\n?/g, "\n")
+      .trim(),
+  );
 
 const RawTripInputSchema = z.object({
   origin: z.enum(["NYC", "CHI", "LAX", "SFO", "SEA"]),
@@ -28,11 +46,12 @@ const RawTripInputSchema = z.object({
         "nightlife",
       ]),
     )
-    .min(1),
+    .min(1)
+    .max(8),
   budget: z.enum(["under-500", "500-1000", "1000-2000", "2000-plus"]),
   pace: z.enum(["relaxed", "balanced", "packed"]).optional(),
-  dislikes: z.string().optional(),
-  notes: z.string().optional(),
+  dislikes: FreeText.optional(),
+  notes: FreeText.optional(),
 });
 
 export type CreateTripResult =
@@ -45,13 +64,20 @@ export async function createTrip(input: RawTripInput): Promise<CreateTripResult>
     return { ok: false, error: "Invalid trip input." };
   }
 
-  const userId = await requireUserId();
+  let userId: string;
+  try {
+    userId = await requireUserId();
+  } catch {
+    return { ok: false, error: "Sign in to plan a trip." };
+  }
   const normalized = normalize(parsed.data);
 
-  // When Clerk isn't configured (placeholder env), use the admin client because
-  // RLS would reject inserts from an unauthenticated session. This keeps the
-  // dev experience working before real keys exist.
-  const sb = isClerkConfigured() ? await createServerSupabase() : createAdminSupabase();
+  let sb;
+  try {
+    sb = await createOwnerScopedSupabase();
+  } catch (e) {
+    return { ok: false, error: friendlyError((e as Error).message) };
+  }
 
   try {
     const { data, error } = await sb
@@ -90,6 +116,9 @@ export async function createTrip(input: RawTripInput): Promise<CreateTripResult>
 function friendlyError(raw: string): string {
   if (/fetch failed|ENOTFOUND|getaddrinfo/i.test(raw)) {
     return "Supabase isn't reachable — set NEXT_PUBLIC_SUPABASE_URL and the keys in .env.local.";
+  }
+  if (/Cannot perform owner-scoped Supabase access/i.test(raw)) {
+    return "Sign-in required. (Or set DEV_BYPASS_AUTH=1 to use a local dev user.)";
   }
   return raw;
 }

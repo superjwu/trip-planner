@@ -1,12 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { z } from "zod";
 import { MainNav } from "@/components/nav/MainNav";
 import { CompareHeader } from "@/components/recs/CompareHeader";
 import { DestinationCard } from "@/components/recs/DestinationCard";
 import { ExpandedDestination } from "@/components/recs/ExpandedDestination";
 import { SaveTripButton } from "@/components/trip/SaveTripButton";
-import { isClerkConfigured } from "@/lib/clerk-config";
-import { createAdminSupabase, createServerSupabase } from "@/lib/supabase/server";
+import { createOwnerScopedSupabase } from "@/lib/supabase/server";
+import {
+  BookingLinksSchema,
+  HydrationSchema,
+  NormalizedTripInputSchema,
+  SeedDestinationSchema,
+  buildItineraryResponseSchema,
+} from "@/lib/schemas";
 import type {
   BookingLinks,
   CostBreakdown,
@@ -24,54 +31,101 @@ export const metadata = {
   title: "Your trip — Trip Planner",
 };
 
-interface TripRow {
+interface TripRowRaw {
   id: string;
   clerk_user_id: string;
   origin_city: string | null;
   depart_on: string | null;
   return_on: string | null;
-  normalized_input: NormalizedTripInput | null;
+  normalized_input: unknown;
   compute_status: "pending" | "computing" | "ready" | "failed";
   compute_error: string | null;
   user_status: string;
 }
 
-interface RecommendationRow {
+interface RecRowRaw {
   id: string;
   rank: number;
   destination_slug: string;
   reasoning: string;
   match_tags: string[];
-  destination_snapshot: SeedDestination;
+  destination_snapshot: unknown;
+  hydration: unknown;
+  booking_links: unknown;
+  itinerary: unknown;
+}
+
+// Parsed shape used by the rendering helpers below.
+interface ParsedRec {
+  id: string;
+  rank: number;
+  destination_slug: string;
+  reasoning: string;
+  match_tags: string[];
+  destination: SeedDestination;
   hydration: { weather: WeatherForecast; cost: CostBreakdown } | null;
   booking_links: BookingLinks | null;
   itinerary: { days: ItineraryDay[] } | null;
 }
 
+const RecRowSchema = z.object({
+  id: z.string(),
+  rank: z.number(),
+  destination_slug: z.string(),
+  reasoning: z.string(),
+  match_tags: z.array(z.string()),
+});
+
+function parseRec(raw: RecRowRaw, expectedDays: number | null): ParsedRec | null {
+  const head = RecRowSchema.safeParse(raw);
+  const dest = SeedDestinationSchema.safeParse(raw.destination_snapshot);
+  if (!head.success || !dest.success) return null;
+
+  const hydration = HydrationSchema.safeParse(raw.hydration);
+  const booking = BookingLinksSchema.safeParse(raw.booking_links);
+  let itinerary: { days: ItineraryDay[] } | null = null;
+  if (raw.itinerary && expectedDays && expectedDays > 0) {
+    const Itin = buildItineraryResponseSchema(expectedDays);
+    const itinParsed = Itin.safeParse(raw.itinerary);
+    if (itinParsed.success) itinerary = itinParsed.data;
+  }
+
+  return {
+    id: head.data.id,
+    rank: head.data.rank,
+    destination_slug: head.data.destination_slug,
+    reasoning: head.data.reasoning,
+    match_tags: head.data.match_tags,
+    destination: dest.data,
+    hydration: hydration.success ? hydration.data : null,
+    booking_links: booking.success ? booking.data : null,
+    itinerary,
+  };
+}
+
 async function fetchTrip(id: string) {
-  const sb = isClerkConfigured()
-    ? await createServerSupabase()
-    : createAdminSupabase();
+  const sb = await createOwnerScopedSupabase();
   const { data, error } = await sb
     .from("trips")
     .select(
       "id, clerk_user_id, origin_city, depart_on, return_on, normalized_input, compute_status, compute_error, user_status",
     )
     .eq("id", id)
-    .maybeSingle<TripRow>();
+    .maybeSingle<TripRowRaw>();
   return { trip: data, error };
 }
 
-async function fetchRecs(tripId: string) {
-  const sb = isClerkConfigured()
-    ? await createServerSupabase()
-    : createAdminSupabase();
+async function fetchRecs(tripId: string, expectedDays: number | null) {
+  const sb = await createOwnerScopedSupabase();
   const { data } = await sb
     .from("recommendations")
     .select("id, rank, destination_slug, reasoning, match_tags, destination_snapshot, hydration, booking_links, itinerary")
     .eq("trip_id", tripId)
     .order("rank", { ascending: true });
-  return (data as RecommendationRow[]) ?? [];
+  const rows = (data as RecRowRaw[]) ?? [];
+  return rows
+    .map((r) => parseRec(r, expectedDays))
+    .filter((r): r is ParsedRec => r !== null);
 }
 
 export default async function TripPage({
@@ -86,16 +140,24 @@ export default async function TripPage({
   let { trip, error } = await fetchTrip(id);
   if (error || !trip) notFound();
 
-  // Synchronous compute on first visit when status='pending'. Loading.tsx
-  // shows the skeleton during this await.
+  // Parse normalized_input ONCE — it's used by both the page chrome and the
+  // compute / itinerary triggers below.
+  const normalizedParse = NormalizedTripInputSchema.safeParse(trip.normalized_input);
+  const normalized: NormalizedTripInput | null = normalizedParse.success
+    ? normalizedParse.data
+    : null;
+
+  // First-visit compute (loading.tsx covers the wait).
   if (trip.compute_status === "pending") {
     await computeRecommendations(id);
     ({ trip } = await fetchTrip(id));
     if (!trip) notFound();
   }
 
-  const normalized = trip.normalized_input;
-  let recs = trip.compute_status === "ready" ? await fetchRecs(id) : [];
+  let recs =
+    trip.compute_status === "ready"
+      ? await fetchRecs(id, normalized?.tripLengthDays ?? null)
+      : [];
 
   const focusRank = focusRaw ? Number(focusRaw) : null;
   const focused =
@@ -103,11 +165,10 @@ export default async function TripPage({
       ? recs.find((r) => r.rank === focusRank) ?? null
       : null;
 
-  // Lazy itinerary: if the focused rec doesn't have one yet, generate it now.
+  // Lazy itinerary on focus.
   if (focused && !focused.itinerary) {
     await ensureItinerary({ tripId: id, recId: focused.id });
-    // Re-fetch only the focused row's itinerary
-    recs = await fetchRecs(id);
+    recs = await fetchRecs(id, normalized?.tripLengthDays ?? null);
   }
   const refocused =
     focusRank !== null
@@ -132,6 +193,10 @@ export default async function TripPage({
           </div>
         )}
 
+        {!normalized && (
+          <ErrorState message="This trip's preferences couldn't be parsed. Try creating a new trip." />
+        )}
+
         {trip.compute_status === "computing" && <ComputingState />}
         {trip.compute_status === "failed" && (
           <ErrorState message={trip.compute_error ?? "Something went wrong."} />
@@ -145,7 +210,7 @@ export default async function TripPage({
           <ResultsGrid tripId={id} recs={recs} />
         )}
 
-        {trip.compute_status === "ready" && refocused && (
+        {trip.compute_status === "ready" && refocused && recs.length > 1 && (
           <CompactGrid tripId={id} recs={recs} activeRank={refocused.rank} />
         )}
       </main>
@@ -153,29 +218,16 @@ export default async function TripPage({
   );
 }
 
-function FocusedView({ tripId, rec }: { tripId: string; rec: RecommendationRow }) {
+function FocusedView({ tripId, rec }: { tripId: string; rec: ParsedRec }) {
   const pick: RecommendationPick = {
     slug: rec.destination_slug,
     rank: rec.rank,
     reasoning: rec.reasoning,
     matchTags: rec.match_tags,
   };
-  const cost = rec.hydration?.cost ?? {
-    flightUsd: 0,
-    lodgingUsd: 0,
-    foodUsd: 0,
-    activitiesUsd: 0,
-    totalUsd: 0,
-    source: "estimate" as const,
-  };
-  const weather = rec.hydration?.weather ?? {
-    highF: 0,
-    lowF: 0,
-    precipMm: 0,
-    summary: "—",
-  };
-  const bookingLinks = rec.booking_links ?? { flights: "#", lodging: "#" };
-  const itineraryDays = rec.itinerary?.days;
+  const cost = rec.hydration?.cost;
+  const weather = rec.hydration?.weather;
+  const bookingLinks = rec.booking_links;
 
   return (
     <div className="mb-10">
@@ -187,11 +239,12 @@ function FocusedView({ tripId, rec }: { tripId: string; rec: RecommendationRow }
       </Link>
       <ExpandedDestination
         pick={pick}
-        destination={rec.destination_snapshot}
+        destination={rec.destination}
         cost={cost}
         weather={weather}
         bookingLinks={bookingLinks}
-        itinerary={itineraryDays}
+        itinerary={rec.itinerary?.days}
+        itineraryMissing={!rec.itinerary}
       />
     </div>
   );
@@ -202,7 +255,7 @@ function ResultsGrid({
   recs,
 }: {
   tripId: string;
-  recs: RecommendationRow[];
+  recs: ParsedRec[];
 }) {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
@@ -217,7 +270,7 @@ function ResultsGrid({
           <Link key={r.id} href={`/trips/${tripId}?focus=${r.rank}`} className="block">
             <DestinationCard
               pick={pick}
-              destination={r.destination_snapshot}
+              destination={r.destination}
               cost={r.hydration?.cost}
               weather={r.hydration?.weather}
             />
@@ -234,7 +287,7 @@ function CompactGrid({
   activeRank,
 }: {
   tripId: string;
-  recs: RecommendationRow[];
+  recs: ParsedRec[];
   activeRank: number;
 }) {
   return (
@@ -257,10 +310,13 @@ function CompactGrid({
                   className="truncate font-serif text-sm font-bold text-white"
                   style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
                 >
-                  {r.destination_snapshot.name}
+                  {r.destination.name}
                 </p>
                 <p className="truncate text-xs text-[var(--text-muted)]">
-                  {r.destination_snapshot.region} · ${r.hydration?.cost.totalUsd?.toLocaleString() ?? "—"}
+                  {r.destination.region}
+                  {r.hydration?.cost?.totalUsd
+                    ? ` · ~$${r.hydration.cost.totalUsd.toLocaleString()}`
+                    : ""}
                 </p>
               </div>
               <span className="text-[var(--primary)]">→</span>

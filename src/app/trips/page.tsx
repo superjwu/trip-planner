@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { MainNav } from "@/components/nav/MainNav";
-import { isClerkConfigured } from "@/lib/clerk-config";
 import { requireUserId } from "@/lib/auth";
-import { createAdminSupabase, createServerSupabase } from "@/lib/supabase/server";
+import { createOwnerScopedSupabase } from "@/lib/supabase/server";
 import type { NormalizedTripInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -32,9 +31,7 @@ interface RecPreviewRow {
 async function fetchTrips() {
   try {
     const userId = await requireUserId();
-    const sb = isClerkConfigured()
-      ? await createServerSupabase()
-      : createAdminSupabase();
+    const sb = await createOwnerScopedSupabase();
     const { data: trips } = await sb
       .from("trips")
       .select(

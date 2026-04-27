@@ -47,6 +47,7 @@ export interface NormalizedTripInput {
   pace: Pace;
   seasonHint: "spring" | "summer" | "fall" | "winter";
   dislikes: string;
+  notes?: string;
 }
 
 export interface SeedDestination {
@@ -83,7 +84,10 @@ export interface CostBreakdown {
   foodUsd: number;
   activitiesUsd: number;
   totalUsd: number;
-  source: "amadeus" | "estimate";
+  /** Overall provenance: 'amadeus' if both flight + lodging live, 'mixed' if one, 'estimate' if neither. */
+  source: "amadeus" | "estimate" | "mixed";
+  flightSource?: "amadeus" | "estimate";
+  lodgingSource?: "amadeus" | "estimate";
 }
 
 export interface WeatherForecast {

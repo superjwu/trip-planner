@@ -44,5 +44,6 @@ export function normalize(raw: RawTripInput): NormalizedTripInput {
     pace: raw.pace ?? "balanced",
     seasonHint: seasonForDate(raw.departOn),
     dislikes: (raw.dislikes ?? "").trim(),
+    notes: (raw.notes ?? "").trim() || undefined,
   };
 }

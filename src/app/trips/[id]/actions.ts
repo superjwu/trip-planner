@@ -1,54 +1,57 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { createAdminSupabase, createServerSupabase } from "@/lib/supabase/server";
-import { isClerkConfigured } from "@/lib/clerk-config";
+import {
+  createAdminSupabase,
+  createOwnerScopedSupabase,
+} from "@/lib/supabase/server";
 import {
   cacheKey,
   preFilter,
   rankDestinationsWithRetry,
 } from "@/lib/llm/recommend";
 import { DESTINATIONS } from "@/lib/seed/destinations";
-import type { NormalizedTripInput } from "@/lib/types";
+import { NormalizedTripInputSchema } from "@/lib/schemas";
+import type { NormalizedTripInput, SeedDestination } from "@/lib/types";
 import { RecommendationResponseSchema } from "@/lib/schemas";
 import { hydrateRecommendation } from "@/lib/hydrate";
 import { generateItineraryWithRetry } from "@/lib/llm/itinerary";
-import type { SeedDestination } from "@/lib/types";
 
-interface TripRow {
+interface TripRowRaw {
   id: string;
   clerk_user_id: string;
-  normalized_input: NormalizedTripInput;
+  normalized_input: unknown;
   compute_status: "pending" | "computing" | "ready" | "failed";
 }
 
-interface RecRow {
+interface RecRowRaw {
   id: string;
   trip_id: string;
   rank: number;
   destination_slug: string;
-  destination_snapshot: SeedDestination;
+  destination_snapshot: unknown;
   itinerary: unknown;
 }
 
+function parseNormalizedInput(raw: unknown): NormalizedTripInput {
+  return NormalizedTripInputSchema.parse(raw);
+}
+
 /**
- * Idempotent compute: if the trip already has recommendations and is ready,
- * returns immediately. Otherwise filters candidates, hits Claude (with cache
- * lookup), persists 4 recommendation rows, flips compute_status to 'ready'.
+ * Idempotent compute: only one caller wins the lock (conditional UPDATE on
+ * compute_status='pending'). Losers return ok:true without re-running Claude.
  */
 export async function computeRecommendations(tripId: string): Promise<{
   ok: boolean;
   error?: string;
 }> {
-  const sb = isClerkConfigured()
-    ? await createServerSupabase()
-    : createAdminSupabase();
+  const sb = await createOwnerScopedSupabase();
   const admin = createAdminSupabase();
 
   const { data: trip, error: tripErr } = await sb
     .from("trips")
     .select("id, clerk_user_id, normalized_input, compute_status")
     .eq("id", tripId)
-    .maybeSingle<TripRow>();
+    .maybeSingle<TripRowRaw>();
 
   if (tripErr || !trip) {
     return { ok: false, error: tripErr?.message ?? "Trip not found." };
@@ -56,15 +59,31 @@ export async function computeRecommendations(tripId: string): Promise<{
   if (trip.compute_status === "ready") {
     return { ok: true };
   }
-  if (!trip.normalized_input) {
-    return { ok: false, error: "Trip missing normalized input." };
+
+  let input: NormalizedTripInput;
+  try {
+    input = parseNormalizedInput(trip.normalized_input);
+  } catch (e) {
+    return { ok: false, error: `Trip input invalid: ${(e as Error).message}` };
   }
 
-  // Mark as computing so concurrent requests don't double-fire
-  await sb.from("trips").update({ compute_status: "computing" }).eq("id", tripId);
+  // Race-safe lock: only the request that flips pending → computing proceeds.
+  // Concurrent callers (refresh, double-open) get zero rows back and bail out.
+  const { data: lockRows, error: lockErr } = await sb
+    .from("trips")
+    .update({ compute_status: "computing" })
+    .eq("id", tripId)
+    .eq("compute_status", "pending")
+    .select("id");
+  if (lockErr) {
+    return { ok: false, error: lockErr.message };
+  }
+  if (!lockRows || lockRows.length === 0) {
+    // Another worker holds the lock or already finished. Defer to it.
+    return { ok: true };
+  }
 
   try {
-    const input = trip.normalized_input;
     const candidates = preFilter(input);
     if (candidates.length < 4) {
       throw new Error(
@@ -97,16 +116,16 @@ export async function computeRecommendations(tripId: string): Promise<{
       const ranked = await rankDestinationsWithRetry(input, candidates);
       response = ranked.response;
       meta = ranked.meta as unknown as Record<string, unknown>;
-      // Best-effort cache write (admin bypasses RLS).
       await admin.from("rec_cache").upsert({ key, response });
     }
 
-    // Persist recommendation rows. Clear any stale rows first (cascading delete
-    // keyed off trip_id is fine to call even when there are none).
-    await sb.from("recommendations").delete().eq("trip_id", tripId);
+    // Clear any stale rows under our trip; we hold the lock so this is safe.
+    const { error: deleteErr } = await sb
+      .from("recommendations")
+      .delete()
+      .eq("trip_id", tripId);
+    if (deleteErr) throw deleteErr;
 
-    // Hydrate all 4 picks in parallel: weather always, Amadeus best-effort,
-    // booking links deterministic. hydrateRecommendation never throws.
     const hydratedPicks = await Promise.all(
       response.picks.map(async (pick) => {
         const dest = DESTINATIONS.find((d) => d.slug === pick.slug)!;
@@ -156,9 +175,7 @@ export async function setTripStatus(args: {
   tripId: string;
   status: "draft" | "saved" | "archived";
 }): Promise<{ ok: boolean; error?: string }> {
-  const sb = isClerkConfigured()
-    ? await createServerSupabase()
-    : createAdminSupabase();
+  const sb = await createOwnerScopedSupabase();
   const { error } = await sb
     .from("trips")
     .update({ user_status: args.status })
@@ -172,22 +189,26 @@ export async function setTripStatus(args: {
 /**
  * Lazy itinerary generation for a single recommendation. Idempotent: if the
  * itinerary already exists on the row, returns immediately.
+ *
+ * Verifies that the recommendation actually belongs to the trip in args, so
+ * a caller can't mix one trip's prefs with another trip's destination.
  */
 export async function ensureItinerary(args: {
   tripId: string;
   recId: string;
 }): Promise<{ ok: boolean; error?: string }> {
-  const sb = isClerkConfigured()
-    ? await createServerSupabase()
-    : createAdminSupabase();
+  const sb = await createOwnerScopedSupabase();
 
   const { data: rec, error: recErr } = await sb
     .from("recommendations")
     .select("id, trip_id, rank, destination_slug, destination_snapshot, itinerary")
     .eq("id", args.recId)
-    .maybeSingle<RecRow>();
+    .maybeSingle<RecRowRaw>();
   if (recErr || !rec) {
     return { ok: false, error: recErr?.message ?? "Recommendation not found." };
+  }
+  if (rec.trip_id !== args.tripId) {
+    return { ok: false, error: "Recommendation does not belong to this trip." };
   }
   if (rec.itinerary) {
     return { ok: true };
@@ -197,15 +218,33 @@ export async function ensureItinerary(args: {
     .from("trips")
     .select("id, clerk_user_id, normalized_input, compute_status")
     .eq("id", args.tripId)
-    .maybeSingle<TripRow>();
-  if (!trip || !trip.normalized_input) {
+    .maybeSingle<TripRowRaw>();
+  if (!trip) {
     return { ok: false, error: "Trip not found." };
+  }
+
+  let input: NormalizedTripInput;
+  try {
+    input = parseNormalizedInput(trip.normalized_input);
+  } catch (e) {
+    return { ok: false, error: `Trip input invalid: ${(e as Error).message}` };
+  }
+
+  let destination: SeedDestination;
+  try {
+    destination = rec.destination_snapshot as SeedDestination;
+    if (!destination?.slug || !destination.name) {
+      throw new Error("destination_snapshot malformed");
+    }
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
   }
 
   try {
     const { response } = await generateItineraryWithRetry({
-      input: trip.normalized_input,
-      destination: rec.destination_snapshot,
+      input,
+      destination,
+      tripLengthDays: input.tripLengthDays,
     });
     await sb
       .from("recommendations")

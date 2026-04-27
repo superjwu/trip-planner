@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { ItineraryResponseSchema, type ItineraryResponse } from "../schemas";
+import { buildItineraryResponseSchema, type ItineraryResponse } from "../schemas";
 import { ITIN_PROMPT_VERSION, REC_MODEL, type NormalizedTripInput, type SeedDestination } from "../types";
 import { buildItineraryUserPrompt, ITINERARY_SYSTEM_PROMPT } from "./prompts";
 
@@ -17,6 +17,7 @@ export interface ItineraryResult {
 export async function generateItinerary(args: {
   input: NormalizedTripInput;
   destination: SeedDestination;
+  tripLengthDays: number;
 }): Promise<ItineraryResult> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
@@ -39,15 +40,11 @@ export async function generateItinerary(args: {
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error("Itinerary LLM returned no JSON");
   const json = JSON.parse(match[0]);
-  const response = ItineraryResponseSchema.parse(json);
-
-  // Coerce day count to trip length, in case the model overshoots
-  const trimmed = {
-    days: response.days.slice(0, args.input.tripLengthDays),
-  };
+  const Schema = buildItineraryResponseSchema(args.tripLengthDays);
+  const response = Schema.parse(json);
 
   return {
-    response: trimmed,
+    response,
     meta: {
       model: REC_MODEL,
       promptVersion: ITIN_PROMPT_VERSION,
@@ -61,6 +58,7 @@ export async function generateItinerary(args: {
 export async function generateItineraryWithRetry(args: {
   input: NormalizedTripInput;
   destination: SeedDestination;
+  tripLengthDays: number;
 }): Promise<ItineraryResult> {
   try {
     return await generateItinerary(args);

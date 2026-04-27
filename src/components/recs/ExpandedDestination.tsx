@@ -13,12 +13,13 @@ import { BookingLinks } from "@/components/trip/BookingLinks";
 interface Props {
   pick: RecommendationPick;
   destination: SeedDestination;
-  cost: CostBreakdownT;
-  weather: WeatherForecast;
-  bookingLinks: BookingLinksT;
-  itinerary?: ItineraryDay[]; // null when not yet generated
+  cost?: CostBreakdownT;
+  weather?: WeatherForecast;
+  bookingLinks?: BookingLinksT | null;
+  itinerary?: ItineraryDay[];
+  /** True when itinerary couldn't be generated (LLM failed). */
+  itineraryMissing?: boolean;
   itineraryLoading?: boolean;
-  onSave?: () => void;
   onClose?: () => void;
 }
 
@@ -29,8 +30,8 @@ export function ExpandedDestination({
   weather,
   bookingLinks,
   itinerary,
+  itineraryMissing,
   itineraryLoading,
-  onSave,
   onClose,
 }: Props) {
   const photo = destinationPhotoUrl(destination);
@@ -108,7 +109,6 @@ export function ExpandedDestination({
             ))}
           </ul>
 
-          {/* Itinerary */}
           <div className="mt-8">
             <h3
               className="font-serif text-xl font-bold text-white"
@@ -121,9 +121,9 @@ export function ExpandedDestination({
                 Drafting your itinerary…
               </p>
             )}
-            {!itineraryLoading && !itinerary && (
+            {!itineraryLoading && itineraryMissing && !itinerary && (
               <p className="mt-3 text-sm text-[var(--text-muted)]">
-                Click into a card to generate the itinerary.
+                Couldn't generate an itinerary right now. Try refreshing the page.
               </p>
             )}
             {itinerary && (
@@ -148,7 +148,6 @@ export function ExpandedDestination({
           </div>
         </div>
 
-        {/* Sidebar */}
         <aside className="flex flex-col gap-4">
           <div className="glass px-5 py-4">
             <h4
@@ -157,23 +156,48 @@ export function ExpandedDestination({
             >
               🌤 Weather
             </h4>
-            <p className="mt-2 text-sm text-[var(--text-muted)]">
-              <span className="font-semibold text-white">
-                {weather.highF}° / {weather.lowF}°F
-              </span>{" "}
-              · {weather.summary}
-            </p>
+            {weather ? (
+              <p className="mt-2 text-sm text-[var(--text-muted)]">
+                <span className="font-semibold text-white">
+                  {weather.highF}° / {weather.lowF}°F
+                </span>{" "}
+                · {weather.summary}
+              </p>
+            ) : (
+              <p className="mt-2 text-sm text-[var(--text-muted)]">
+                Forecast unavailable for these dates.
+              </p>
+            )}
           </div>
-          <CostBreakdown cost={cost} />
-          <BookingLinks links={bookingLinks} />
-          {onSave && (
-            <button
-              type="button"
-              onClick={onSave}
-              className="rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-[var(--primary-text)] shadow-[0_0_24px_var(--primary-glow)] transition hover:opacity-90"
-            >
-              ✦ Save this trip
-            </button>
+          {cost ? (
+            <CostBreakdown cost={cost} />
+          ) : (
+            <div className="glass px-5 py-4">
+              <h4
+                className="font-serif text-lg font-bold text-white"
+                style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+              >
+                💰 Cost breakdown
+              </h4>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">
+                Cost estimate not yet available — check the booking links for live prices.
+              </p>
+            </div>
+          )}
+          {bookingLinks ? (
+            <BookingLinks links={bookingLinks} />
+          ) : (
+            <div className="glass px-5 py-4">
+              <h4
+                className="font-serif text-lg font-bold text-white"
+                style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+              >
+                🎟 Book it
+              </h4>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">
+                Booking links unavailable.
+              </p>
+            </div>
           )}
         </aside>
       </div>

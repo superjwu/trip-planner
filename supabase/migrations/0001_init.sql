@@ -137,6 +137,24 @@ create policy "recommendations: owner update"
       where t.id = recommendations.trip_id
         and t.clerk_user_id = (auth.jwt() ->> 'sub')
     )
+  )
+  with check (
+    exists (
+      select 1 from public.trips t
+      where t.id = recommendations.trip_id
+        and t.clerk_user_id = (auth.jwt() ->> 'sub')
+    )
+  );
+
+create policy "recommendations: owner delete"
+  on public.recommendations for delete
+  to authenticated
+  using (
+    exists (
+      select 1 from public.trips t
+      where t.id = recommendations.trip_id
+        and t.clerk_user_id = (auth.jwt() ->> 'sub')
+    )
   );
 
 -- ─────────────────────────────────────────────────────────────

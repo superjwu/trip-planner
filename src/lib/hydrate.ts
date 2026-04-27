@@ -74,8 +74,13 @@ function buildCost(
   const foodUsd = destination.typicalCostBands.foodPerDayUsd * days;
   const activitiesUsd = destination.typicalCostBands.activitiesPerDayUsd * days;
 
-  const source: CostBreakdown["source"] =
-    amadeusFlight || amadeusHotel ? "amadeus" : "estimate";
+  const flightSource: "amadeus" | "estimate" = amadeusFlight ? "amadeus" : "estimate";
+  const lodgingSource: "amadeus" | "estimate" = amadeusHotel ? "amadeus" : "estimate";
+
+  let overall: CostBreakdown["source"];
+  if (flightSource === "amadeus" && lodgingSource === "amadeus") overall = "amadeus";
+  else if (flightSource === "amadeus" || lodgingSource === "amadeus") overall = "mixed";
+  else overall = "estimate";
 
   return {
     flightUsd,
@@ -83,7 +88,9 @@ function buildCost(
     foodUsd,
     activitiesUsd,
     totalUsd: flightUsd + lodgingUsd + foodUsd + activitiesUsd,
-    source,
+    source: overall,
+    flightSource,
+    lodgingSource,
   };
 }
 
