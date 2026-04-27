@@ -5,9 +5,12 @@ import { DestinationCard } from "@/components/recs/DestinationCard";
 import { isClerkConfigured } from "@/lib/clerk-config";
 import { createAdminSupabase, createServerSupabase } from "@/lib/supabase/server";
 import type {
+  BookingLinks,
+  CostBreakdown,
   NormalizedTripInput,
   RecommendationPick,
   SeedDestination,
+  WeatherForecast,
 } from "@/lib/types";
 import { computeRecommendations } from "./actions";
 
@@ -36,8 +39,9 @@ interface RecommendationRow {
   reasoning: string;
   match_tags: string[];
   destination_snapshot: SeedDestination;
-  hydration: unknown;
-  booking_links: unknown;
+  hydration: { weather: WeatherForecast; cost: CostBreakdown } | null;
+  booking_links: BookingLinks | null;
+  itinerary: unknown;
 }
 
 async function fetchTrip(id: string) {
@@ -60,7 +64,7 @@ async function fetchRecs(tripId: string) {
     : createAdminSupabase();
   const { data } = await sb
     .from("recommendations")
-    .select("id, rank, destination_slug, reasoning, match_tags, destination_snapshot, hydration, booking_links")
+    .select("id, rank, destination_slug, reasoning, match_tags, destination_snapshot, hydration, booking_links, itinerary")
     .eq("trip_id", tripId)
     .order("rank", { ascending: true });
   return (data as RecommendationRow[]) ?? [];
@@ -120,6 +124,8 @@ function ResultsGrid({ recs }: { recs: RecommendationRow[] }) {
             key={r.id}
             pick={pick}
             destination={r.destination_snapshot}
+            cost={r.hydration?.cost}
+            weather={r.hydration?.weather}
           />
         );
       })}

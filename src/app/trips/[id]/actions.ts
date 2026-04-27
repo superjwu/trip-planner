@@ -10,6 +10,7 @@ import {
 import { DESTINATIONS } from "@/lib/seed/destinations";
 import type { NormalizedTripInput } from "@/lib/types";
 import { RecommendationResponseSchema } from "@/lib/schemas";
+import { hydrateRecommendation } from "@/lib/hydrate";
 
 interface TripRow {
   id: string;
@@ -93,22 +94,29 @@ export async function computeRecommendations(tripId: string): Promise<{
     // keyed off trip_id is fine to call even when there are none).
     await sb.from("recommendations").delete().eq("trip_id", tripId);
 
-    const rows = response.picks.map((pick) => {
-      const dest = DESTINATIONS.find((d) => d.slug === pick.slug)!;
-      return {
-        trip_id: tripId,
-        rank: pick.rank,
-        destination_slug: pick.slug,
-        reasoning: pick.reasoning,
-        match_tags: pick.match_tags,
-        destination_snapshot: dest,
-        hydration: null,
-        booking_links: null,
-        itinerary: null,
-        llm_meta: meta,
-        hydration_status: "pending",
-      };
-    });
+    // Hydrate all 4 picks in parallel: weather always, Amadeus best-effort,
+    // booking links deterministic. hydrateRecommendation never throws.
+    const hydratedPicks = await Promise.all(
+      response.picks.map(async (pick) => {
+        const dest = DESTINATIONS.find((d) => d.slug === pick.slug)!;
+        const bundle = await hydrateRecommendation({ input, destination: dest });
+        return { pick, dest, bundle };
+      }),
+    );
+
+    const rows = hydratedPicks.map(({ pick, dest, bundle }) => ({
+      trip_id: tripId,
+      rank: pick.rank,
+      destination_slug: pick.slug,
+      reasoning: pick.reasoning,
+      match_tags: pick.match_tags,
+      destination_snapshot: dest,
+      hydration: { weather: bundle.weather, cost: bundle.cost },
+      booking_links: bundle.bookingLinks,
+      itinerary: null,
+      llm_meta: meta,
+      hydration_status: "ready",
+    }));
 
     const { error: insertErr } = await sb.from("recommendations").insert(rows);
     if (insertErr) throw insertErr;
