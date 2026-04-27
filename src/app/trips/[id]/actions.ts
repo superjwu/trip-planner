@@ -11,12 +11,23 @@ import { DESTINATIONS } from "@/lib/seed/destinations";
 import type { NormalizedTripInput } from "@/lib/types";
 import { RecommendationResponseSchema } from "@/lib/schemas";
 import { hydrateRecommendation } from "@/lib/hydrate";
+import { generateItineraryWithRetry } from "@/lib/llm/itinerary";
+import type { SeedDestination } from "@/lib/types";
 
 interface TripRow {
   id: string;
   clerk_user_id: string;
   normalized_input: NormalizedTripInput;
   compute_status: "pending" | "computing" | "ready" | "failed";
+}
+
+interface RecRow {
+  id: string;
+  trip_id: string;
+  rank: number;
+  destination_slug: string;
+  destination_snapshot: SeedDestination;
+  itinerary: unknown;
 }
 
 /**
@@ -134,6 +145,56 @@ export async function computeRecommendations(tripId: string): Promise<{
       .from("trips")
       .update({ compute_status: "failed", compute_error: message })
       .eq("id", tripId);
+    return { ok: false, error: message };
+  }
+}
+
+/**
+ * Lazy itinerary generation for a single recommendation. Idempotent: if the
+ * itinerary already exists on the row, returns immediately.
+ */
+export async function ensureItinerary(args: {
+  tripId: string;
+  recId: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const sb = isClerkConfigured()
+    ? await createServerSupabase()
+    : createAdminSupabase();
+
+  const { data: rec, error: recErr } = await sb
+    .from("recommendations")
+    .select("id, trip_id, rank, destination_slug, destination_snapshot, itinerary")
+    .eq("id", args.recId)
+    .maybeSingle<RecRow>();
+  if (recErr || !rec) {
+    return { ok: false, error: recErr?.message ?? "Recommendation not found." };
+  }
+  if (rec.itinerary) {
+    return { ok: true };
+  }
+
+  const { data: trip } = await sb
+    .from("trips")
+    .select("id, clerk_user_id, normalized_input, compute_status")
+    .eq("id", args.tripId)
+    .maybeSingle<TripRow>();
+  if (!trip || !trip.normalized_input) {
+    return { ok: false, error: "Trip not found." };
+  }
+
+  try {
+    const { response } = await generateItineraryWithRetry({
+      input: trip.normalized_input,
+      destination: rec.destination_snapshot,
+    });
+    await sb
+      .from("recommendations")
+      .update({ itinerary: response })
+      .eq("id", rec.id);
+    revalidatePath(`/trips/${args.tripId}`);
+    return { ok: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
     return { ok: false, error: message };
   }
 }

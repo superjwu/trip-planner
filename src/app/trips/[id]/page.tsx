@@ -1,18 +1,21 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MainNav } from "@/components/nav/MainNav";
 import { CompareHeader } from "@/components/recs/CompareHeader";
 import { DestinationCard } from "@/components/recs/DestinationCard";
+import { ExpandedDestination } from "@/components/recs/ExpandedDestination";
 import { isClerkConfigured } from "@/lib/clerk-config";
 import { createAdminSupabase, createServerSupabase } from "@/lib/supabase/server";
 import type {
   BookingLinks,
   CostBreakdown,
+  ItineraryDay,
   NormalizedTripInput,
   RecommendationPick,
   SeedDestination,
   WeatherForecast,
 } from "@/lib/types";
-import { computeRecommendations } from "./actions";
+import { computeRecommendations, ensureItinerary } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +44,7 @@ interface RecommendationRow {
   destination_snapshot: SeedDestination;
   hydration: { weather: WeatherForecast; cost: CostBreakdown } | null;
   booking_links: BookingLinks | null;
-  itinerary: unknown;
+  itinerary: { days: ItineraryDay[] } | null;
 }
 
 async function fetchTrip(id: string) {
@@ -72,10 +75,13 @@ async function fetchRecs(tripId: string) {
 
 export default async function TripPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ focus?: string }>;
 }) {
   const { id } = await params;
+  const { focus: focusRaw } = await searchParams;
   let { trip, error } = await fetchTrip(id);
   if (error || !trip) notFound();
 
@@ -88,7 +94,24 @@ export default async function TripPage({
   }
 
   const normalized = trip.normalized_input;
-  const recs = trip.compute_status === "ready" ? await fetchRecs(id) : [];
+  let recs = trip.compute_status === "ready" ? await fetchRecs(id) : [];
+
+  const focusRank = focusRaw ? Number(focusRaw) : null;
+  const focused =
+    focusRank !== null
+      ? recs.find((r) => r.rank === focusRank) ?? null
+      : null;
+
+  // Lazy itinerary: if the focused rec doesn't have one yet, generate it now.
+  if (focused && !focused.itinerary) {
+    await ensureItinerary({ tripId: id, recId: focused.id });
+    // Re-fetch only the focused row's itinerary
+    recs = await fetchRecs(id);
+  }
+  const refocused =
+    focusRank !== null
+      ? recs.find((r) => r.rank === focusRank) ?? null
+      : null;
 
   return (
     <>
@@ -101,15 +124,73 @@ export default async function TripPage({
           <ErrorState message={trip.compute_error ?? "Something went wrong."} />
         )}
 
-        {trip.compute_status === "ready" && recs.length > 0 && (
-          <ResultsGrid recs={recs} />
+        {trip.compute_status === "ready" && refocused && (
+          <FocusedView tripId={id} rec={refocused} />
+        )}
+
+        {trip.compute_status === "ready" && recs.length > 0 && !refocused && (
+          <ResultsGrid tripId={id} recs={recs} />
+        )}
+
+        {trip.compute_status === "ready" && refocused && (
+          <CompactGrid tripId={id} recs={recs} activeRank={refocused.rank} />
         )}
       </main>
     </>
   );
 }
 
-function ResultsGrid({ recs }: { recs: RecommendationRow[] }) {
+function FocusedView({ tripId, rec }: { tripId: string; rec: RecommendationRow }) {
+  const pick: RecommendationPick = {
+    slug: rec.destination_slug,
+    rank: rec.rank,
+    reasoning: rec.reasoning,
+    matchTags: rec.match_tags,
+  };
+  const cost = rec.hydration?.cost ?? {
+    flightUsd: 0,
+    lodgingUsd: 0,
+    foodUsd: 0,
+    activitiesUsd: 0,
+    totalUsd: 0,
+    source: "estimate" as const,
+  };
+  const weather = rec.hydration?.weather ?? {
+    highF: 0,
+    lowF: 0,
+    precipMm: 0,
+    summary: "—",
+  };
+  const bookingLinks = rec.booking_links ?? { flights: "#", lodging: "#" };
+  const itineraryDays = rec.itinerary?.days;
+
+  return (
+    <div className="mb-10">
+      <Link
+        href={`/trips/${tripId}`}
+        className="mb-4 inline-flex items-center gap-1 text-sm text-[var(--text-muted)] transition hover:text-white"
+      >
+        ← Back to all 4
+      </Link>
+      <ExpandedDestination
+        pick={pick}
+        destination={rec.destination_snapshot}
+        cost={cost}
+        weather={weather}
+        bookingLinks={bookingLinks}
+        itinerary={itineraryDays}
+      />
+    </div>
+  );
+}
+
+function ResultsGrid({
+  tripId,
+  recs,
+}: {
+  tripId: string;
+  recs: RecommendationRow[];
+}) {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
       {recs.map((r) => {
@@ -120,16 +201,60 @@ function ResultsGrid({ recs }: { recs: RecommendationRow[] }) {
           matchTags: r.match_tags,
         };
         return (
-          <DestinationCard
-            key={r.id}
-            pick={pick}
-            destination={r.destination_snapshot}
-            cost={r.hydration?.cost}
-            weather={r.hydration?.weather}
-          />
+          <Link key={r.id} href={`/trips/${tripId}?focus=${r.rank}`} className="block">
+            <DestinationCard
+              pick={pick}
+              destination={r.destination_snapshot}
+              cost={r.hydration?.cost}
+              weather={r.hydration?.weather}
+            />
+          </Link>
         );
       })}
     </div>
+  );
+}
+
+function CompactGrid({
+  tripId,
+  recs,
+  activeRank,
+}: {
+  tripId: string;
+  recs: RecommendationRow[];
+  activeRank: number;
+}) {
+  return (
+    <section className="mt-10">
+      <p className="hero-eyebrow mb-3 text-[var(--accent)]">Other picks</p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {recs
+          .filter((r) => r.rank !== activeRank)
+          .map((r) => (
+            <Link
+              key={r.id}
+              href={`/trips/${tripId}?focus=${r.rank}`}
+              className="glass glass-hover flex items-center gap-3 px-4 py-3"
+            >
+              <span className="rounded bg-black/55 px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider text-white">
+                #{r.rank}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p
+                  className="truncate font-serif text-sm font-bold text-white"
+                  style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+                >
+                  {r.destination_snapshot.name}
+                </p>
+                <p className="truncate text-xs text-[var(--text-muted)]">
+                  {r.destination_snapshot.region} · ${r.hydration?.cost.totalUsd?.toLocaleString() ?? "—"}
+                </p>
+              </div>
+              <span className="text-[var(--primary)]">→</span>
+            </Link>
+          ))}
+      </div>
+    </section>
   );
 }
 
