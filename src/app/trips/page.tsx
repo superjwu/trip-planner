@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { z } from "zod";
 import { MainNav } from "@/components/nav/MainNav";
 import { requireUserId } from "@/lib/auth";
 import { createOwnerScopedSupabase } from "@/lib/supabase/server";
+import { NormalizedTripInputSchema } from "@/lib/schemas";
 import type { NormalizedTripInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +12,25 @@ export const metadata = {
   title: "My trips — Trip Planner",
 };
 
-interface TripRow {
+interface TripRowRaw {
+  id: string;
+  origin_city: string | null;
+  depart_on: string | null;
+  return_on: string | null;
+  normalized_input: unknown;
+  compute_status: string;
+  user_status: "draft" | "saved" | "archived";
+  created_at: string;
+}
+
+interface RecPreviewRowRaw {
+  trip_id: string;
+  rank: number;
+  destination_slug: string;
+  destination_snapshot: unknown;
+}
+
+interface ParsedTrip {
   id: string;
   origin_city: string | null;
   depart_on: string | null;
@@ -18,21 +38,50 @@ interface TripRow {
   normalized_input: NormalizedTripInput | null;
   compute_status: string;
   user_status: "draft" | "saved" | "archived";
-  created_at: string;
 }
 
-interface RecPreviewRow {
+interface ParsedRecPreview {
   trip_id: string;
   rank: number;
   destination_slug: string;
-  destination_snapshot: { name: string; state: string } | null;
+  destination_name: string | null;
+  destination_state: string | null;
+}
+
+const RecPreviewSnapshotSchema = z.object({
+  name: z.string(),
+  state: z.string(),
+});
+
+function parseTrip(raw: TripRowRaw): ParsedTrip {
+  const norm = NormalizedTripInputSchema.safeParse(raw.normalized_input);
+  return {
+    id: raw.id,
+    origin_city: raw.origin_city,
+    depart_on: raw.depart_on,
+    return_on: raw.return_on,
+    normalized_input: norm.success ? norm.data : null,
+    compute_status: raw.compute_status,
+    user_status: raw.user_status,
+  };
+}
+
+function parseRecPreview(raw: RecPreviewRowRaw): ParsedRecPreview {
+  const snap = RecPreviewSnapshotSchema.safeParse(raw.destination_snapshot);
+  return {
+    trip_id: raw.trip_id,
+    rank: raw.rank,
+    destination_slug: raw.destination_slug,
+    destination_name: snap.success ? snap.data.name : null,
+    destination_state: snap.success ? snap.data.state : null,
+  };
 }
 
 async function fetchTrips() {
   try {
     const userId = await requireUserId();
     const sb = await createOwnerScopedSupabase();
-    const { data: trips } = await sb
+    const { data: tripsRaw } = await sb
       .from("trips")
       .select(
         "id, origin_city, depart_on, return_on, normalized_input, compute_status, user_status, created_at",
@@ -42,27 +91,29 @@ async function fetchTrips() {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    const tripIds = (trips ?? []).map((t) => t.id);
-    let recs: RecPreviewRow[] = [];
+    const trips = ((tripsRaw as TripRowRaw[]) ?? []).map(parseTrip);
+
+    const tripIds = trips.map((t) => t.id);
+    let recs: ParsedRecPreview[] = [];
     if (tripIds.length) {
       const { data } = await sb
         .from("recommendations")
         .select("trip_id, rank, destination_slug, destination_snapshot")
         .in("trip_id", tripIds);
-      recs = (data as RecPreviewRow[]) ?? [];
+      recs = ((data as RecPreviewRowRaw[]) ?? []).map(parseRecPreview);
     }
 
-    return { trips: (trips as TripRow[]) ?? [], recs };
+    return { trips, recs };
   } catch {
-    // Supabase not reachable (placeholder env). Render empty state.
-    return { trips: [] as TripRow[], recs: [] as RecPreviewRow[] };
+    // Supabase not reachable (placeholder env) or auth not configured.
+    return { trips: [] as ParsedTrip[], recs: [] as ParsedRecPreview[] };
   }
 }
 
 export default async function TripsPage() {
   const { trips, recs } = await fetchTrips();
 
-  const recsByTrip = new Map<string, RecPreviewRow[]>();
+  const recsByTrip = new Map<string, ParsedRecPreview[]>();
   for (const r of recs) {
     if (!recsByTrip.has(r.trip_id)) recsByTrip.set(r.trip_id, []);
     recsByTrip.get(r.trip_id)!.push(r);
@@ -132,8 +183,8 @@ function TripList({
   trips,
   recsByTrip,
 }: {
-  trips: TripRow[];
-  recsByTrip: Map<string, RecPreviewRow[]>;
+  trips: ParsedTrip[];
+  recsByTrip: Map<string, ParsedRecPreview[]>;
 }) {
   return (
     <div className="space-y-3">
@@ -144,10 +195,17 @@ function TripList({
         const top = tripRecs[0];
         const summary =
           tripRecs.length > 0
-            ? tripRecs.map((r) => r.destination_snapshot?.name ?? r.destination_slug).join(" · ")
+            ? tripRecs
+                .map((r) => r.destination_name ?? r.destination_slug)
+                .join(" · ")
             : t.compute_status === "computing"
               ? "Picking destinations…"
               : "Not yet computed";
+        const title =
+          top?.destination_name ??
+          (t.normalized_input
+            ? `${t.normalized_input.tripLengthDays}-day trip from ${t.normalized_input.originCode}`
+            : "Trip");
         return (
           <Link
             key={t.id}
@@ -159,10 +217,7 @@ function TripList({
                 className="font-serif text-lg font-bold text-white"
                 style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
               >
-                {top?.destination_snapshot?.name ??
-                  (t.normalized_input
-                    ? `${t.normalized_input.tripLengthDays}-day trip from ${t.normalized_input.originCode}`
-                    : "Trip")}
+                {title}
               </p>
               <p className="truncate text-sm text-[var(--text-muted)]">
                 {summary}

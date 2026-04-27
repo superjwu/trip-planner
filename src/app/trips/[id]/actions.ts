@@ -10,9 +10,12 @@ import {
   rankDestinationsWithRetry,
 } from "@/lib/llm/recommend";
 import { DESTINATIONS } from "@/lib/seed/destinations";
-import { NormalizedTripInputSchema } from "@/lib/schemas";
+import {
+  NormalizedTripInputSchema,
+  RecommendationResponseSchema,
+  SeedDestinationSchema,
+} from "@/lib/schemas";
 import type { NormalizedTripInput, SeedDestination } from "@/lib/types";
-import { RecommendationResponseSchema } from "@/lib/schemas";
 import { hydrateRecommendation } from "@/lib/hydrate";
 import { generateItineraryWithRetry } from "@/lib/llm/itinerary";
 
@@ -232,12 +235,12 @@ export async function ensureItinerary(args: {
 
   let destination: SeedDestination;
   try {
-    destination = rec.destination_snapshot as SeedDestination;
-    if (!destination?.slug || !destination.name) {
-      throw new Error("destination_snapshot malformed");
-    }
+    destination = SeedDestinationSchema.parse(rec.destination_snapshot);
   } catch (e) {
-    return { ok: false, error: (e as Error).message };
+    return {
+      ok: false,
+      error: `destination_snapshot malformed: ${(e as Error).message}`,
+    };
   }
 
   try {

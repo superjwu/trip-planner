@@ -5,13 +5,14 @@ import {
   type NormalizedTripInput,
   type RawTripInput,
 } from "./types";
+import { MAX_TRIP_DAYS } from "./schemas";
 
 export function tripLengthDays(departOn: string, returnOn: string): number {
   const start = Date.parse(departOn);
   const end = Date.parse(returnOn);
   if (Number.isNaN(start) || Number.isNaN(end)) return 0;
   const days = Math.round((end - start) / 86400_000);
-  return Math.max(1, days);
+  return Math.max(1, Math.min(MAX_TRIP_DAYS, days));
 }
 
 export function seasonForDate(isoDate: string): NormalizedTripInput["seasonHint"] {

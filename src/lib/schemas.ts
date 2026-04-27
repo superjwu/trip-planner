@@ -151,12 +151,16 @@ export const PaceSchema = z.enum(["relaxed", "balanced", "packed"]);
 
 export const SeasonSchema = z.enum(["spring", "summer", "fall", "winter"]);
 
+// Hard cap: keep tripLengthDays compatible with ItineraryDaySchema.day (max 14).
+// The product targets 3-7 day trips; allow up to 14 for slack.
+export const MAX_TRIP_DAYS = 14;
+
 export const NormalizedTripInputSchema = z.object({
   originCode: OriginCityCodeSchema,
   originAirport: z.string(),
   departOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   returnOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  tripLengthDays: z.number().int().min(1).max(30),
+  tripLengthDays: z.number().int().min(1).max(MAX_TRIP_DAYS),
   vibes: z.array(VibeSchema).min(1),
   budgetBand: BudgetBandSchema,
   budgetCeilingUsd: z.number().nullable(),
