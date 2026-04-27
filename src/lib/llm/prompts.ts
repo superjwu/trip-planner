@@ -1,0 +1,101 @@
+import type { NormalizedTripInput, SeedDestination } from "../types";
+
+export const REC_SYSTEM_PROMPT = `You are an expert travel concierge for users departing from a major U.S. city on a 3–7 day leisure trip.
+
+Your job: given (a) the user's normalized preferences and (b) a curated list of US destination candidates, pick the 4 best matches and explain *why* each one fits the user's actual stated priorities.
+
+Hard rules:
+- Pick EXACTLY 4 destinations. Use only the slugs provided in the candidate list.
+- "reasoning" must be 1–2 sentences (40–250 chars). It must cite at least one specific user preference (vibe, budget posture, dates/season, dislikes, notes). Avoid generic praise.
+- "match_tags" is a list of 2–5 short, lowercase phrases that describe why this trip works (e.g. "shoulder season", "short flight", "foodie scene", "scenic drive", "budget friendly"). Reuse the user's vocabulary when possible.
+- "rank" is 1 (best fit) to 4. Each rank is unique.
+- Do NOT recommend the user's origin city.
+- Do NOT invent destinations not in the candidate list.
+- Diversity matters: prefer 4 destinations with meaningfully different geographies/experiences over 4 close substitutes.
+- Respect the user's "dislikes" — if they hate crowds, don't pick the most touristy option even if it otherwise fits.
+
+Return JSON ONLY in the exact schema requested.`;
+
+export function buildRecUserPrompt(args: {
+  input: NormalizedTripInput;
+  candidates: SeedDestination[];
+}): string {
+  const { input, candidates } = args;
+
+  const candidateLines = candidates
+    .map(
+      (d) =>
+        `- ${d.slug} | ${d.name}, ${d.state} (${d.region}) | tags: [${d.tags.join(", ")}] | blurb: ${d.blurb}`,
+    )
+    .join("\n");
+
+  return [
+    "USER PREFERENCES",
+    `- Origin city: ${input.originCode} (${input.originAirport})`,
+    `- Travel dates: ${input.departOn} → ${input.returnOn}`,
+    `- Trip length: ${input.tripLengthDays} days`,
+    `- Season at travel time: ${input.seasonHint}`,
+    `- Vibes (in priority order): ${input.vibes.join(", ")}`,
+    `- Pace: ${input.pace}`,
+    `- Budget band: ${input.budgetBand}${input.budgetCeilingUsd ? ` (≤ $${input.budgetCeilingUsd} per person all-in)` : ""}`,
+    `- Dislikes: ${input.dislikes || "(none)"}`,
+    "",
+    "CANDIDATE DESTINATIONS",
+    candidateLines,
+    "",
+    "OUTPUT",
+    "Return JSON only, exactly this schema:",
+    `{
+  "picks": [
+    { "slug": "<one-of-the-candidate-slugs>", "rank": 1, "reasoning": "...", "match_tags": ["...", "..."] },
+    ...four items total ranked 1..4
+  ]
+}`,
+  ].join("\n");
+}
+
+export const ITINERARY_SYSTEM_PROMPT = `You are a travel itinerary writer.
+
+Given a destination, the user's preferences, and trip dates, write a day-by-day itinerary tailored to those preferences. Return strict JSON only.
+
+Rules:
+- One day per array item. Day count must equal the trip length.
+- Each day: a 2–6 word title and a 1–2 sentence description (60–400 chars).
+- Reference the user's vibes / pace where natural; don't list the user's preferences back at them generically.
+- Mention specific places, neighborhoods, or trails by name when they're well-known.
+- Day 1 should account for arrival logistics; the last day should account for departure.
+- No prices, no booking instructions — those come from another component.
+
+Return JSON ONLY.`;
+
+export function buildItineraryUserPrompt(args: {
+  input: NormalizedTripInput;
+  destination: SeedDestination;
+}): string {
+  const { input, destination } = args;
+  const attractionList = destination.attractions
+    .map((a) => `${a.name}: ${a.description}`)
+    .join("\n  - ");
+
+  return [
+    `DESTINATION: ${destination.name}, ${destination.state} (${destination.region})`,
+    `Blurb: ${destination.blurb}`,
+    `Notable attractions:\n  - ${attractionList}`,
+    "",
+    "USER PREFERENCES",
+    `- Origin: ${input.originCode}`,
+    `- Dates: ${input.departOn} → ${input.returnOn} (${input.tripLengthDays} days)`,
+    `- Season: ${input.seasonHint}`,
+    `- Vibes: ${input.vibes.join(", ")}`,
+    `- Pace: ${input.pace}`,
+    `- Dislikes: ${input.dislikes || "(none)"}`,
+    "",
+    "OUTPUT",
+    `{
+  "days": [
+    { "day": 1, "title": "...", "description": "..." },
+    ...one item per trip day
+  ]
+}`,
+  ].join("\n");
+}

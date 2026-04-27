@@ -1,9 +1,15 @@
 import { notFound } from "next/navigation";
 import { MainNav } from "@/components/nav/MainNav";
 import { CompareHeader } from "@/components/recs/CompareHeader";
+import { DestinationCard } from "@/components/recs/DestinationCard";
 import { isClerkConfigured } from "@/lib/clerk-config";
 import { createAdminSupabase, createServerSupabase } from "@/lib/supabase/server";
-import type { NormalizedTripInput } from "@/lib/types";
+import type {
+  NormalizedTripInput,
+  RecommendationPick,
+  SeedDestination,
+} from "@/lib/types";
+import { computeRecommendations } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -23,14 +29,21 @@ interface TripRow {
   user_status: string;
 }
 
-export default async function TripPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+interface RecommendationRow {
+  id: string;
+  rank: number;
+  destination_slug: string;
+  reasoning: string;
+  match_tags: string[];
+  destination_snapshot: SeedDestination;
+  hydration: unknown;
+  booking_links: unknown;
+}
 
-  const sb = isClerkConfigured() ? await createServerSupabase() : createAdminSupabase();
+async function fetchTrip(id: string) {
+  const sb = isClerkConfigured()
+    ? await createServerSupabase()
+    : createAdminSupabase();
   const { data, error } = await sb
     .from("trips")
     .select(
@@ -38,14 +51,40 @@ export default async function TripPage({
     )
     .eq("id", id)
     .maybeSingle<TripRow>();
+  return { trip: data, error };
+}
 
-  if (error || !data) {
-    notFound();
+async function fetchRecs(tripId: string) {
+  const sb = isClerkConfigured()
+    ? await createServerSupabase()
+    : createAdminSupabase();
+  const { data } = await sb
+    .from("recommendations")
+    .select("id, rank, destination_slug, reasoning, match_tags, destination_snapshot, hydration, booking_links")
+    .eq("trip_id", tripId)
+    .order("rank", { ascending: true });
+  return (data as RecommendationRow[]) ?? [];
+}
+
+export default async function TripPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  let { trip, error } = await fetchTrip(id);
+  if (error || !trip) notFound();
+
+  // Synchronous compute on first visit when status='pending'. Loading.tsx
+  // shows the skeleton during this await.
+  if (trip.compute_status === "pending") {
+    await computeRecommendations(id);
+    ({ trip } = await fetchTrip(id));
+    if (!trip) notFound();
   }
 
-  const normalized = data.normalized_input;
-  const computing =
-    data.compute_status === "pending" || data.compute_status === "computing";
+  const normalized = trip.normalized_input;
+  const recs = trip.compute_status === "ready" ? await fetchRecs(id) : [];
 
   return (
     <>
@@ -53,17 +92,38 @@ export default async function TripPage({
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
         {normalized && <CompareHeader input={normalized} destinationCount={4} />}
 
-        {computing && <ComputingState />}
-
-        {data.compute_status === "failed" && (
-          <ErrorState message={data.compute_error ?? "Something went wrong."} />
+        {trip.compute_status === "computing" && <ComputingState />}
+        {trip.compute_status === "failed" && (
+          <ErrorState message={trip.compute_error ?? "Something went wrong."} />
         )}
 
-        {data.compute_status === "ready" && (
-          <ReadyStub message="Recommendations land in Phase 4." />
+        {trip.compute_status === "ready" && recs.length > 0 && (
+          <ResultsGrid recs={recs} />
         )}
       </main>
     </>
+  );
+}
+
+function ResultsGrid({ recs }: { recs: RecommendationRow[] }) {
+  return (
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+      {recs.map((r) => {
+        const pick: RecommendationPick = {
+          slug: r.destination_slug,
+          rank: r.rank,
+          reasoning: r.reasoning,
+          matchTags: r.match_tags,
+        };
+        return (
+          <DestinationCard
+            key={r.id}
+            pick={pick}
+            destination={r.destination_snapshot}
+          />
+        );
+      })}
+    </div>
   );
 }
 
@@ -86,14 +146,6 @@ function ComputingState() {
                 <div className="h-3 w-5/6 animate-pulse rounded bg-white/10" />
                 <div className="h-3 w-4/6 animate-pulse rounded bg-white/10" />
               </div>
-              <div className="flex gap-1.5">
-                {Array.from({ length: 3 }).map((_, j) => (
-                  <div
-                    key={j}
-                    className="h-5 w-16 animate-pulse rounded-full bg-white/10"
-                  />
-                ))}
-              </div>
             </div>
           </article>
         ))}
@@ -115,18 +167,6 @@ function ErrorState({ message }: { message: string }) {
         Couldn't generate recommendations
       </p>
       <p className="mt-1 text-sm text-[var(--text-muted)]">{message}</p>
-    </div>
-  );
-}
-
-function ReadyStub({ message }: { message: string }) {
-  return (
-    <div className="glass-strong mt-6 px-7 py-6 text-center">
-      <p className="text-base font-semibold text-white">{message}</p>
-      <p className="mt-1 text-sm text-[var(--text-muted)]">
-        See <a className="underline" href="/trips/demo">/trips/demo</a> for the
-        layout preview while the rec engine is being built.
-      </p>
     </div>
   );
 }
