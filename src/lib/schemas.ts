@@ -151,6 +151,9 @@ export const PaceSchema = z.enum(["relaxed", "balanced", "packed"]);
 
 export const SeasonSchema = z.enum(["spring", "summer", "fall", "winter"]);
 
+export const UserStatusSchema = z.enum(["draft", "saved", "archived"]);
+export type UserStatus = z.infer<typeof UserStatusSchema>;
+
 // Hard cap: keep tripLengthDays compatible with ItineraryDaySchema.day (max 14).
 // The product targets 3-7 day trips; allow up to 14 for slack.
 export const MAX_TRIP_DAYS = 14;

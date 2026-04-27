@@ -71,6 +71,10 @@ export function PreferenceWizard() {
       setError("Return date must be after departure.");
       return;
     }
+    if (tripDays > 14) {
+      setError("Trips longer than 14 days aren't supported yet — try a shorter window.");
+      return;
+    }
 
     const raw: RawTripInput = {
       origin,

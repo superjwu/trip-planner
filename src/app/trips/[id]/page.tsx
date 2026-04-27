@@ -12,6 +12,7 @@ import {
   HydrationSchema,
   NormalizedTripInputSchema,
   SeedDestinationSchema,
+  UserStatusSchema,
   buildItineraryResponseSchema,
 } from "@/lib/schemas";
 import type {
@@ -186,7 +187,9 @@ export default async function TripPage({
               <div className="mt-4 flex justify-end">
                 <SaveTripButton
                   tripId={id}
-                  initialStatus={trip.user_status as "draft" | "saved" | "archived"}
+                  initialStatus={
+                    UserStatusSchema.safeParse(trip.user_status).data ?? "draft"
+                  }
                 />
               </div>
             )}
