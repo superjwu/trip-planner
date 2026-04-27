@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Merriweather, Cormorant_Garamond } from "next/font/google";
+import { MaybeClerkProvider } from "@/components/providers/MaybeClerkProvider";
 import "./globals.css";
-// ClerkProvider re-added in Phase 1 once real keys are wired.
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,18 +35,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${merriweather.variable} ${cormorant.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <div className="mesh-bg" aria-hidden="true">
-          <div className="mesh-blob mesh-blob-1" />
-          <div className="mesh-blob mesh-blob-2" />
-          <div className="mesh-blob mesh-blob-3" />
-        </div>
-        {children}
-      </body>
-    </html>
+    <MaybeClerkProvider>
+      <html
+        lang="en"
+        className={`${inter.variable} ${merriweather.variable} ${cormorant.variable} h-full antialiased`}
+      >
+        <body className="min-h-full flex flex-col">
+          <div className="mesh-bg" aria-hidden="true">
+            <div className="mesh-blob mesh-blob-1" />
+            <div className="mesh-blob mesh-blob-2" />
+            <div className="mesh-blob mesh-blob-3" />
+          </div>
+          {children}
+        </body>
+      </html>
+    </MaybeClerkProvider>
   );
 }
