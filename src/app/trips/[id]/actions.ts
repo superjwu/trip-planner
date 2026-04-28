@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { requireUserId } from "@/lib/auth";
 import {
   createAdminSupabase,
   createOwnerScopedSupabase,
@@ -18,6 +19,7 @@ import {
 import type { NormalizedTripInput, SeedDestination } from "@/lib/types";
 import { hydrateRecommendation } from "@/lib/hydrate";
 import { generateItineraryWithRetry } from "@/lib/llm/itinerary";
+import { CodexNotConnectedError, CodexAuthExpiredError, CodexRateLimitError } from "@/lib/llm/codex-auth";
 
 interface TripRowRaw {
   id: string;
@@ -116,7 +118,12 @@ export async function computeRecommendations(tripId: string): Promise<{
     if (cached?.response) {
       response = RecommendationResponseSchema.parse(cached.response);
     } else {
-      const ranked = await rankDestinationsWithRetry(input, candidates);
+      const userId = await requireUserId();
+      const ranked = await rankDestinationsWithRetry({
+        clerkUserId: userId,
+        input,
+        candidates,
+      });
       response = ranked.response;
       meta = ranked.meta as unknown as Record<string, unknown>;
       await admin.from("rec_cache").upsert({ key, response });
@@ -162,13 +169,26 @@ export async function computeRecommendations(tripId: string): Promise<{
     revalidatePath(`/trips/${tripId}`);
     return { ok: true };
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = friendlyComputeError(err);
     await sb
       .from("trips")
       .update({ compute_status: "failed", compute_error: message })
       .eq("id", tripId);
     return { ok: false, error: message };
   }
+}
+
+function friendlyComputeError(err: unknown): string {
+  if (err instanceof CodexNotConnectedError) {
+    return "Connect ChatGPT first — your account isn't linked yet.";
+  }
+  if (err instanceof CodexAuthExpiredError) {
+    return "Your ChatGPT connection expired. Reconnect to continue.";
+  }
+  if (err instanceof CodexRateLimitError) {
+    return "Your ChatGPT account hit a rate limit. Try again in a minute.";
+  }
+  return err instanceof Error ? err.message : String(err);
 }
 
 /**
@@ -244,7 +264,9 @@ export async function ensureItinerary(args: {
   }
 
   try {
+    const userId = await requireUserId();
     const { response } = await generateItineraryWithRetry({
+      clerkUserId: userId,
       input,
       destination,
       tripLengthDays: input.tripLengthDays,
@@ -256,7 +278,6 @@ export async function ensureItinerary(args: {
     revalidatePath(`/trips/${args.tripId}`);
     return { ok: true };
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return { ok: false, error: message };
+    return { ok: false, error: friendlyComputeError(err) };
   }
 }

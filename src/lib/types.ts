@@ -109,6 +109,15 @@ export interface ItineraryDay {
 }
 
 export const SEED_VERSION = 1;
-export const REC_PROMPT_VERSION = "rec-v1";
-export const ITIN_PROMPT_VERSION = "itin-v1";
-export const REC_MODEL = "claude-sonnet-4-6";
+export const REC_PROMPT_VERSION = "rec-v2-codex";
+export const ITIN_PROMPT_VERSION = "itin-v2-codex";
+
+// Codex-backend model names (per numman-ali/opencode-openai-codex-auth README).
+// Sonnet/Haiku names from the prior Anthropic build are gone.
+export const REC_MODEL = "gpt-5.2";
+export const ITIN_MODEL = "gpt-5.1";
+
+// Reasoning effort knobs accepted by the Codex Responses endpoint.
+export type ReasoningEffort = "minimal" | "low" | "medium" | "high";
+export const REC_REASONING: ReasoningEffort = "medium";
+export const ITIN_REASONING: ReasoningEffort = "low";

@@ -17,14 +17,27 @@ for the build plan.
 
 - **Next.js 16** (App Router) + TypeScript
 - **Tailwind CSS v4** with theme tokens ported from v25-immersive
-- **Clerk** auth + **Supabase** (Third-Party Auth — Clerk session token →
-  `accessToken` callback on the Supabase client; RLS on `auth.jwt()->>'sub'`)
-- **Anthropic SDK** (Claude Sonnet 4.6) for ranking + itinerary
+- **Clerk** for app sign-in, **Supabase** (Third-Party Auth) for storage
+- **OpenAI Codex backend via per-user OAuth** for ranking + itinerary —
+  every end-user connects their own ChatGPT Plus/Pro account, and trip
+  generation uses GPT-5.x routed through their subscription. No shared
+  Anthropic / OpenAI API key on the server.
 - **Open-Meteo** (weather, no API key needed)
 - **Google Places** (one-time photo prefetch into seed)
 - **Amadeus Self-Service** test env (best-effort flight/hotel quotes; falls
   back to seed cost bands when the test env returns nothing useful)
 - Booking deep-links to Skyscanner, Google Flights, and Booking.com
+
+## Important compliance note
+
+The "Connect ChatGPT" feature uses the same OAuth client and Codex backend
+that OpenAI's official Codex CLI uses. The reference implementations
+(`numman-ali/opencode-openai-codex-auth`, `tumf/opencode-openai-device-auth`)
+are local CLI tools intended for personal use. Running this pattern as a
+multi-tenant hosted service is **not what those projects are for**. The
+integration is provided here for personal demo use, depends on OpenAI
+keeping the protocol available, and inherits each user's own ChatGPT
+account rate limits. `CODEX_OAUTH_ENABLED=0` is the kill-switch.
 
 ## Local development
 
@@ -35,25 +48,47 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:3000>. The home page (`/`), wizard (`/plan`), and
-static layout demo (`/trips/demo`) work without any external services
-configured.
-
-To exercise the full flow (sign in → submit prefs → see real LLM picks)
-you need `NEXT_PUBLIC_CLERK_*`, `*_SUPABASE_*`, and `ANTHROPIC_API_KEY`.
+Open <http://localhost:3000>. The home page (`/`), static layout demo
+(`/trips/demo`), and sign-in pages work without external services
+configured. Planning a trip requires Clerk + Supabase + a Codex token
+(via the in-app Connect ChatGPT flow).
 
 ### Required env vars
 
-| Variable | Purpose | Required to test |
-|----------|---------|------------------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` | Auth | Sign in/up |
+| Variable | Purpose | Required for |
+|----------|---------|--------------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` | App identity | Sign in / up |
 | `NEXT_PUBLIC_SUPABASE_URL` + `_ANON_KEY` + `SUPABASE_SERVICE_ROLE_KEY` | DB | Saving trips |
-| `ANTHROPIC_API_KEY` | Claude ranking + itinerary | Real recommendations |
+| `CODEX_OAUTH_ENABLED` | Kill-switch (set to `1` to enable) | The Connect-ChatGPT flow |
+| `CODEX_TOKEN_ENCRYPTION_KEY` | 32+ char random — pgp_sym_encrypt master key | Storing OAuth tokens |
 | `GOOGLE_PLACES_API_KEY` | One-time photo prefetch | `npm run seed:photos` |
-| `AMADEUS_CLIENT_ID` + `_SECRET` (+ `AMADEUS_ENV=test`) | Live flight/hotel quotes | Otherwise we use cost bands |
+| `AMADEUS_CLIENT_ID` + `_SECRET` (+ `AMADEUS_ENV=test`) | Live flight/hotel quotes | Otherwise cost bands are used |
 
 Without real Clerk keys, auth pages render a friendly stub and middleware
-no-ops so the rest of the app remains explorable.
+no-ops so the rest of the app remains explorable. Without
+`CODEX_OAUTH_ENABLED=1`, `/plan` shows the disabled banner.
+
+Each end user must enable **device-code login** on their ChatGPT account
+(<https://chatgpt.com/settings/security>) before they can connect — this is
+an OpenAI account setting, not something the app can flip for them.
+
+### How "Connect ChatGPT" works
+
+1. User clicks **Connect ChatGPT** in the wizard.
+2. Server hits `https://auth.openai.com/api/accounts/deviceauth/usercode` and
+   gets back a one-time user code.
+3. Server stores `device_auth_id` in a 15-minute HTTP-only cookie; client
+   shows the user code + opens `https://auth.openai.com/codex/device` in a
+   new tab.
+4. User signs in to ChatGPT and types the user code on OpenAI's page.
+5. Client polls `/api/auth/codex/poll` every 5s; once OpenAI confirms, server
+   exchanges the device-auth response for access/refresh tokens, decodes the
+   `chatgpt_account_id` from the JWT, encrypts both tokens with
+   `pgp_sym_encrypt(CODEX_TOKEN_ENCRYPTION_KEY)`, and persists to
+   `user_codex_auth`.
+6. Trip generation calls `https://chatgpt.com/backend-api/codex/responses`
+   with `Authorization: Bearer <access>` and the user's
+   `chatgpt-account-id` header. Tokens auto-refresh 60s before expiry.
 
 ### Database setup
 

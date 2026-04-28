@@ -202,6 +202,66 @@ export const BookingLinksSchema = z.object({
   lodging: z.string().url(),
 });
 
+// ─────────────────────────────────────────────────────────────
+// JSON Schema mirrors for OpenAI tool-call parameters.
+// Hand-rolled (not zod-to-json-schema) so the wire shape is explicit and
+// reviewable. Keep these in lock-step with the zod schemas above.
+// ─────────────────────────────────────────────────────────────
+
+export const REC_TOOL_PARAMETERS_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["picks"],
+  properties: {
+    picks: {
+      type: "array",
+      minItems: 4,
+      maxItems: 4,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["slug", "rank", "reasoning", "match_tags"],
+        properties: {
+          slug: { type: "string", minLength: 1 },
+          rank: { type: "integer", minimum: 1, maximum: 4 },
+          reasoning: { type: "string", minLength: 20, maxLength: 400 },
+          match_tags: {
+            type: "array",
+            minItems: 1,
+            maxItems: 6,
+            items: { type: "string" },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+export function buildItineraryToolParametersSchema(tripLengthDays: number) {
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ["days"],
+    properties: {
+      days: {
+        type: "array",
+        minItems: tripLengthDays,
+        maxItems: tripLengthDays,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["day", "title", "description"],
+          properties: {
+            day: { type: "integer", minimum: 1, maximum: 14 },
+            title: { type: "string", minLength: 3, maxLength: 80 },
+            description: { type: "string", minLength: 20, maxLength: 600 },
+          },
+        },
+      },
+    },
+  } as const;
+}
+
 export const SeedDestinationSchema = z.object({
   slug: z.string(),
   name: z.string(),

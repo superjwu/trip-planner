@@ -1,7 +1,25 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { buildItineraryResponseSchema, type ItineraryResponse } from "../schemas";
-import { ITIN_PROMPT_VERSION, REC_MODEL, type NormalizedTripInput, type SeedDestination } from "../types";
-import { buildItineraryUserPrompt, ITINERARY_SYSTEM_PROMPT } from "./prompts";
+import {
+  buildItineraryResponseSchema,
+  buildItineraryToolParametersSchema,
+  type ItineraryResponse,
+} from "../schemas";
+import {
+  ITIN_MODEL,
+  ITIN_PROMPT_VERSION,
+  ITIN_REASONING,
+  type NormalizedTripInput,
+  type SeedDestination,
+} from "../types";
+import {
+  buildInput,
+  codexCompletion,
+  type CodexTool,
+} from "./codex-client";
+import { resolveCodexAuth } from "./codex-token";
+import {
+  buildItineraryUserPrompt,
+  ITINERARY_SYSTEM_PROMPT,
+} from "./prompts";
 
 export interface ItineraryResult {
   response: ItineraryResponse;
@@ -11,51 +29,74 @@ export interface ItineraryResult {
     inputTokens: number;
     outputTokens: number;
     latencyMs: number;
+    chatgptAccountId: string;
+    via: "codex-backend";
   };
 }
 
 export async function generateItinerary(args: {
+  clerkUserId: string;
   input: NormalizedTripInput;
   destination: SeedDestination;
   tripLengthDays: number;
 }): Promise<ItineraryResult> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+  const auth = await resolveCodexAuth(args.clerkUserId);
+  const tool: CodexTool = {
+    type: "function",
+    name: "write_itinerary",
+    description: `Return exactly ${args.tripLengthDays} sequential days for the trip.`,
+    parameters: buildItineraryToolParametersSchema(args.tripLengthDays) as unknown as Record<string, unknown>,
+    strict: true,
+  };
 
-  const start = Date.now();
-  const message = await client.messages.create({
-    model: REC_MODEL,
-    max_tokens: 1500,
-    system: ITINERARY_SYSTEM_PROMPT,
-    messages: [
-      { role: "user", content: buildItineraryUserPrompt(args) },
-    ],
+  const result = await codexCompletion({
+    accessToken: auth.accessToken,
+    chatgptAccountId: auth.chatgptAccountId,
+    model: ITIN_MODEL,
+    reasoning: { effort: ITIN_REASONING },
+    input: buildInput({
+      system: ITINERARY_SYSTEM_PROMPT,
+      userBlocks: [
+        buildItineraryUserPrompt({
+          input: args.input,
+          destination: args.destination,
+          tripLengthDays: args.tripLengthDays,
+        }),
+      ],
+    }),
+    tools: [tool],
+    forceTool: tool.name,
+    maxOutputTokens: 1500,
   });
-  const latencyMs = Date.now() - start;
 
-  const text = message.content
-    .filter((c): c is Anthropic.TextBlock => c.type === "text")
-    .map((c) => c.text)
-    .join("");
-
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("Itinerary LLM returned no JSON");
-  const json = JSON.parse(match[0]);
+  if (!result.toolCall || result.toolCall.name !== tool.name) {
+    throw new Error("Codex did not invoke write_itinerary");
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(result.toolCall.arguments);
+  } catch (e) {
+    throw new Error(`Itinerary tool arguments not JSON: ${(e as Error).message}`);
+  }
   const Schema = buildItineraryResponseSchema(args.tripLengthDays);
-  const response = Schema.parse(json);
+  const response = Schema.parse(parsed);
 
   return {
     response,
     meta: {
-      model: REC_MODEL,
+      model: ITIN_MODEL,
       promptVersion: ITIN_PROMPT_VERSION,
-      inputTokens: message.usage.input_tokens,
-      outputTokens: message.usage.output_tokens,
-      latencyMs,
+      inputTokens: result.inputTokens,
+      outputTokens: result.outputTokens,
+      latencyMs: result.latencyMs,
+      chatgptAccountId: auth.chatgptAccountId,
+      via: "codex-backend",
     },
   };
 }
 
 export async function generateItineraryWithRetry(args: {
+  clerkUserId: string;
   input: NormalizedTripInput;
   destination: SeedDestination;
   tripLengthDays: number;

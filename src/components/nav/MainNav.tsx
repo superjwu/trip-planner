@@ -21,6 +21,12 @@ export function MainNav() {
           My trips
         </Link>
         <Link
+          href="/settings"
+          className="rounded-full border border-white/15 px-4 py-1.5 text-[var(--text-muted)] transition hover:border-[var(--primary)] hover:text-white"
+        >
+          Settings
+        </Link>
+        <Link
           href="/plan"
           className="rounded-full bg-[var(--primary)] px-4 py-1.5 font-semibold text-[var(--primary-text)] transition hover:opacity-90"
         >
