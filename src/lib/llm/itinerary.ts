@@ -54,8 +54,8 @@ export async function generateItinerary(args: {
     chatgptAccountId: auth.chatgptAccountId,
     model: ITIN_MODEL,
     reasoning: { effort: ITIN_REASONING },
+    instructions: ITINERARY_SYSTEM_PROMPT,
     input: buildInput({
-      system: ITINERARY_SYSTEM_PROMPT,
       userBlocks: [
         buildItineraryUserPrompt({
           input: args.input,

@@ -118,6 +118,9 @@ export const REC_MODEL = "gpt-5.2";
 export const ITIN_MODEL = "gpt-5.1";
 
 // Reasoning effort knobs accepted by the Codex Responses endpoint.
+// Note: with GPT-5.x the model can silently emit 0 output items if reasoning
+// exhausts its internal budget on a structured tool call. "low" is the
+// conservative pick that reliably produces tool output.
 export type ReasoningEffort = "minimal" | "low" | "medium" | "high";
-export const REC_REASONING: ReasoningEffort = "medium";
-export const ITIN_REASONING: ReasoningEffort = "low";
+export const REC_REASONING: ReasoningEffort = "low";
+export const ITIN_REASONING: ReasoningEffort = "minimal";

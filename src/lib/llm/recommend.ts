@@ -116,8 +116,8 @@ export async function rankDestinations(args: {
     chatgptAccountId: auth.chatgptAccountId,
     model: REC_MODEL,
     reasoning: { effort: REC_REASONING },
+    instructions: REC_SYSTEM_PROMPT,
     input: buildInput({
-      system: REC_SYSTEM_PROMPT,
       userBlocks: [
         buildCandidatesBlock(args.candidates),
         buildUserPrefsBlock(args.input),
@@ -130,7 +130,9 @@ export async function rankDestinations(args: {
   });
 
   if (!result.toolCall || result.toolCall.name !== REC_TOOL.name) {
-    throw new Error("Codex did not invoke pick_destinations");
+    throw new Error(
+      `Codex did not invoke pick_destinations. text="${result.text.slice(0, 200)}"`,
+    );
   }
   const argsJson = safeParseJson(result.toolCall.arguments);
   const response = RecommendationResponseSchema.parse(argsJson);

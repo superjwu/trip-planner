@@ -104,7 +104,10 @@ export async function resolveCodexAuth(clerkUserId: string): Promise<ResolvedCod
       p_key: key,
     });
     if (error) throw new Error(`codex_auth_read failed: ${error.message}`);
-    row = (data as typeof row) ?? null;
+    // PostgREST wraps TABLE-returning RPC results as an array; our function
+    // returns 0 or 1 rows so we just take the first.
+    const rows = (data as Array<typeof row & object> | null) ?? [];
+    row = rows.length > 0 ? rows[0] : null;
   } catch (err) {
     if (!shouldFallbackToMemory(err)) throw err;
     logDevFallback("resolveCodexAuth", err);

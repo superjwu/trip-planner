@@ -47,6 +47,10 @@ export interface CodexCompletionArgs {
   chatgptAccountId: string;
   model: string;
   reasoning?: { effort?: "minimal" | "low" | "medium" | "high" };
+  /** Top-level system instructions string. The Codex backend requires this
+   * field — it does NOT accept a system-role message inside `input`. */
+  instructions: string;
+  /** User-role messages only. */
   input: CodexInputMessage[];
   tools?: CodexTool[];
   /** Forced tool name. When set, the model must emit a function_call to this tool. */
@@ -54,6 +58,8 @@ export interface CodexCompletionArgs {
   /** Stable cache key — passed via session_id + conversation_id to nudge the
    * Codex backend's own prompt cache. */
   promptCacheKey?: string;
+  /** NOTE: max_output_tokens is not supported by the Codex backend. Field
+   * kept on the interface for parity but ignored when serializing. */
   maxOutputTokens?: number;
 }
 
@@ -88,6 +94,7 @@ export async function codexCompletion(args: CodexCompletionArgs): Promise<CodexC
   const url = `${CODEX_BASE_URL}${CODEX_RESPONSES_PATH}`;
   const body: Record<string, unknown> = {
     model: args.model,
+    instructions: args.instructions,
     input: args.input,
     stream: true, // Codex backend always streams SSE
     store: false,
@@ -101,7 +108,7 @@ export async function codexCompletion(args: CodexCompletionArgs): Promise<CodexC
       body.tool_choice = "auto";
     }
   }
-  if (args.maxOutputTokens) body.max_output_tokens = args.maxOutputTokens;
+  // Codex backend rejects max_output_tokens; intentionally not forwarded.
 
   const headers: Record<string, string> = {
     Authorization: `Bearer ${args.accessToken}`,
@@ -140,7 +147,7 @@ export async function codexCompletion(args: CodexCompletionArgs): Promise<CodexC
   if (!res.body) throw new Error("Codex returned empty body");
 
   const events = await readSseEvents(res.body);
-  const final = pickFinalResponseEvent(events);
+  const final = assembleResponse(events);
   return finalize(final, latencyMs);
 }
 
@@ -195,26 +202,91 @@ function parseSseBlock(block: string): SseEvent | null {
   }
 }
 
-/** The Responses-style stream ends with a `response.completed` event whose
- *  payload contains the full response object. Older variants may emit
- *  `response.done` or just include the response object on the last data line. */
-function pickFinalResponseEvent(events: SseEvent[]): CodexResponseJson {
-  for (let i = events.length - 1; i >= 0; i--) {
-    const e = events[i];
-    if (e.type === "response.completed" || e.type === "response.done") {
-      const r = e.payload["response"];
-      if (r && typeof r === "object") return r as CodexResponseJson;
-      return e.payload as CodexResponseJson;
+/**
+ * Codex backend streams the response as Responses-API events:
+ *   response.created → in_progress → output_item.added (per item) →
+ *   response.function_call_arguments.delta (many) → ...arguments.done →
+ *   response.output_item.done (per item, with full arguments) → response.completed
+ *
+ * The terminal `response.completed` event sometimes ships with an empty
+ * `output: []` snapshot (Codex backend specific). The reliable path is to
+ * assemble output items from `response.output_item.done` events and merge
+ * accumulated `function_call_arguments.delta` chunks.
+ */
+function assembleResponse(events: SseEvent[]): CodexResponseJson {
+  // Final item snapshots, indexed by output_index when present
+  const items: Record<string, Record<string, unknown>> = {};
+  // Argument deltas accumulated per item_id
+  const argDeltas: Record<string, string[]> = {};
+
+  let metaResponse: CodexResponseJson | null = null;
+
+  for (const ev of events) {
+    const p = ev.payload;
+    if (!p || typeof p !== "object") continue;
+
+    if (ev.type === "response.completed" || ev.type === "response.done") {
+      const r = (p as { response?: unknown }).response;
+      if (r && typeof r === "object") {
+        metaResponse = r as CodexResponseJson;
+      } else {
+        metaResponse = p as CodexResponseJson;
+      }
+      continue;
+    }
+
+    if (ev.type === "response.output_item.done" || ev.type === "response.output_item.added") {
+      const item = (p as { item?: Record<string, unknown> }).item;
+      const idx = (p as { output_index?: number }).output_index;
+      if (item && typeof idx === "number") {
+        const key = String(idx);
+        // .done overrides .added for the same index
+        if (ev.type === "response.output_item.done" || !items[key]) {
+          items[key] = { ...item };
+        }
+      }
+      continue;
+    }
+
+    if (ev.type === "response.function_call_arguments.delta") {
+      const idx = (p as { output_index?: number }).output_index;
+      const delta = (p as { delta?: string }).delta;
+      if (typeof idx === "number" && typeof delta === "string") {
+        const key = String(idx);
+        (argDeltas[key] ||= []).push(delta);
+      }
+      continue;
+    }
+
+    if (ev.type === "response.function_call_arguments.done") {
+      const idx = (p as { output_index?: number }).output_index;
+      const args = (p as { arguments?: string }).arguments;
+      if (typeof idx === "number" && typeof args === "string") {
+        const key = String(idx);
+        const target = (items[key] ||= { type: "function_call" });
+        target.arguments = args;
+      }
+      continue;
     }
   }
-  // Fallback: last event with usable shape.
-  for (let i = events.length - 1; i >= 0; i--) {
-    const p = events[i].payload;
-    if (p && typeof p === "object" && ("output" in p || "usage" in p)) {
-      return p as CodexResponseJson;
+
+  // Merge accumulated arg deltas into items where we don't already have a final
+  // arguments string (covers backends that omit the arguments.done event).
+  for (const [key, parts] of Object.entries(argDeltas)) {
+    const target = (items[key] ||= { type: "function_call" });
+    if (typeof target.arguments !== "string" || (target.arguments as string).length === 0) {
+      target.arguments = parts.join("");
     }
   }
-  throw new Error("Codex stream ended without a response.completed event");
+
+  const output = Object.entries(items)
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([, v]) => v);
+
+  if (metaResponse) {
+    return { ...metaResponse, output };
+  }
+  return { output, usage: {} } as CodexResponseJson;
 }
 
 function finalize(raw: CodexResponseJson, latencyMs: number): CodexCompletionResult {
@@ -248,19 +320,14 @@ function finalize(raw: CodexResponseJson, latencyMs: number): CodexCompletionRes
 }
 
 /**
- * Helper to build the OpenAI-Responses-style input message array our two
- * call sites need.
+ * Helper to build a single user message containing all the non-system blocks.
+ * The system prompt goes into `instructions` at the top level — see
+ * CodexCompletionArgs.instructions.
  */
 export function buildInput(args: {
-  system: string;
   userBlocks: string[];
 }): CodexInputMessage[] {
   return [
-    {
-      type: "message",
-      role: "system",
-      content: [{ type: "input_text", text: args.system }],
-    },
     {
       type: "message",
       role: "user",
