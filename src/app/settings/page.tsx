@@ -18,7 +18,17 @@ export default async function SettingsPage() {
   } catch {
     userId = null;
   }
-  const status = userId && isCodexOAuthEnabled() ? await hasCodexAuth(userId) : { connected: false };
+  let status: { connected: boolean; chatgptAccountId?: string; expiresAt?: string } = {
+    connected: false,
+  };
+  if (userId && isCodexOAuthEnabled()) {
+    try {
+      status = await hasCodexAuth(userId);
+    } catch {
+      // Supabase unreachable etc. — render as not-connected rather than 500ing.
+      status = { connected: false };
+    }
+  }
 
   return (
     <>
