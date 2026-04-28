@@ -45,6 +45,9 @@ create trigger user_codex_auth_updated_at
 -- Service-role only: SECURITY DEFINER + revoke from anon/auth.
 -- ─────────────────────────────────────────────────────────────
 
+-- pgcrypto is installed in the `extensions` schema in Supabase, so we both
+-- include `extensions` in the function's search_path AND fully qualify every
+-- pgp_sym_* call. Either alone works; both is belt-and-suspenders.
 create or replace function public.codex_auth_read(
   p_clerk_user_id text,
   p_key text
@@ -57,13 +60,13 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   return query
   select
-    pgp_sym_decrypt(u.encrypted_access_token, p_key)::text  as access_token,
-    pgp_sym_decrypt(u.encrypted_refresh_token, p_key)::text as refresh_token,
+    extensions.pgp_sym_decrypt(u.encrypted_access_token, p_key)::text  as access_token,
+    extensions.pgp_sym_decrypt(u.encrypted_refresh_token, p_key)::text as refresh_token,
     u.access_token_expires_at,
     u.chatgpt_account_id
   from public.user_codex_auth u
@@ -81,7 +84,7 @@ create or replace function public.codex_auth_upsert(
 ) returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   insert into public.user_codex_auth (
@@ -92,8 +95,8 @@ begin
     chatgpt_account_id
   ) values (
     p_clerk_user_id,
-    pgp_sym_encrypt(p_access_token, p_key),
-    pgp_sym_encrypt(p_refresh_token, p_key),
+    extensions.pgp_sym_encrypt(p_access_token, p_key),
+    extensions.pgp_sym_encrypt(p_refresh_token, p_key),
     p_access_token_expires_at,
     p_chatgpt_account_id
   )
