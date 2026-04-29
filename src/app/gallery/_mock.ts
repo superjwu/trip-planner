@@ -57,8 +57,7 @@ export const PICKS: GalleryPick[] = [
       "Hits all three priorities: foodie credentials with Husk and the oyster scene, scenic in a uniquely Southern way along the Battery, and chill enough to be walkable end to end. September is Charleston's shoulder-season sweet spot — humidity drops, tourists thin out.",
     matchTags: ["foodie", "scenic", "chill", "short flight", "shoulder season"],
     rank: 1,
-    heroPhotoUrl:
-      "https://images.unsplash.com/photo-1564594985645-4427056e22e2?auto=format&fit=crop&w=1600&q=80",
+    heroPhotoUrl: "https://picsum.photos/seed/charleston-sc/1600/900",
     weather: { highF: 82, lowF: 68, summary: "Warm, humid, occasional showers" },
     cost: { totalUsd: 1240, flightUsd: 280, lodgingUsd: 560 },
     attractions: [
@@ -85,8 +84,7 @@ export const PICKS: GalleryPick[] = [
       "September in Acadia is the rare combination of crisp-not-cold weather, just-pre-foliage colors, and the Atlantic at its calmest. Pink granite and lobster rolls without the August crowds.",
     matchTags: ["scenic", "foodie", "shoulder season", "small crowds"],
     rank: 2,
-    heroPhotoUrl:
-      "https://images.unsplash.com/photo-1561361398-a8a801b86209?auto=format&fit=crop&w=1600&q=80",
+    heroPhotoUrl: "https://picsum.photos/seed/acadia-np/1600/900",
     weather: { highF: 67, lowF: 52, summary: "Cool, crisp, mostly clear" },
     cost: { totalUsd: 1380, flightUsd: 320, lodgingUsd: 600 },
     attractions: [
@@ -113,8 +111,7 @@ export const PICKS: GalleryPick[] = [
       "Mountain town with a dense food + craft-brewery scene plus the Blue Ridge Parkway out the back door. September hits early color in the highest elevations — scenic without feeling on display.",
     matchTags: ["foodie", "scenic", "mountain views"],
     rank: 3,
-    heroPhotoUrl:
-      "https://images.unsplash.com/photo-1568833495496-f7b5b6f9d4f6?auto=format&fit=crop&w=1600&q=80",
+    heroPhotoUrl: "https://picsum.photos/seed/asheville-nc/1600/900",
     weather: { highF: 76, lowF: 56, summary: "Mild days, cool evenings" },
     cost: { totalUsd: 1090, flightUsd: 240, lodgingUsd: 480 },
     attractions: [
@@ -141,8 +138,7 @@ export const PICKS: GalleryPick[] = [
       "If Charleston feels too high-traffic for you, Savannah is the quieter cousin: same Lowcountry food DNA, more atmospheric squares, and a smaller historic district that you can wander aimlessly for three days.",
     matchTags: ["scenic", "chill", "walkable", "shoulder season"],
     rank: 4,
-    heroPhotoUrl:
-      "https://images.unsplash.com/photo-1599809011130-2bf2eb3afd83?auto=format&fit=crop&w=1600&q=80",
+    heroPhotoUrl: "https://picsum.photos/seed/savannah-ga/1600/900",
     weather: { highF: 84, lowF: 70, summary: "Warm, humid, scattered storms" },
     cost: { totalUsd: 1150, flightUsd: 260, lodgingUsd: 520 },
     attractions: [
