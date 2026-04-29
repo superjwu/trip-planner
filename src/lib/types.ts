@@ -71,11 +71,20 @@ export interface SeedDestination {
   maxFlightHoursFromOrigin?: Partial<Record<OriginCityCode, number>>;
 }
 
+export interface Tradeoffs {
+  flight: 1 | 2 | 3;
+  budget: 1 | 2 | 3;
+  crowd: 1 | 2 | 3;
+  vibeFit: 1 | 2 | 3;
+  seasonFit: 1 | 2 | 3;
+}
+
 export interface RecommendationPick {
   slug: string;
   rank: number;
   reasoning: string;
   matchTags: string[];
+  tradeoffs?: Tradeoffs;
 }
 
 export interface CostBreakdown {
@@ -108,11 +117,13 @@ export interface ItineraryDay {
   description: string;
 }
 
-// Bumped to 2 when the seed grew from 26 → 40 destinations. The cache key for
-// the recommendation prompt embeds this, so old entries in `rec_cache` and the
+// Bumped to 2 when the seed grew from 26 → 40 destinations.
+// Bumped to 3 when the rank prompt was enriched (attractions + per-origin
+// flight cost + season fit) and reasoning effort was raised from "none" → "low",
+// per Codex audit. The cache key embeds this, so old `rec_cache` rows and the
 // Codex backend's prompt cache are invalidated automatically.
-export const SEED_VERSION = 2;
-export const REC_PROMPT_VERSION = "rec-v2-codex";
+export const SEED_VERSION = 3;
+export const REC_PROMPT_VERSION = "rec-v3-codex";
 export const ITIN_PROMPT_VERSION = "itin-v2-codex";
 
 // Codex-backend model names (per numman-ali/opencode-openai-codex-auth README).
@@ -122,10 +133,9 @@ export const ITIN_MODEL = "gpt-5.1";
 
 // Reasoning effort knobs accepted by the Codex Responses endpoint for
 // gpt-5.2 / gpt-5.4: 'none' | 'low' | 'medium' | 'high' | 'xhigh'.
-// 'none' skips internal chain-of-thought entirely — fastest, but the model
-// can occasionally emit empty output on forced tool calls. We use 'low' for
-// the rec call (quality-sensitive) and 'none' for the itinerary call (more
-// templated / lower variance task).
+// 'low' for the rec call (quality-sensitive — tradeoff scoring needs CoT);
+// 'none' for the itinerary call (more templated, lower variance).
+// The +3s rank latency from low vs none is acceptable for v2.
 export type ReasoningEffort = "none" | "low" | "medium" | "high" | "xhigh";
-export const REC_REASONING: ReasoningEffort = "none";
+export const REC_REASONING: ReasoningEffort = "low";
 export const ITIN_REASONING: ReasoningEffort = "none";

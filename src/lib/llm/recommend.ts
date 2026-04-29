@@ -15,8 +15,10 @@ import {
 } from "../types";
 import {
   buildCandidatesBlock,
+  buildRefineBlock,
   buildUserPrefsBlock,
   REC_SYSTEM_PROMPT,
+  type RefineContext,
 } from "./prompts";
 import {
   buildInput,
@@ -96,12 +98,29 @@ function slugForOrigin(origin: NormalizedTripInput["originCode"]): string {
   }
 }
 
-export function cacheKey(input: NormalizedTripInput): string {
+export function cacheKey(
+  input: NormalizedTripInput,
+  refine?: RefineContext,
+): string {
   const payload = stableStringify({
     input,
     seedVersion: SEED_VERSION,
     promptVersion: REC_PROMPT_VERSION,
     model: REC_MODEL,
+    // Refine context is part of the cache key on round 2+. Two users who
+    // happen to give identical feedback on identical trips can share the
+    // refined response.
+    refine: refine
+      ? {
+          kept: [...refine.keptSlugs].sort(),
+          avoided: [...refine.avoidedSlugs].sort(),
+          presets: [...refine.feedbackPresets].sort(),
+          feedbackText: refine.feedbackText,
+          previousSlugs: refine.previousPicks
+            .map((p) => p.slug)
+            .sort(),
+        }
+      : null,
   });
   return crypto.createHash("sha256").update(payload).digest("hex");
 }
@@ -168,19 +187,29 @@ export interface RankResult {
 }
 
 /**
- * Single Claude call →  single Codex call. Per-user OAuth: the caller passes
- * `clerkUserId`; we resolve their access token + chatgpt-account-id via
- * resolveCodexAuth() (which auto-refreshes near expiry).
+ * Single Codex call. Per-user OAuth: caller passes `clerkUserId`; we resolve
+ * their access token + chatgpt-account-id via resolveCodexAuth() (auto-refreshes
+ * near expiry). Pass `refine` on round 2+ so the model gets prior picks +
+ * feedback.
  */
 export async function rankDestinations(args: {
   clerkUserId: string;
   input: NormalizedTripInput;
   candidates: SeedDestination[];
+  refine?: RefineContext;
 }): Promise<RankResult> {
   if (args.candidates.length < 4) {
     throw new Error(`Need at least 4 candidates, got ${args.candidates.length}`);
   }
   const auth = await resolveCodexAuth(args.clerkUserId);
+
+  const userBlocks = [
+    buildCandidatesBlock(args.candidates),
+    buildUserPrefsBlock(args.input, args.candidates),
+  ];
+  if (args.refine) {
+    userBlocks.push(buildRefineBlock(args.refine));
+  }
 
   const result = await codexCompletion({
     accessToken: auth.accessToken,
@@ -188,16 +217,11 @@ export async function rankDestinations(args: {
     model: REC_MODEL,
     reasoning: { effort: REC_REASONING },
     instructions: REC_SYSTEM_PROMPT,
-    input: buildInput({
-      userBlocks: [
-        buildCandidatesBlock(args.candidates),
-        buildUserPrefsBlock(args.input),
-      ],
-    }),
+    input: buildInput({ userBlocks }),
     tools: [REC_TOOL],
     forceTool: REC_TOOL.name,
     promptCacheKey: `rec:${SEED_VERSION}:${REC_PROMPT_VERSION}`,
-    maxOutputTokens: 1500,
+    maxOutputTokens: 1800,
   });
 
   if (!result.toolCall || result.toolCall.name !== REC_TOOL.name) {
@@ -247,6 +271,7 @@ export async function rankDestinationsWithRetry(args: {
   clerkUserId: string;
   input: NormalizedTripInput;
   candidates: SeedDestination[];
+  refine?: RefineContext;
 }): Promise<RankResult> {
   try {
     return await rankDestinations(args);
