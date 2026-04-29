@@ -4,16 +4,27 @@ import { z } from "zod";
 // LLM output schemas — every Claude response is validated before persist.
 // ─────────────────────────────────────────────────────────────
 
+export const TradeoffsSchema = z.object({
+  flight: z.number().int().min(1).max(3),
+  budget: z.number().int().min(1).max(3),
+  crowd: z.number().int().min(1).max(3),
+  vibeFit: z.number().int().min(1).max(3),
+  seasonFit: z.number().int().min(1).max(3),
+});
+export type Tradeoffs = z.infer<typeof TradeoffsSchema>;
+
 export const RecommendationPickSchema = z.object({
   slug: z.string().min(1),
   rank: z.number().int().min(1).max(4),
   reasoning: z.string().min(20).max(400),
   match_tags: z.array(z.string()).min(1).max(6),
+  tradeoffs: TradeoffsSchema,
 });
 
 export const RecommendationResponseSchema = z
   .object({
     picks: z.array(RecommendationPickSchema).length(4),
+    why_these_four: z.string().min(40).max(500),
   })
   .superRefine((value, ctx) => {
     const slugs = new Set<string>();
@@ -211,8 +222,15 @@ export const BookingLinksSchema = z.object({
 export const REC_TOOL_PARAMETERS_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["picks"],
+  required: ["picks", "why_these_four"],
   properties: {
+    why_these_four: {
+      type: "string",
+      minLength: 40,
+      maxLength: 500,
+      description:
+        "ONE paragraph explaining why this set of 4 (as a group) is the right shortlist for this user — the tradeoffs you traded against to arrive at it. Cite at least one specific user preference. Do NOT just restate the input.",
+    },
     picks: {
       type: "array",
       minItems: 4,
@@ -220,7 +238,7 @@ export const REC_TOOL_PARAMETERS_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["slug", "rank", "reasoning", "match_tags"],
+        required: ["slug", "rank", "reasoning", "match_tags", "tradeoffs"],
         properties: {
           slug: { type: "string", minLength: 1 },
           rank: { type: "integer", minimum: 1, maximum: 4 },
@@ -230,6 +248,20 @@ export const REC_TOOL_PARAMETERS_SCHEMA = {
             minItems: 1,
             maxItems: 6,
             items: { type: "string" },
+          },
+          tradeoffs: {
+            type: "object",
+            additionalProperties: false,
+            required: ["flight", "budget", "crowd", "vibeFit", "seasonFit"],
+            description:
+              "1..3 dot scores. 3 = best on this axis for THIS user; 1 = significant downside.",
+            properties: {
+              flight: { type: "integer", minimum: 1, maximum: 3, description: "How short/easy the flight is from the user's origin. 3 = very short / direct." },
+              budget: { type: "integer", minimum: 1, maximum: 3, description: "How much budget headroom under the user's ceiling. 3 = comfortably under." },
+              crowd: { type: "integer", minimum: 1, maximum: 3, description: "How uncrowded for the user's dates. 3 = quiet, off-peak." },
+              vibeFit: { type: "integer", minimum: 1, maximum: 3, description: "Match against the user's vibes (in priority order). 3 = perfect fit." },
+              seasonFit: { type: "integer", minimum: 1, maximum: 3, description: "How well the destination is in season for the trip dates. 3 = ideal season." },
+            },
           },
         },
       },

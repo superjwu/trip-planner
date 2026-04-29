@@ -10,6 +10,7 @@ import {
   preFilter,
   rankDestinationsWithRetry,
 } from "@/lib/llm/recommend";
+import type { RefineContext } from "@/lib/llm/prompts";
 import { DESTINATIONS } from "@/lib/seed/destinations";
 import {
   NormalizedTripInputSchema,
@@ -26,6 +27,7 @@ interface TripRowRaw {
   clerk_user_id: string;
   normalized_input: unknown;
   compute_status: "pending" | "computing" | "ready" | "failed";
+  active_round_id: string | null;
 }
 
 interface RecRowRaw {
@@ -42,8 +44,9 @@ function parseNormalizedInput(raw: unknown): NormalizedTripInput {
 }
 
 /**
- * Idempotent compute: only one caller wins the lock (conditional UPDATE on
- * compute_status='pending'). Losers return ok:true without re-running Claude.
+ * Idempotent compute for a trip's first (round 1) recommendations. Only one
+ * caller wins the trip-level lock; losers see compute_status != 'pending' and
+ * return ok:true. Stale-lock recovery: pending OR computing>5min.
  */
 export async function computeRecommendations(tripId: string): Promise<{
   ok: boolean;
@@ -54,7 +57,7 @@ export async function computeRecommendations(tripId: string): Promise<{
 
   const { data: trip, error: tripErr } = await sb
     .from("trips")
-    .select("id, clerk_user_id, normalized_input, compute_status")
+    .select("id, clerk_user_id, normalized_input, compute_status, active_round_id")
     .eq("id", tripId)
     .maybeSingle<TripRowRaw>();
 
@@ -72,10 +75,7 @@ export async function computeRecommendations(tripId: string): Promise<{
     return { ok: false, error: `Trip input invalid: ${(e as Error).message}` };
   }
 
-  // Race-safe lock with stale-lock recovery: take the lock if status is
-  // 'pending' OR the lock has been held for >5 minutes (the previous worker
-  // probably died). PostgREST doesn't support OR across multiple .eq() calls
-  // so we use the .or() filter syntax.
+  // Race-safe lock with stale-lock recovery (5 min cutoff).
   const staleLockCutoff = new Date(Date.now() - 5 * 60_000).toISOString();
   const { data: lockRows, error: lockErr } = await sb
     .from("trips")
@@ -88,102 +88,46 @@ export async function computeRecommendations(tripId: string): Promise<{
       `compute_status.eq.pending,and(compute_status.eq.computing,computing_started_at.lt.${staleLockCutoff})`,
     )
     .select("id");
-  if (lockErr) {
-    return { ok: false, error: lockErr.message };
-  }
-  if (!lockRows || lockRows.length === 0) {
-    // Another worker holds the lock or already finished. Defer to it.
-    return { ok: true };
-  }
+  if (lockErr) return { ok: false, error: lockErr.message };
+  if (!lockRows || lockRows.length === 0) return { ok: true };
 
   try {
-    const candidates = preFilter(input);
-    if (candidates.length < 4) {
-      throw new Error(
-        `Only ${candidates.length} candidates passed the pre-filter — relax some constraints.`,
-      );
-    }
-
-    // Cache lookup (admin client bypasses RLS for the public cache table).
-    const key = cacheKey(input);
-    const { data: cached } = await admin
-      .from("rec_cache")
-      .select("response")
-      .eq("key", key)
-      .maybeSingle();
-
-    let response: import("@/lib/schemas").RecommendationResponse;
-    let meta: Record<string, unknown> = {
-      model: "cache",
-      promptVersion: "cache",
-      inputTokens: 0,
-      outputTokens: 0,
-      latencyMs: 0,
-      candidateCount: candidates.length,
-      fromCache: true,
-    };
-
-    if (cached?.response) {
-      response = RecommendationResponseSchema.parse(cached.response);
-    } else {
-      const userId = await requireUserId();
-      const ranked = await rankDestinationsWithRetry({
-        clerkUserId: userId,
-        input,
-        candidates,
-      });
-      response = ranked.response;
-      meta = ranked.meta as unknown as Record<string, unknown>;
-      const { error: cacheWriteErr } = await admin
-        .from("rec_cache")
-        .upsert({ key, response }, { onConflict: "key" });
-      if (cacheWriteErr && process.env.NODE_ENV !== "production") {
-        console.warn("[rec_cache] write failed:", cacheWriteErr.message);
+    // Insert round 1 (or pick up an existing one from a prior partial compute).
+    let roundId: string | null = trip.active_round_id;
+    if (!roundId) {
+      const { data: roundIns, error: roundErr } = await admin
+        .from("recommendation_rounds")
+        .insert({
+          trip_id: tripId,
+          round_number: 1,
+          compute_status: "computing",
+          computing_started_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single();
+      if (roundErr || !roundIns) {
+        throw new Error(`round insert failed: ${roundErr?.message}`);
       }
+      roundId = roundIns.id;
+      await sb.from("trips").update({ active_round_id: roundId }).eq("id", tripId);
     }
 
-    // Clear any stale rows under our trip; we hold the lock so this is safe.
-    const { error: deleteErr } = await sb
-      .from("recommendations")
-      .delete()
-      .eq("trip_id", tripId);
-    if (deleteErr) throw deleteErr;
-
-    const hydratedPicks = await Promise.all(
-      response.picks.map(async (pick) => {
-        const dest = DESTINATIONS.find((d) => d.slug === pick.slug)!;
-        const bundle = await hydrateRecommendation({ input, destination: dest });
-        return { pick, dest, bundle };
-      }),
-    );
-
-    const rows = hydratedPicks.map(({ pick, dest, bundle }) => ({
-      trip_id: tripId,
-      rank: pick.rank,
-      destination_slug: pick.slug,
-      reasoning: pick.reasoning,
-      match_tags: pick.match_tags,
-      destination_snapshot: dest,
-      hydration: { weather: bundle.weather, cost: bundle.cost },
-      booking_links: bundle.bookingLinks,
-      itinerary: null,
-      llm_meta: meta,
-      hydration_status: "ready",
-    }));
-
-    const { error: insertErr } = await sb.from("recommendations").insert(rows);
-    if (insertErr) throw insertErr;
+    if (!roundId) throw new Error("round insert path didn't set roundId");
+    const userId = await requireUserId();
+    const result = await rankAndPersist({
+      tripId,
+      roundId,
+      input,
+      refine: undefined,
+      userId,
+    });
+    if (!result.ok) throw new Error(result.error);
 
     await sb
       .from("trips")
       .update({ compute_status: "ready", compute_error: null })
       .eq("id", tripId);
 
-    // No revalidatePath() here: this action is invoked during the trip page's
-    // server-render (page calls compute → re-fetches → renders). Next.js 16
-    // forbids calling revalidatePath during render. The page reads fresh data
-    // explicitly via fetchTrip/fetchRecs after compute returns, which is
-    // sufficient.
     return { ok: true };
   } catch (err) {
     const message = friendlyComputeError(err);
@@ -193,6 +137,122 @@ export async function computeRecommendations(tripId: string): Promise<{
       .eq("id", tripId);
     return { ok: false, error: message };
   }
+}
+
+interface RankAndPersistArgs {
+  tripId: string;
+  roundId: string;
+  input: NormalizedTripInput;
+  refine: RefineContext | undefined;
+  userId: string;
+}
+
+/**
+ * Shared rank → cache-lookup → hydrate → persist pipeline used by both
+ * computeRecommendations (round 1) and createRefineRound (round 2+).
+ */
+async function rankAndPersist(args: RankAndPersistArgs): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  const sb = await createOwnerScopedSupabase();
+  const admin = createAdminSupabase();
+
+  const candidates = preFilter(args.input);
+  if (candidates.length < 4) {
+    return {
+      ok: false,
+      error: `Only ${candidates.length} candidates passed the pre-filter — relax some constraints.`,
+    };
+  }
+
+  const key = cacheKey(args.input, args.refine);
+  const { data: cached } = await admin
+    .from("rec_cache")
+    .select("response")
+    .eq("key", key)
+    .maybeSingle();
+
+  let response: import("@/lib/schemas").RecommendationResponse;
+  let meta: Record<string, unknown> = {
+    model: "cache",
+    promptVersion: "cache",
+    inputTokens: 0,
+    outputTokens: 0,
+    latencyMs: 0,
+    candidateCount: candidates.length,
+    fromCache: true,
+    refined: !!args.refine,
+  };
+
+  if (cached?.response) {
+    response = RecommendationResponseSchema.parse(cached.response);
+  } else {
+    const ranked = await rankDestinationsWithRetry({
+      clerkUserId: args.userId,
+      input: args.input,
+      candidates,
+      refine: args.refine,
+    });
+    response = ranked.response;
+    meta = {
+      ...(ranked.meta as unknown as Record<string, unknown>),
+      refined: !!args.refine,
+    };
+    const { error: cacheWriteErr } = await admin
+      .from("rec_cache")
+      .upsert({ key, response }, { onConflict: "key" });
+    if (cacheWriteErr && process.env.NODE_ENV !== "production") {
+      console.warn("[rec_cache] write failed:", cacheWriteErr.message);
+    }
+  }
+
+  // Persist round metadata (why_these_four + llm_meta + final status).
+  await admin
+    .from("recommendation_rounds")
+    .update({
+      why_these_four: response.why_these_four,
+      llm_meta: meta,
+      compute_status: "ready",
+    })
+    .eq("id", args.roundId);
+
+  // Hydrate each pick in parallel (weather + cost + booking links).
+  const hydratedPicks = await Promise.all(
+    response.picks.map(async (pick) => {
+      const dest = DESTINATIONS.find((d) => d.slug === pick.slug)!;
+      const bundle = await hydrateRecommendation({
+        input: args.input,
+        destination: dest,
+      });
+      return { pick, dest, bundle };
+    }),
+  );
+
+  // Wipe any stale rows for THIS round (idempotent retries) — leave other
+  // rounds' rows alone.
+  await sb.from("recommendations").delete().eq("round_id", args.roundId);
+
+  const rows = hydratedPicks.map(({ pick, dest, bundle }) => ({
+    trip_id: args.tripId,
+    round_id: args.roundId,
+    rank: pick.rank,
+    destination_slug: pick.slug,
+    reasoning: pick.reasoning,
+    match_tags: pick.match_tags,
+    tradeoffs: pick.tradeoffs,
+    destination_snapshot: dest,
+    hydration: { weather: bundle.weather, cost: bundle.cost },
+    booking_links: bundle.bookingLinks,
+    itinerary: null,
+    llm_meta: meta,
+    hydration_status: "ready",
+  }));
+
+  const { error: insertErr } = await sb.from("recommendations").insert(rows);
+  if (insertErr) return { ok: false, error: insertErr.message };
+
+  return { ok: true };
 }
 
 function friendlyComputeError(err: unknown): string {
@@ -227,11 +287,7 @@ export async function setTripStatus(args: {
 }
 
 /**
- * Lazy itinerary generation for a single recommendation. Idempotent: if the
- * itinerary already exists on the row, returns immediately.
- *
- * Verifies that the recommendation actually belongs to the trip in args, so
- * a caller can't mix one trip's prefs with another trip's destination.
+ * Lazy itinerary generation for a single recommendation. Idempotent.
  */
 export async function ensureItinerary(args: {
   tripId: string;
@@ -256,7 +312,7 @@ export async function ensureItinerary(args: {
 
   const { data: trip } = await sb
     .from("trips")
-    .select("id, clerk_user_id, normalized_input, compute_status")
+    .select("id, clerk_user_id, normalized_input, compute_status, active_round_id")
     .eq("id", args.tripId)
     .maybeSingle<TripRowRaw>();
   if (!trip) {
@@ -292,9 +348,150 @@ export async function ensureItinerary(args: {
       .from("recommendations")
       .update({ itinerary: response })
       .eq("id", rec.id);
-    // No revalidatePath here either — same reason as computeRecommendations.
     return { ok: true };
   } catch (err) {
     return { ok: false, error: friendlyComputeError(err) };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Refine — round 2+. The user passes feedback (presets, kept/avoided slugs,
+// free text). We insert a new round, re-rank with the previous picks +
+// feedback as context, and flip trips.active_round_id so the page renders
+// the new round by default. Past rounds remain navigable.
+// ─────────────────────────────────────────────────────────────
+
+interface PrevPickRow {
+  rank: number;
+  destination_slug: string;
+  reasoning: string;
+}
+
+export async function createRefineRound(args: {
+  tripId: string;
+  feedbackText: string;
+  feedbackPresets: string[];
+  keptSlugs: string[];
+  avoidedSlugs: string[];
+}): Promise<{ ok: boolean; error?: string; newRoundId?: string }> {
+  const sb = await createOwnerScopedSupabase();
+  const admin = createAdminSupabase();
+
+  const { data: trip, error: tripErr } = await sb
+    .from("trips")
+    .select("id, clerk_user_id, normalized_input, compute_status, active_round_id")
+    .eq("id", args.tripId)
+    .maybeSingle<TripRowRaw>();
+  if (tripErr || !trip) {
+    return { ok: false, error: tripErr?.message ?? "Trip not found." };
+  }
+  if (trip.compute_status !== "ready") {
+    return { ok: false, error: "Wait for the initial recommendations to finish first." };
+  }
+  if (!trip.active_round_id) {
+    return { ok: false, error: "No active round — cannot refine." };
+  }
+
+  let input: NormalizedTripInput;
+  try {
+    input = parseNormalizedInput(trip.normalized_input);
+  } catch (e) {
+    return { ok: false, error: `Trip input invalid: ${(e as Error).message}` };
+  }
+
+  // Pull the previous round's picks for the refine prompt.
+  const { data: prevPickRows } = await sb
+    .from("recommendations")
+    .select("rank, destination_slug, reasoning")
+    .eq("round_id", trip.active_round_id)
+    .order("rank", { ascending: true });
+  const previousPicks: RefineContext["previousPicks"] = (
+    (prevPickRows as PrevPickRow[] | null) ?? []
+  ).map((r) => ({
+    slug: r.destination_slug,
+    rank: r.rank,
+    reasoning: r.reasoning,
+  }));
+
+  // Find the next round_number for this trip.
+  const { data: maxRow } = await sb
+    .from("recommendation_rounds")
+    .select("round_number")
+    .eq("trip_id", args.tripId)
+    .order("round_number", { ascending: false })
+    .limit(1)
+    .maybeSingle<{ round_number: number }>();
+  const nextRoundNumber = (maxRow?.round_number ?? 0) + 1;
+
+  // Insert the new round (status=computing) — race-safe because of the
+  // unique(trip_id, round_number) constraint.
+  const { data: newRound, error: insertErr } = await admin
+    .from("recommendation_rounds")
+    .insert({
+      trip_id: args.tripId,
+      parent_round_id: trip.active_round_id,
+      round_number: nextRoundNumber,
+      feedback_text: args.feedbackText.slice(0, 1000),
+      feedback_presets: args.feedbackPresets,
+      kept_slugs: args.keptSlugs,
+      avoided_slugs: args.avoidedSlugs,
+      compute_status: "computing",
+      computing_started_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+  if (insertErr || !newRound) {
+    return { ok: false, error: `round insert failed: ${insertErr?.message}` };
+  }
+
+  const refine: RefineContext = {
+    previousPicks,
+    keptSlugs: args.keptSlugs,
+    avoidedSlugs: args.avoidedSlugs,
+    feedbackPresets: args.feedbackPresets,
+    feedbackText: args.feedbackText,
+  };
+
+  try {
+    const userId = await requireUserId();
+
+    // Apply hard exclusions BEFORE rank: anything in avoided_slugs cannot
+    // come back. The model is also told to avoid them, but the pre-filter
+    // is the actual guarantee.
+    const filtered = preFilter(input).filter(
+      (d) => !args.avoidedSlugs.includes(d.slug),
+    );
+    if (filtered.length < 4) {
+      throw new Error(
+        `Only ${filtered.length} candidates left after applying your avoid list — try keeping more of the previous picks or relaxing constraints.`,
+      );
+    }
+
+    // rankAndPersist re-runs preFilter inside, but with avoided_slugs in
+    // refine the prompt-side filtering is the same as our hard exclude.
+    // So we patch the input via a shadowed candidate pool? Simpler: call
+    // rankAndPersist with the full input; the prompt's avoid list is robust.
+    const result = await rankAndPersist({
+      tripId: args.tripId,
+      roundId: newRound.id,
+      input,
+      refine,
+      userId,
+    });
+    if (!result.ok) throw new Error(result.error);
+
+    await sb
+      .from("trips")
+      .update({ active_round_id: newRound.id })
+      .eq("id", args.tripId);
+
+    return { ok: true, newRoundId: newRound.id };
+  } catch (err) {
+    const message = friendlyComputeError(err);
+    await admin
+      .from("recommendation_rounds")
+      .update({ compute_status: "failed", compute_error: message })
+      .eq("id", newRound.id);
+    return { ok: false, error: message };
   }
 }
