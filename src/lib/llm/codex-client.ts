@@ -11,6 +11,30 @@
  */
 import { CodexAuthExpiredError, CodexRateLimitError } from "./codex-auth";
 
+/**
+ * The Codex stream ended without a terminal `response.completed` event.
+ * Treat as a network/transport failure — the caller's retry helper can
+ * decide whether to attempt again.
+ */
+export class CodexStreamTruncatedError extends Error {
+  constructor() {
+    super("Codex stream ended without a terminal response.completed event");
+    this.name = "CodexStreamTruncatedError";
+  }
+}
+
+/**
+ * Codex emitted `response.failed` or `response.incomplete`. The model couldn't
+ * complete the response — distinct from a truncated stream because the server
+ * told us so explicitly.
+ */
+export class CodexStreamFailedError extends Error {
+  constructor(message: string, readonly reason: string) {
+    super(message);
+    this.name = "CodexStreamFailedError";
+  }
+}
+
 const CODEX_BASE_URL = "https://chatgpt.com/backend-api";
 const CODEX_RESPONSES_PATH = "/codex/responses";
 const FETCH_TIMEOUT_MS = 90_000;
@@ -220,12 +244,27 @@ function assembleResponse(events: SseEvent[]): CodexResponseJson {
   const argDeltas: Record<string, string[]> = {};
 
   let metaResponse: CodexResponseJson | null = null;
+  let sawTerminal = false;
 
   for (const ev of events) {
     const p = ev.payload;
     if (!p || typeof p !== "object") continue;
 
+    // Hard-failure terminal events. Codex emits these when the model cannot
+    // complete the response (rate-limit detected mid-stream, content policy
+    // refusal, etc.). Surface them as typed errors instead of letting the
+    // caller see "no tool_call" with empty output.
+    if (ev.type === "response.failed" || ev.type === "response.incomplete") {
+      const r = (p as { response?: { incomplete_details?: { reason?: string }; error?: { message?: string } } }).response;
+      const reason = r?.incomplete_details?.reason ?? r?.error?.message ?? ev.type;
+      throw new CodexStreamFailedError(
+        `Codex ${ev.type === "response.failed" ? "failed" : "incomplete"}: ${reason}`,
+        reason,
+      );
+    }
+
     if (ev.type === "response.completed" || ev.type === "response.done") {
+      sawTerminal = true;
       const r = (p as { response?: unknown }).response;
       if (r && typeof r === "object") {
         metaResponse = r as CodexResponseJson;
@@ -270,6 +309,14 @@ function assembleResponse(events: SseEvent[]): CodexResponseJson {
     }
   }
 
+  // Stream ended without the server signaling completion — treat as transport
+  // failure so callers retry. Without this check, dropped connections look
+  // identical to "model returned empty output" which leads to a confusing
+  // user-facing error.
+  if (!sawTerminal) {
+    throw new CodexStreamTruncatedError();
+  }
+
   // Merge accumulated arg deltas into items where we don't already have a final
   // arguments string (covers backends that omit the arguments.done event).
   for (const [key, parts] of Object.entries(argDeltas)) {
@@ -279,14 +326,22 @@ function assembleResponse(events: SseEvent[]): CodexResponseJson {
     }
   }
 
-  const output = Object.entries(items)
+  const assembledOutput = Object.entries(items)
     .sort(([a], [b]) => Number(a) - Number(b))
     .map(([, v]) => v);
 
+  // Prefer the server's final snapshot if it carries populated output. The
+  // current Codex backend ships `output: []` on response.completed and
+  // requires us to assemble locally, but newer backend versions may start
+  // including the full output — in that case we should trust the server.
   if (metaResponse) {
-    return { ...metaResponse, output };
+    const serverOutput = Array.isArray(metaResponse.output) ? metaResponse.output : [];
+    return {
+      ...metaResponse,
+      output: serverOutput.length > 0 ? serverOutput : assembledOutput,
+    };
   }
-  return { output, usage: {} } as CodexResponseJson;
+  return { output: assembledOutput, usage: {} } as CodexResponseJson;
 }
 
 function finalize(raw: CodexResponseJson, latencyMs: number): CodexCompletionResult {
