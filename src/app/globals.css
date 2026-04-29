@@ -5,6 +5,13 @@
    Editorial dark palette with glassmorphic surfaces.
    ───────────────────────────────────────────────────────────── */
 :root {
+  --font-inter:
+    "Inter", "Avenir Next", "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  --font-merriweather:
+    "Merriweather", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-cormorant:
+    "Cormorant Garamond", "Baskerville", Garamond, "Times New Roman", serif;
+
   /* Background layers */
   --bg: #1e2030;
   --bg-alt: #272a40;
