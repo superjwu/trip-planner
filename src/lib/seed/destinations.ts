@@ -485,7 +485,7 @@ export const DESTINATIONS: SeedDestination[] = [
       { name: "Desert View Watchtower", description: "1932 Mary Colter tower at the eastern edge of the South Rim — drive the 25-mile scenic road to get there." },
     ],
     typicalCostBands: { flightFromOrigin: { NYC: 360, CHI: 280, LAX: 180, SFO: 240, SEA: 300 }, lodgingPerNightUsd: 220, foodPerDayUsd: 65, activitiesPerDayUsd: 25 },
-    bestSeasons: ["spring", "fall"],
+    bestSeasons: ["spring", "summer", "fall"],
   },
   {
     slug: "rocky-mountain-np",
@@ -541,7 +541,7 @@ export const DESTINATIONS: SeedDestination[] = [
     region: "Mojave Desert",
     state: "CA",
     lat: 36.5054, lng: -117.0794,
-    tags: ["nature", "scenic", "chill"],
+    tags: ["nature", "scenic", "adventure"],
     blurb: "Lowest, hottest, driest in North America — and at night, one of the darkest skies you can drive to, with a salt flat that mirrors thunderstorms.",
     attractions: [
       { name: "Badwater Basin", description: "Salt flats at 282 ft below sea level; walk a quarter-mile out for the geometric salt polygons." },
@@ -562,7 +562,7 @@ export const DESTINATIONS: SeedDestination[] = [
     attractions: [
       { name: "Paradise + Skyline Trail", description: "5.5-mile loop through wildflower meadows with Rainier filling the frame; peak bloom late July to mid-August." },
       { name: "Sunrise (NE side)", description: "Highest paved point in the park at 6,400 ft; quieter than Paradise, better for sunrise as the name suggests." },
-      { name: "Grove of the Patriarchs", description: "1.5-mile loop through 1,000-year-old Western red cedars on a river island." },
+      { name: "Reflection Lakes", description: "Pull-off on Stevens Canyon Road where Rainier mirrors in two glacial tarns; chef's-kiss on a still summer morning." },
     ],
     typicalCostBands: { flightFromOrigin: { NYC: 380, CHI: 320, LAX: 200, SFO: 200, SEA: 60 }, lodgingPerNightUsd: 240, foodPerDayUsd: 65, activitiesPerDayUsd: 25 },
     bestSeasons: ["summer"],
