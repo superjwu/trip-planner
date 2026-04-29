@@ -108,7 +108,10 @@ export interface ItineraryDay {
   description: string;
 }
 
-export const SEED_VERSION = 1;
+// Bumped to 2 when the seed grew from 26 → 40 destinations. The cache key for
+// the recommendation prompt embeds this, so old entries in `rec_cache` and the
+// Codex backend's prompt cache are invalidated automatically.
+export const SEED_VERSION = 2;
 export const REC_PROMPT_VERSION = "rec-v2-codex";
 export const ITIN_PROMPT_VERSION = "itin-v2-codex";
 
