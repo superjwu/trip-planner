@@ -46,7 +46,7 @@ export interface CodexCompletionArgs {
   accessToken: string;
   chatgptAccountId: string;
   model: string;
-  reasoning?: { effort?: "minimal" | "low" | "medium" | "high" };
+  reasoning?: { effort?: "none" | "low" | "medium" | "high" | "xhigh" };
   /** Top-level system instructions string. The Codex backend requires this
    * field — it does NOT accept a system-role message inside `input`. */
   instructions: string;

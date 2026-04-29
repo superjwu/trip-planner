@@ -25,30 +25,56 @@ import {
 } from "./codex-client";
 import { resolveCodexAuth } from "./codex-token";
 
-const FLIGHT_CEILING_BY_BAND: Record<string, number> = {
-  "under-500": 350,
-  "500-1000": 500,
-  "1000-2000": 700,
-  "2000-plus": 1500,
+// Upper-bound dollars per band. Pre-filter rejects any destination whose
+// rough total-trip estimate (flight + lodging × days + food × days +
+// activities × days) exceeds 1.15 × this ceiling. The 15% headroom lets the
+// LLM still pick a destination that's slightly over budget when nothing else
+// fits, rather than returning fewer than 4 candidates.
+const BUDGET_CEILING_BY_BAND: Record<string, number> = {
+  "under-500": 500,
+  "500-1000": 1000,
+  "1000-2000": 2000,
+  "2000-plus": 4000,
 };
+const BUDGET_HEADROOM = 1.15;
+
+/**
+ * Rough all-in trip cost from origin = flight + lodging·days + food·days +
+ * activities·days. Mirrors the formula in src/lib/hydrate.ts:buildCost (which
+ * runs at hydration time, against possibly-live Amadeus data) so the
+ * pre-filter sees what the user will eventually see on the card.
+ */
+export function estimateTripCostUsd(
+  destination: SeedDestination,
+  input: NormalizedTripInput,
+): number {
+  const flight = destination.typicalCostBands.flightFromOrigin[input.originCode] ?? 350;
+  const days = input.tripLengthDays;
+  const lodging = destination.typicalCostBands.lodgingPerNightUsd * days;
+  const food = destination.typicalCostBands.foodPerDayUsd * days;
+  const activities = destination.typicalCostBands.activitiesPerDayUsd * days;
+  return flight + lodging + food + activities;
+}
 
 /**
  * Returns destinations that pass code-side hard filters: origin not in the
- * candidate list, season compat, and budget feasibility.
+ * candidate list, season compat, and budget feasibility (whole-trip estimate,
+ * not just flight cost).
  */
 export function preFilter(
   input: NormalizedTripInput,
   pool: SeedDestination[] = DESTINATIONS,
 ): SeedDestination[] {
-  const flightCap = FLIGHT_CEILING_BY_BAND[input.budgetBand] ?? 800;
+  const ceiling = BUDGET_CEILING_BY_BAND[input.budgetBand] ?? 2000;
+  const cap = ceiling * BUDGET_HEADROOM;
+
   return pool.filter((d) => {
     if (d.slug === slugForOrigin(input.originCode)) return false;
     if (d.bestSeasons.length > 0 && !d.bestSeasons.includes(input.seasonHint)) {
       return false;
     }
-    const flightEst = d.typicalCostBands.flightFromOrigin[input.originCode];
-    if (flightEst === undefined) return true;
-    if (flightEst > flightCap) return false;
+    const total = estimateTripCostUsd(d, input);
+    if (total > cap) return false;
     return true;
   });
 }
@@ -64,13 +90,36 @@ function slugForOrigin(origin: NormalizedTripInput["originCode"]): string {
 }
 
 export function cacheKey(input: NormalizedTripInput): string {
-  const payload = JSON.stringify({
+  const payload = stableStringify({
     input,
     seedVersion: SEED_VERSION,
     promptVersion: REC_PROMPT_VERSION,
     model: REC_MODEL,
   });
   return crypto.createHash("sha256").update(payload).digest("hex");
+}
+
+/**
+ * Order-independent JSON.stringify. Postgres JSONB doesn't preserve key
+ * order across round-trips, so the same logical input would hash differently
+ * coming from the wizard (TS object literal order) vs being read from the DB
+ * (storage order). Sort keys recursively at every level to make the hash
+ * stable.
+ */
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) {
+    return "[" + value.map(stableStringify).join(",") + "]";
+  }
+  const obj = value as Record<string, unknown>;
+  const keys = Object.keys(obj).sort();
+  return (
+    "{" +
+    keys
+      .map((k) => JSON.stringify(k) + ":" + stableStringify(obj[k]))
+      .join(",") +
+    "}"
+  );
 }
 
 const REC_TOOL: CodexTool = {

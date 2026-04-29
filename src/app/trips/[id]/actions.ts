@@ -126,7 +126,12 @@ export async function computeRecommendations(tripId: string): Promise<{
       });
       response = ranked.response;
       meta = ranked.meta as unknown as Record<string, unknown>;
-      await admin.from("rec_cache").upsert({ key, response });
+      const { error: cacheWriteErr } = await admin
+        .from("rec_cache")
+        .upsert({ key, response }, { onConflict: "key" });
+      if (cacheWriteErr && process.env.NODE_ENV !== "production") {
+        console.warn("[rec_cache] write failed:", cacheWriteErr.message);
+      }
     }
 
     // Clear any stale rows under our trip; we hold the lock so this is safe.

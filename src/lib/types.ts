@@ -120,10 +120,12 @@ export const ITIN_PROMPT_VERSION = "itin-v2-codex";
 export const REC_MODEL = "gpt-5.2";
 export const ITIN_MODEL = "gpt-5.1";
 
-// Reasoning effort knobs accepted by the Codex Responses endpoint.
-// Note: with GPT-5.x the model can silently emit 0 output items if reasoning
-// exhausts its internal budget on a structured tool call. "low" is the
-// conservative pick that reliably produces tool output.
-export type ReasoningEffort = "minimal" | "low" | "medium" | "high";
-export const REC_REASONING: ReasoningEffort = "low";
-export const ITIN_REASONING: ReasoningEffort = "minimal";
+// Reasoning effort knobs accepted by the Codex Responses endpoint for
+// gpt-5.2 / gpt-5.4: 'none' | 'low' | 'medium' | 'high' | 'xhigh'.
+// 'none' skips internal chain-of-thought entirely — fastest, but the model
+// can occasionally emit empty output on forced tool calls. We use 'low' for
+// the rec call (quality-sensitive) and 'none' for the itinerary call (more
+// templated / lower variance task).
+export type ReasoningEffort = "none" | "low" | "medium" | "high" | "xhigh";
+export const REC_REASONING: ReasoningEffort = "none";
+export const ITIN_REASONING: ReasoningEffort = "none";
