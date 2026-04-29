@@ -8,6 +8,7 @@ import { ExpandedDestination } from "@/components/recs/ExpandedDestination";
 import { TradeoffMatrix } from "@/components/recs/TradeoffMatrix";
 import { RefinePanel } from "@/components/recs/RefinePanel";
 import { RoundSwitcher, type RoundSummary } from "@/components/recs/RoundSwitcher";
+import { GeneratingProgress } from "@/components/recs/GeneratingProgress";
 import { SaveTripButton } from "@/components/trip/SaveTripButton";
 import { createOwnerScopedSupabase } from "@/lib/supabase/server";
 import {
@@ -420,7 +421,8 @@ function CompactGrid({
 
 function ComputingState() {
   return (
-    <section className="mt-6">
+    <section className="mt-2">
+      <GeneratingProgress />
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <article
@@ -441,12 +443,6 @@ function ComputingState() {
           </article>
         ))}
       </div>
-      <p
-        className="mt-8 text-center text-sm italic text-[var(--ink-soft)]"
-        style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
-      >
-        Picking 4 destinations for you…
-      </p>
     </section>
   );
 }

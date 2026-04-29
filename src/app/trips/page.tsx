@@ -129,7 +129,7 @@ export default async function TripsPage() {
         <header className="mb-8">
           <p className="hero-eyebrow mb-2 text-[var(--accent)]">Bucket</p>
           <h1
-            className="font-serif text-3xl font-bold text-white"
+            className="font-serif text-3xl font-bold text-[var(--ink)]"
             style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
           >
             My trips
@@ -156,13 +156,13 @@ export default async function TripsPage() {
 
 function EmptyState() {
   return (
-    <div className="glass-strong px-7 py-12 text-center">
-      <p className="text-base text-[var(--text-muted)]">
+    <div className="paper-strong bg-white px-7 py-12 text-center">
+      <p className="text-base text-[var(--ink-soft)]">
         No trips yet. Plan one to get started.
       </p>
       <Link
         href="/plan"
-        className="mt-5 inline-block rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-[var(--primary-text)] shadow-[0_0_24px_var(--primary-glow)] transition hover:opacity-90"
+        className="mt-5 inline-block rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-[var(--accent-soft)]"
       >
         Plan a trip →
       </Link>
@@ -210,28 +210,28 @@ function TripList({
           <Link
             key={t.id}
             href={`/trips/${t.id}`}
-            className="glass glass-hover flex items-center justify-between gap-5 px-5 py-4"
+            className="paper paper-hover flex items-center justify-between gap-5 bg-white px-5 py-4"
           >
             <div className="min-w-0 flex-1">
               <p
-                className="font-serif text-lg font-bold text-white"
+                className="font-serif text-lg font-semibold text-[var(--ink)]"
                 style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
               >
                 {title}
               </p>
-              <p className="truncate text-sm text-[var(--text-muted)]">
+              <p className="truncate text-sm text-[var(--ink-soft)]">
                 {summary}
               </p>
-              <p className="mt-1 text-xs text-[var(--text-muted)]">
+              <p className="mt-1 text-xs text-[var(--ink-soft)]">
                 {t.depart_on ? `${t.depart_on} → ${t.return_on}` : "—"} ·
                 {" "}from {t.origin_city ?? "—"}
               </p>
             </div>
             <span
-              className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
                 t.user_status === "saved"
-                  ? "bg-[var(--primary)]/20 text-[var(--accent)]"
-                  : "bg-white/10 text-[var(--text-muted)]"
+                  ? "bg-[var(--rose)] text-[var(--accent)]"
+                  : "bg-[var(--paper-deep)] text-[var(--ink-soft)]"
               }`}
             >
               {t.user_status}

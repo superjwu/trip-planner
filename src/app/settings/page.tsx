@@ -37,16 +37,16 @@ export default async function SettingsPage() {
         <header className="mb-8">
           <p className="hero-eyebrow mb-2 text-[var(--accent)]">Settings</p>
           <h1
-            className="font-serif text-3xl font-bold text-white"
+            className="font-serif text-3xl font-semibold text-[var(--ink)]"
             style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
           >
             Account
           </h1>
         </header>
 
-        <section className="glass-strong px-7 py-6">
+        <section className="paper-strong bg-white px-7 py-6">
           <h2
-            className="font-serif text-xl font-bold text-white"
+            className="font-serif text-xl font-bold text-[var(--ink)]"
             style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
           >
             ChatGPT integration
@@ -58,7 +58,7 @@ export default async function SettingsPage() {
           ) : status.connected ? (
             <div className="mt-4 flex items-center justify-between gap-6">
               <div>
-                <p className="text-sm text-white">
+                <p className="text-sm text-[var(--ink)]">
                   Connected ·{" "}
                   <span className="font-mono text-[var(--accent)]">
                     {status.chatgptAccountId?.slice(0, 12) ?? "…"}…
@@ -82,7 +82,7 @@ export default async function SettingsPage() {
               </p>
               <Link
                 href="/plan"
-                className="inline-block rounded-full bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-[var(--primary-text)] transition hover:opacity-90"
+                className="inline-block rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-soft)]"
               >
                 Connect ChatGPT
               </Link>

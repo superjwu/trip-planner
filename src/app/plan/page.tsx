@@ -45,17 +45,17 @@ export default async function PlanPage() {
 function DisabledBanner() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-20 text-center">
-      <div className="glass-strong px-8 py-10">
+      <div className="paper-strong bg-white px-8 py-10">
         <p className="hero-eyebrow mb-3 text-[var(--accent)]">Temporarily unavailable</p>
         <h1
-          className="font-serif text-2xl font-bold text-white"
+          className="font-serif text-2xl font-semibold text-[var(--ink)]"
           style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
         >
           ChatGPT integration is paused.
         </h1>
-        <p className="mt-3 text-sm text-[var(--text-muted)]">
+        <p className="mt-3 text-sm text-[var(--ink-soft)]">
           The site operator has disabled trip planning. Check back later or browse the{" "}
-          <Link className="underline hover:text-white" href="/trips/demo">
+          <Link className="underline hover:text-[var(--ink)]" href="/trips/demo">
             demo result
           </Link>
           .

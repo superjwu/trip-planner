@@ -1,27 +1,52 @@
 import Link from "next/link";
 import { MainNav } from "@/components/nav/MainNav";
 import { HeroCarousel } from "@/components/hero/HeroCarousel";
-import { destinationPhotoUrl } from "@/lib/photo";
-import { DESTINATIONS } from "@/lib/seed/destinations";
 
-const HERO_SLUGS = [
-  "big-sur-ca",
-  "acadia-np",
-  "charleston-sc",
-  "yellowstone-np",
-  "maui-hi",
-  "santa-fe-nm",
+// Curated National-Park / scenic photos for the landing carousel. Unsplash
+// hosts are stable and these specific photo IDs resolve. Kept inline rather
+// than going through the seed/picsum fallback so the landing has real,
+// recognizable park imagery instead of random nature stock.
+const HERO_SLIDES = [
+  {
+    name: "Yosemite",
+    region: "Sierra Nevada · CA",
+    imageUrl:
+      "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
+    name: "Grand Canyon",
+    region: "Colorado Plateau · AZ",
+    imageUrl:
+      "https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
+    name: "Zion",
+    region: "Southern Utah",
+    imageUrl:
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
+    name: "Acadia",
+    region: "Mount Desert Island · ME",
+    imageUrl:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
+    name: "Olympic",
+    region: "Pacific Northwest · WA",
+    imageUrl:
+      "https://images.unsplash.com/photo-1465056836041-7f43ac27dcb5?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
+    name: "Glacier",
+    region: "Northern Rockies · MT",
+    imageUrl:
+      "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=2000&q=80",
+  },
 ];
 
 export default function Home() {
-  const slides = HERO_SLUGS.map((slug) => {
-    const dest = DESTINATIONS.find((d) => d.slug === slug)!;
-    return {
-      imageUrl: destinationPhotoUrl(dest),
-      name: dest.name,
-      region: `${dest.region} · ${dest.state}`,
-    };
-  });
+  const slides = HERO_SLIDES;
 
   return (
     <>
