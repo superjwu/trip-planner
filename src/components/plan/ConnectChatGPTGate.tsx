@@ -93,15 +93,15 @@ export function ConnectChatGPTGate() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
-      <div className="glass-strong px-8 py-10 text-center">
+      <div className="paper-strong bg-[var(--butter)] px-8 py-10 text-center">
         <p className="hero-eyebrow mb-3 text-[var(--accent)]">Connect ChatGPT</p>
         <h1
-          className="font-serif text-3xl font-bold text-white"
+          className="font-serif text-3xl font-semibold text-[var(--ink)]"
           style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
         >
           Bring your ChatGPT subscription.
         </h1>
-        <p className="mt-3 text-base leading-relaxed text-[var(--text-muted)]">
+        <p className="mt-3 text-base leading-relaxed text-[var(--ink-soft)]">
           Trip Planner uses your ChatGPT Plus or Pro account to generate
           recommendations. We never see your password — you authorize us at
           OpenAI directly.
@@ -111,23 +111,23 @@ export function ConnectChatGPTGate() {
           <button
             type="button"
             onClick={start}
-            className="mt-8 rounded-full bg-[var(--primary)] px-7 py-3 text-base font-semibold text-[var(--primary-text)] shadow-[0_0_24px_var(--primary-glow)] transition hover:opacity-90"
+            className="mt-8 rounded-full bg-[var(--accent)] px-7 py-3 text-base font-semibold text-white shadow-md transition hover:bg-[var(--accent-soft)]"
           >
             Connect ChatGPT →
           </button>
         )}
 
         {phase === "starting" && (
-          <p className="mt-8 animate-pulse text-sm text-[var(--text-muted)]">
+          <p className="mt-8 animate-pulse text-sm text-[var(--ink-soft)]">
             Requesting a one-time code from OpenAI…
           </p>
         )}
 
         {(phase === "awaiting_code" || phase === "polling") && userCode && (
           <div className="mt-8 space-y-4 text-left">
-            <ol className="space-y-3 text-sm leading-relaxed text-white/85">
+            <ol className="space-y-3 text-sm leading-relaxed text-[var(--ink)]/90">
               <li>
-                <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-[11px] font-bold text-[var(--primary-text)]">
+                <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-semibold text-white">
                   1
                 </span>
                 A new tab opened to{" "}
@@ -142,39 +142,39 @@ export function ConnectChatGPTGate() {
                 . Sign in there with your ChatGPT account.
               </li>
               <li>
-                <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--primary)] text-[11px] font-bold text-[var(--primary-text)]">
+                <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-semibold text-white">
                   2
                 </span>
                 Enter this one-time code:
               </li>
             </ol>
             <div
-              className="select-all rounded-2xl border border-[var(--primary)]/40 bg-[var(--primary)]/10 py-4 text-center font-mono text-2xl font-bold tracking-widest text-white"
+              className="select-all rounded-2xl border border-[var(--accent)]/40 bg-white py-4 text-center font-mono text-2xl font-semibold tracking-widest text-[var(--ink)]"
               aria-label="One-time code"
             >
               {userCode}
             </div>
-            <p className="text-center text-xs italic text-[var(--text-muted)]">
+            <p className="text-center text-xs italic text-[var(--ink-soft)]">
               Waiting for OpenAI to confirm… this page updates automatically.
             </p>
           </div>
         )}
 
         {phase === "ready" && (
-          <p className="mt-8 text-base font-semibold text-emerald-300">
+          <p className="mt-8 text-base font-semibold text-[#4f5e3f]">
             Connected. Reloading…
           </p>
         )}
 
         {phase === "expired" && (
           <div className="mt-8 space-y-4">
-            <p className="text-sm text-amber-300">
+            <p className="text-sm text-[#7a6638]">
               That code expired. Try again with a fresh one.
             </p>
             <button
               type="button"
               onClick={start}
-              className="rounded-full bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-[var(--primary-text)] transition hover:opacity-90"
+              className="rounded-full bg-[var(--accent)] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-soft)]"
             >
               Restart
             </button>
@@ -183,20 +183,20 @@ export function ConnectChatGPTGate() {
 
         {phase === "error" && (
           <div className="mt-8 space-y-4">
-            <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            <p className="rounded-2xl border border-[#c97373]/40 bg-[#c97373]/10 px-4 py-3 text-sm text-[#7a3f3f]">
               {error}
             </p>
             <button
               type="button"
               onClick={start}
-              className="rounded-full bg-[var(--primary)] px-6 py-2.5 text-sm font-semibold text-[var(--primary-text)] transition hover:opacity-90"
+              className="rounded-full bg-[var(--accent)] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-soft)]"
             >
               Retry
             </button>
           </div>
         )}
 
-        <p className="mt-10 text-[11px] leading-relaxed text-[var(--text-muted)]">
+        <p className="mt-10 text-[11px] leading-relaxed text-[var(--ink-soft)]">
           We use the same OpenAI device-code OAuth flow that the Codex CLI uses.
           This integration is provided for personal demo use; it depends on
           OpenAI&apos;s Codex backend remaining available and your ChatGPT account&apos;s

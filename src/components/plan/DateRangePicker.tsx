@@ -116,14 +116,14 @@ export function DateRangePicker({
   const rangeEnd = previewEnd ?? endDate;
 
   return (
-    <div className="glass px-4 py-4 sm:px-6 sm:py-5">
+    <div className="paper px-4 py-4 sm:px-6 sm:py-5">
       <div className="mb-4 flex items-center justify-between">
         <NavButton
           dir="prev"
           onClick={() => setAnchor((a) => addMonthsUTC(a, -1))}
           disabled={anchor <= startOfMonthUTC(minDate.getUTCFullYear(), minDate.getUTCMonth())}
         />
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
+        <p className="text-xs uppercase tracking-[0.2em] text-[var(--ink-soft)]">
           {MONTH_NAMES[anchor.getUTCMonth()]} {anchor.getUTCFullYear()} – {MONTH_NAMES[addMonthsUTC(anchor, 1).getUTCMonth()]} {addMonthsUTC(anchor, 1).getUTCFullYear()}
         </p>
         <NavButton dir="next" onClick={() => setAnchor((a) => addMonthsUTC(a, 1))} />
@@ -154,17 +154,17 @@ export function DateRangePicker({
 
       <div className="mt-5 flex items-center justify-between text-sm">
         <div className="flex gap-3">
-          <span className="text-[var(--text-muted)]">
-            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-[var(--primary)] align-middle" />
-            <span className="text-white">{toISO(startDate)}</span>
+          <span className="text-[var(--ink-soft)]">
+            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-[var(--accent)] align-middle" />
+            <span className="text-[var(--ink)]">{toISO(startDate)}</span>
             <span className="mx-2">→</span>
-            <span className="text-white">{toISO(endDate)}</span>
+            <span className="text-[var(--ink)]">{toISO(endDate)}</span>
           </span>
         </div>
-        <span className="text-xs text-[var(--text-muted)]">
+        <span className="text-xs text-[var(--ink-soft)]">
           {tripDays} {tripDays === 1 ? "day" : "days"}
           {tripDays > maxLengthDays && (
-            <span className="ml-2 rounded bg-amber-500/20 px-1.5 py-0.5 text-amber-300">
+            <span className="ml-2 rounded bg-[var(--butter)] px-1.5 py-0.5 text-[#7a6638]">
               max {maxLengthDays}
             </span>
           )}
@@ -198,12 +198,12 @@ function MonthGrid(props: {
   return (
     <div>
       <p
-        className="mb-2 text-center font-serif text-base font-bold text-white"
+        className="mb-2 text-center font-serif text-base font-semibold text-[var(--ink)]"
         style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
       >
         {MONTH_NAMES[month]} {year}
       </p>
-      <div className="grid grid-cols-7 gap-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+      <div className="grid grid-cols-7 gap-1 text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">
         {WEEKDAY_LABELS.map((w, i) => (
           <span key={i} className="py-1 text-center">{w}</span>
         ))}
@@ -220,17 +220,17 @@ function MonthGrid(props: {
           const inRange = !isStart && !isEnd && isBetween(date, start, end);
           const isHover = hover && isSameDay(date, hover);
 
-          let cls = "relative aspect-square text-sm rounded-md transition select-none ";
+          let cls = "relative aspect-square text-sm rounded-lg transition select-none ";
           if (beforeMin) {
-            cls += "text-white/20 cursor-not-allowed";
+            cls += "text-[var(--ink)]/25 cursor-not-allowed";
           } else if (isStart || isEnd) {
-            cls += "bg-[var(--primary)] text-[var(--primary-text)] font-bold cursor-pointer";
+            cls += "bg-[var(--accent)] text-white font-semibold cursor-pointer";
           } else if (inRange) {
-            cls += "bg-[var(--primary)]/25 text-white cursor-pointer";
+            cls += "bg-[var(--rose)] text-[var(--ink)] cursor-pointer";
           } else if (isHover) {
-            cls += "bg-white/10 text-white cursor-pointer";
+            cls += "bg-[var(--paper-deep)] text-[var(--ink)] cursor-pointer";
           } else {
-            cls += "text-white/85 hover:bg-white/8 cursor-pointer";
+            cls += "text-[var(--ink)] hover:bg-[var(--paper-deep)] cursor-pointer";
           }
 
           return (
@@ -268,7 +268,7 @@ function NavButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={dir === "prev" ? "Previous month" : "Next month"}
-      className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 text-sm text-[var(--text-muted)] transition hover:border-[var(--primary)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/15 disabled:hover:text-[var(--text-muted)]"
+      className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--hairline)] bg-white text-sm text-[var(--ink-soft)] transition hover:border-[var(--accent)] hover:text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[var(--hairline)] disabled:hover:text-[var(--ink-soft)]"
     >
       {dir === "prev" ? "‹" : "›"}
     </button>

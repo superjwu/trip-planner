@@ -106,13 +106,13 @@ export function PreferenceWizard() {
       <header className="mb-2 text-center">
         <p className="hero-eyebrow mb-3 text-[var(--accent)]">Plan a trip</p>
         <h1
-          className="font-serif text-4xl font-bold leading-tight text-white"
+          className="font-serif text-4xl font-semibold leading-tight text-[var(--ink)]"
           style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
         >
           Tell us a few things.
         </h1>
         <p
-          className="mt-2 text-base italic text-[var(--text-muted)]"
+          className="mt-2 text-base italic text-[var(--ink-soft)]"
           style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
         >
           We&apos;ll turn it into 4 destinations with reasoning and itineraries.
@@ -144,7 +144,7 @@ export function PreferenceWizard() {
           }}
           maxLengthDays={14}
         />
-        <p className="mt-2 text-xs text-[var(--text-muted)]">
+        <p className="mt-2 text-xs text-[var(--ink-soft)]">
           Season: {seasonHint(departOn)}
         </p>
       </Section>
@@ -158,21 +158,21 @@ export function PreferenceWizard() {
                 type="button"
                 key={v.code}
                 onClick={() => toggleVibe(v.code)}
-                className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
+                className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
                   active
-                    ? "border-[var(--primary)] bg-[var(--primary)]/15"
-                    : "border-white/15 bg-white/5 hover:border-white/30"
+                    ? "border-[var(--accent)] bg-[var(--rose)]"
+                    : "border-[var(--hairline)] bg-white hover:border-[var(--ink-soft)]"
                 }`}
               >
                 <div>
                   <p
                     className={`text-sm font-semibold ${
-                      active ? "text-white" : "text-[var(--text-muted)]"
+                      active ? "text-[var(--ink)]" : "text-[var(--ink)]"
                     }`}
                   >
                     {v.label}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)]">{v.hint}</p>
+                  <p className="text-xs text-[var(--ink-soft)]">{v.hint}</p>
                 </div>
                 <span
                   className={`text-lg ${
@@ -195,10 +195,10 @@ export function PreferenceWizard() {
               type="button"
               key={b.code}
               onClick={() => setBudget(b.code)}
-              className={`rounded-xl border px-4 py-3 text-left transition ${
+              className={`rounded-2xl border px-4 py-3 text-left transition ${
                 budget === b.code
-                  ? "border-[var(--primary)] bg-[var(--primary)]/15 text-white"
-                  : "border-white/15 bg-white/5 text-[var(--text-muted)] hover:border-white/30"
+                  ? "border-[var(--accent)] bg-[var(--butter)] text-[var(--ink)]"
+                  : "border-[var(--hairline)] bg-white text-[var(--ink-soft)] hover:border-[var(--ink-soft)]"
               }`}
             >
               <span className="text-sm font-semibold">{b.label}</span>
@@ -214,20 +214,18 @@ export function PreferenceWizard() {
               type="button"
               key={p.code}
               onClick={() => setPace(p.code)}
-              className={`rounded-xl border px-4 py-3 text-left transition ${
+              className={`rounded-2xl border px-4 py-3 text-left transition ${
                 pace === p.code
-                  ? "border-[var(--primary)] bg-[var(--primary)]/15"
-                  : "border-white/15 bg-white/5 hover:border-white/30"
+                  ? "border-[var(--accent)] bg-[var(--sage)]"
+                  : "border-[var(--hairline)] bg-white hover:border-[var(--ink-soft)]"
               }`}
             >
               <p
-                className={`text-sm font-semibold ${
-                  pace === p.code ? "text-white" : "text-[var(--text-muted)]"
-                }`}
+                className={`text-sm font-semibold text-[var(--ink)]`}
               >
                 {p.label}
               </p>
-              <p className="text-xs text-[var(--text-muted)]">{p.hint}</p>
+              <p className="text-xs text-[var(--ink-soft)]">{p.hint}</p>
             </button>
           ))}
         </div>
@@ -239,7 +237,7 @@ export function PreferenceWizard() {
           onChange={(e) => setDislikes(e.target.value)}
           placeholder="e.g. crowds, big resorts, long flights"
           rows={2}
-          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
+          className="w-full rounded-2xl border border-[var(--hairline)] bg-white px-4 py-3 text-sm text-[var(--ink)] placeholder:text-[var(--ink-soft)] focus:border-[var(--accent)] focus:outline-none"
         />
       </Section>
 
@@ -249,12 +247,12 @@ export function PreferenceWizard() {
           onChange={(e) => setNotes(e.target.value)}
           placeholder="e.g. anniversary trip, traveling with toddler, dietary needs"
           rows={2}
-          className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none"
+          className="w-full rounded-2xl border border-[var(--hairline)] bg-white px-4 py-3 text-sm text-[var(--ink)] placeholder:text-[var(--ink-soft)] focus:border-[var(--accent)] focus:outline-none"
         />
       </Section>
 
       {error && (
-        <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <p className="rounded-2xl border border-[#c97373]/40 bg-[#c97373]/10 px-4 py-3 text-sm text-[#7a3f3f]">
           {error}
         </p>
       )}
@@ -262,7 +260,7 @@ export function PreferenceWizard() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-[var(--primary)] py-3.5 text-base font-semibold text-[var(--primary-text)] shadow-[0_0_24px_var(--primary-glow)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-full bg-[var(--accent)] py-3.5 text-base font-semibold text-white shadow-md transition hover:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Creating trip…" : "Show me 4 destinations →"}
       </button>
@@ -286,11 +284,11 @@ function Section({
       <div className="mb-3 flex items-baseline gap-3">
         <p className="hero-eyebrow text-[var(--accent)]">{eyebrow}</p>
         {hint && (
-          <span className="text-xs text-[var(--text-muted)]">{hint}</span>
+          <span className="text-xs text-[var(--ink-soft)]">{hint}</span>
         )}
       </div>
       <h2
-        className="mb-3 font-serif text-xl font-bold text-white"
+        className="mb-3 font-serif text-xl font-semibold text-[var(--ink)]"
         style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
       >
         {title}
@@ -315,8 +313,8 @@ function Chip({
       onClick={onClick}
       className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${
         active
-          ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-text)]"
-          : "border-white/15 bg-white/5 text-[var(--text-muted)] hover:border-white/30 hover:text-white"
+          ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+          : "border-[var(--hairline)] bg-white text-[var(--ink-soft)] hover:border-[var(--ink-soft)] hover:text-[var(--ink)]"
       }`}
     >
       {children}

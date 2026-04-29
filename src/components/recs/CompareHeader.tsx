@@ -1,52 +1,40 @@
 import type { NormalizedTripInput } from "@/lib/types";
 
-const VIBE_LABELS: Record<string, string> = {
-  city: "city",
-  nature: "nature",
-  foodie: "foodie",
-  chill: "chill",
-  adventure: "adventure",
-  scenic: "scenic",
-  cultural: "cultural",
-  nightlife: "nightlife",
-};
-
+/**
+ * Compact trip-metadata strip rendered above the TradeoffMatrix. Replaces
+ * the v1 "Why these 4" body — that's now the LLM-written paragraph the
+ * matrix renders. This component is just the inputs-at-a-glance band.
+ */
 export function CompareHeader({
   input,
-  destinationCount = 4,
 }: {
   input: NormalizedTripInput;
+  /** Legacy prop, no longer rendered (kept for back-compat). */
   destinationCount?: number;
 }) {
-  const vibes = input.vibes.map((v) => VIBE_LABELS[v] ?? v).join(", ");
   const lengthLabel = `${input.tripLengthDays} days`;
 
   return (
-    <section className="glass-strong mb-8 px-7 py-6">
-      <p className="hero-eyebrow mb-2 text-[var(--accent)]">
-        Why these {destinationCount}
-      </p>
-      <p
-        className="font-serif text-2xl leading-tight text-white"
-        style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
-      >
-        Curated for a <span className="italic text-[var(--accent)]">{vibes}</span> {lengthLabel} trip from {input.originCode}, ranked by fit and feasibility within your budget.
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2 text-xs">
-        <Pill>From {input.originCode}</Pill>
-        <Pill>{input.departOn} → {input.returnOn}</Pill>
-        <Pill>{lengthLabel}</Pill>
-        <Pill>{input.budgetBand} budget</Pill>
-        <Pill>{input.pace} pace</Pill>
-        <Pill>{input.seasonHint}</Pill>
-      </div>
+    <section className="surface-deep mb-6 flex flex-wrap items-center gap-2 px-5 py-3 text-xs">
+      <span className="mr-1 text-[10px] uppercase tracking-[0.22em] text-[var(--ink-soft)]">
+        Trip
+      </span>
+      <Pill>{input.originCode}</Pill>
+      <Pill>
+        {input.departOn} → {input.returnOn}
+      </Pill>
+      <Pill>{lengthLabel}</Pill>
+      <Pill>{input.vibes.join(" + ")}</Pill>
+      <Pill>{input.budgetBand}</Pill>
+      <Pill>{input.pace}</Pill>
+      <Pill>{input.seasonHint}</Pill>
     </section>
   );
 }
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[var(--text-muted)]">
+    <span className="rounded-full border border-[var(--hairline)] bg-white/70 px-3 py-1 text-[var(--ink)]">
       {children}
     </span>
   );

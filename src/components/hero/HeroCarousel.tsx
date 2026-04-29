@@ -44,16 +44,26 @@ export function HeroCarousel({ slides, intervalMs = 5500 }: Props) {
         ))}
       </div>
 
-      <p className="hero-eyebrow mb-4 z-10">Trip Planning Copilot</p>
-      <h1 className="hero-title mb-4 z-10">Find your next getaway.</h1>
-      <p className="hero-tagline mb-10 max-w-xl px-6 z-10">
+      <p className="hero-eyebrow mb-4 z-10" style={{ color: "rgba(255,255,255,0.85)" }}>
+        Trip Planning Copilot
+      </p>
+      <h1
+        className="hero-title mb-4 z-10"
+        style={{ color: "#ffffff", textShadow: "0 2px 24px rgba(0,0,0,0.45)" }}
+      >
+        Find your next getaway.
+      </h1>
+      <p
+        className="hero-tagline mb-10 max-w-xl px-6 z-10"
+        style={{ color: "rgba(255,255,255,0.92)", textShadow: "0 1px 12px rgba(0,0,0,0.55)" }}
+      >
         Turn vague preferences into a curated short-list of destinations,
         with itinerary previews and booking links — in seconds.
       </p>
 
       <a
         href="/plan"
-        className="z-10 rounded-full bg-[var(--primary)] px-8 py-3.5 text-base font-semibold text-[var(--primary-text)] shadow-[0_0_24px_var(--primary-glow)] transition hover:opacity-90"
+        className="z-10 rounded-full bg-[var(--accent)] px-8 py-3.5 text-base font-semibold text-white shadow-md transition hover:bg-[var(--accent-soft)]"
       >
         Start planning →
       </a>

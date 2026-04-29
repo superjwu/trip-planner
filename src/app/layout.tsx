@@ -16,12 +16,7 @@ export default function RootLayout({
   return (
     <MaybeClerkProvider>
       <html lang="en" className="h-full antialiased">
-        <body className="min-h-full flex flex-col">
-          <div className="mesh-bg" aria-hidden="true">
-            <div className="mesh-blob mesh-blob-1" />
-            <div className="mesh-blob mesh-blob-2" />
-            <div className="mesh-blob mesh-blob-3" />
-          </div>
+        <body className="min-h-full flex flex-col bg-[var(--paper)] text-[var(--ink)]">
           {children}
         </body>
       </html>
