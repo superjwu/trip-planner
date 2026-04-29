@@ -13,6 +13,9 @@ import { verifyCookie } from "@/lib/cookie-sign";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// OAuth token-exchange against OpenAI can take a few seconds under load;
+// give it headroom over Vercel's 10s Hobby default.
+export const maxDuration = 30;
 
 interface DeviceAuthCookie {
   deviceAuthId: string;

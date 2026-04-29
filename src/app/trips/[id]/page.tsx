@@ -32,6 +32,11 @@ import type {
 import { computeRecommendations, ensureItinerary } from "./actions";
 
 export const dynamic = "force-dynamic";
+// First-visit compute is synchronous within the server-render: preFilter →
+// rank (~6-9s with reasoning=low) → hydrate (~1-3s). Vercel Hobby defaults
+// to 10s which is too tight; bump to 60s. Same goes for the createRefineRound
+// server action invoked from RefinePanel — it inherits this page's timeout.
+export const maxDuration = 60;
 
 export const metadata = {
   title: "Your trip — Trip Planner",
