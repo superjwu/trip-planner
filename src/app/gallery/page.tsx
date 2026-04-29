@@ -25,6 +25,16 @@ const VARIANTS: Variant[] = [
   { slug: "v13-atlas-obscura", name: "13 — Atlas Obscura", vibe: "Discovery editorial", description: "Sepia + dark teal, vintage cartographic flourishes, secret-knowledge tone." },
   { slug: "v14-hopper", name: "14 — Hopper", vibe: "Playful mobile-first", description: "Bright purples & pinks, big rounded buttons, mascot energy." },
   { slug: "v15-apple-guides", name: "15 — Apple Maps Guides", vibe: "System glass cards", description: "Clean SF Pro, blurred glass, soft Apple-system aesthetic." },
+  { slug: "v16-coastal-deep", name: "16 — Coastal Deep", vibe: "Editorial · maritime", description: "Deep teal + sand + ivory, coral pop. Magazine layout, hairline rules, big serif numerals." },
+  { slug: "v17-forest-cabin", name: "17 — Forest Cabin", vibe: "Ranger station · field log", description: "Forest green + cream + rust + gold. Badge stamps, paper texture, condensed display, mono metadata." },
+  { slug: "v18-sunset-gradient", name: "18 — Sunset Gradient", vibe: "Atmospheric · dreamy", description: "Plum→coral→peach→cream conic gradient. Glass cards, italic serif moments, kinetic poster scale." },
+  { slug: "v19-midnight-gold", name: "19 — Midnight Gold", vibe: "Quiet luxury · concierge", description: "Navy + brass + ivory. Roman numerals, hairline rules, refined display serif, no boxes." },
+  { slug: "v20-sage-terracotta", name: "20 — Sage & Terracotta", vibe: "Slow living · pottery", description: "Sage + terracotta + oat. Italic serifs, organic blob ambience, warm-earth Kinfolk feel." },
+  { slug: "v21-cobalt-tangerine", name: "21 — Cobalt × Tangerine", vibe: "Bauhaus · modernist", description: "Hard flat color blocks, giant numerals, exposed grid, manifesto-poster typography." },
+  { slug: "v22-lavender-mustard", name: "22 — Lavender × Mustard", vibe: "Indie magazine spread", description: "Asymmetric magazine layout, marker-pen underlines, pull quotes, rotated marginalia." },
+  { slug: "v23-mint-blush", name: "23 — Mint × Blush", vibe: "Wellness · spa", description: "Mint + blush + bone, very soft shadows, breathing space, italic display serif." },
+  { slug: "v24-wine-champagne", name: "24 — Wine × Champagne", vibe: "Boutique hotel · warm luxury", description: "Cream paper, champagne ribbons, wine-italic Roman numerals. Concierge brochure feel." },
+  { slug: "v25-bento-citrus", name: "25 — Bento Citrus", vibe: "Modern dashboard · tiles", description: "Orange + lemon + lime + navy bento grid. Big numbers, varied tile sizes, Apple-Music energy." },
 ];
 
 export default function GalleryIndex() {
@@ -33,10 +43,11 @@ export default function GalleryIndex() {
       <div className="max-w-6xl mx-auto">
         <header className="mb-12">
           <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 mb-3">Design Exploration</p>
-          <h1 className="text-4xl md:text-5xl font-light tracking-tight">Fifteen directions for the trip planner</h1>
+          <h1 className="text-4xl md:text-5xl font-light tracking-tight">Twenty-five directions for the trip planner</h1>
           <p className="text-neutral-400 mt-4 max-w-2xl text-sm leading-relaxed">
-            Same trip, same four destinations, fifteen different visual languages. Click in to see how each variant
-            renders the cards. None are wired to real data — this is purely about picking a direction.
+            Same trip, same four destinations, twenty-five different visual languages. Variants 1–15 explore site
+            archetypes; 16–25 pair Figma-style color combinations with distinct design languages. Click in to see
+            how each renders the cards. None are wired to real data — this is purely about picking a direction.
           </p>
         </header>
 
