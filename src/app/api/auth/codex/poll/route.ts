@@ -9,6 +9,7 @@ import {
   pollDeviceAuth,
 } from "@/lib/llm/codex-auth";
 import { persistCodexAuth } from "@/lib/llm/codex-token";
+import { verifyCookie } from "@/lib/cookie-sign";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,17 +54,22 @@ export async function POST() {
     );
   }
 
-  let parsed: DeviceAuthCookie;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
+  const parsed = await verifyCookie<DeviceAuthCookie>(raw);
+  if (!parsed) {
+    // Bad signature, malformed payload, or wrong cookie format. Drop it so
+    // the user can restart cleanly.
+    jar.delete("codex_device_auth");
     return NextResponse.json(
-      { error: "Cookie unreadable.", code: "bad_cookie" },
+      { error: "Cookie tampered or expired.", code: "bad_cookie" },
       { status: 400 },
     );
   }
 
   if (parsed.clerkUserId !== userId) {
+    // Defense-in-depth: signature already binds the cookie to the issuer's
+    // server, but binding clerkUserId to the requester catches a Clerk
+    // session swap mid-flow.
+    jar.delete("codex_device_auth");
     return NextResponse.json(
       { error: "Cookie/user mismatch.", code: "cookie_mismatch" },
       { status: 400 },

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { requireUserId } from "@/lib/auth";
 import { isCodexOAuthEnabled, requestDeviceCode, CodexOAuthError } from "@/lib/llm/codex-auth";
+import { signCookie } from "@/lib/cookie-sign";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,14 +36,15 @@ export async function POST() {
     const dc = await requestDeviceCode();
 
     const jar = await cookies();
+    const signedValue = await signCookie({
+      deviceAuthId: dc.deviceAuthId,
+      userCode: dc.userCode,
+      clerkUserId: userId,
+      startedAt: Date.now(),
+    });
     jar.set({
       name: "codex_device_auth",
-      value: JSON.stringify({
-        deviceAuthId: dc.deviceAuthId,
-        userCode: dc.userCode,
-        clerkUserId: userId,
-        startedAt: Date.now(),
-      }),
+      value: signedValue,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
