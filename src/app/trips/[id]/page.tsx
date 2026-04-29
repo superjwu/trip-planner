@@ -138,8 +138,9 @@ export default async function TripPage({
 }) {
   const { id } = await params;
   const { focus: focusRaw } = await searchParams;
-  let { trip, error } = await fetchTrip(id);
-  if (error || !trip) notFound();
+  const initial = await fetchTrip(id);
+  if (initial.error || !initial.trip) notFound();
+  let trip: TripRowRaw = initial.trip;
 
   // Parse normalized_input ONCE — it's used by both the page chrome and the
   // compute / itinerary triggers below.
@@ -151,8 +152,9 @@ export default async function TripPage({
   // First-visit compute (loading.tsx covers the wait).
   if (trip.compute_status === "pending") {
     await computeRecommendations(id);
-    ({ trip } = await fetchTrip(id));
-    if (!trip) notFound();
+    const reFetch = await fetchTrip(id);
+    if (!reFetch.trip) notFound();
+    trip = reFetch.trip;
   }
 
   let recs =
@@ -367,7 +369,7 @@ function ErrorState({ message }: { message: string }) {
   return (
     <div className="glass-strong mt-6 px-7 py-6 text-center">
       <p className="text-base font-semibold text-red-300">
-        Couldn't generate recommendations
+        Couldn&apos;t generate recommendations
       </p>
       <p className="mt-1 text-sm text-[var(--text-muted)]">{message}</p>
     </div>

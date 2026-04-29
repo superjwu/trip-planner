@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MainNav } from "@/components/nav/MainNav";
 import { PreferenceWizard } from "@/components/plan/PreferenceWizard";
 import { ConnectChatGPTGate } from "@/components/plan/ConnectChatGPTGate";
@@ -54,9 +55,9 @@ function DisabledBanner() {
         </h1>
         <p className="mt-3 text-sm text-[var(--text-muted)]">
           The site operator has disabled trip planning. Check back later or browse the{" "}
-          <a className="underline hover:text-white" href="/trips/demo">
+          <Link className="underline hover:text-white" href="/trips/demo">
             demo result
-          </a>
+          </Link>
           .
         </p>
       </div>

@@ -91,7 +91,7 @@ export default async function SettingsPage() {
         </section>
 
         <p className="mt-8 text-[11px] leading-relaxed text-[var(--text-muted)]">
-          The ChatGPT integration uses OpenAI's Codex device-code OAuth flow,
+          The ChatGPT integration uses OpenAI&apos;s Codex device-code OAuth flow,
           the same one their official Codex CLI uses. We store an encrypted
           refresh token and call the Codex backend on your behalf using the
           access token. This is provided for personal demo use and depends on

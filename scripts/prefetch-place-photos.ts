@@ -47,7 +47,12 @@ async function findPhoto(query: string): Promise<string | null> {
   const place = json.places?.[0];
   const photoName = place?.photos?.[0]?.name;
   if (!photoName) return null;
-  return `https://places.googleapis.com/v1/${photoName}/media?maxHeightPx=1200&key=${KEY!}`;
+  // SECURITY: store only the photo *name* (a server-side reference), NOT the
+  // full URL with the API key embedded. The runtime should construct the
+  // signed URL via a server-side proxy so the GOOGLE_PLACES_API_KEY never
+  // reaches the browser. (Future: src/app/api/places-photo/route.ts that
+  // takes ?ref=<photoName> and 302s to the live Places media URL.)
+  return `places://${photoName}`;
 }
 
 (async () => {

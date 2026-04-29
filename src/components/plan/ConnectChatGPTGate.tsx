@@ -199,7 +199,7 @@ export function ConnectChatGPTGate() {
         <p className="mt-10 text-[11px] leading-relaxed text-[var(--text-muted)]">
           We use the same OpenAI device-code OAuth flow that the Codex CLI uses.
           This integration is provided for personal demo use; it depends on
-          OpenAI's Codex backend remaining available and your ChatGPT account's
+          OpenAI&apos;s Codex backend remaining available and your ChatGPT account&apos;s
           rate limits. You can disconnect any time from Settings.
         </p>
       </div>

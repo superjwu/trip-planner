@@ -98,7 +98,7 @@ export function ExpandedDestination({
             className="mt-8 font-serif text-xl font-bold text-white"
             style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
           >
-            What you'll see
+            What you&apos;ll see
           </h3>
           <ul className="mt-3 space-y-3">
             {destination.attractions.map((a) => (
@@ -123,7 +123,7 @@ export function ExpandedDestination({
             )}
             {!itineraryLoading && itineraryMissing && !itinerary && (
               <p className="mt-3 text-sm text-[var(--text-muted)]">
-                Couldn't generate an itinerary right now. Try refreshing the page.
+                Couldn&apos;t generate an itinerary right now. Try refreshing the page.
               </p>
             )}
             {itinerary && (

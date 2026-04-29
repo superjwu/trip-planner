@@ -66,5 +66,4 @@ on conflict (slug) do update set
 const outPath = resolve(__dirname, "..", "supabase", "seed", "destinations.sql");
 mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, sql);
-// eslint-disable-next-line no-console
 console.log(`Wrote ${DESTINATIONS.length} rows to ${outPath}`);

@@ -115,7 +115,7 @@ export function PreferenceWizard() {
           className="mt-2 text-base italic text-[var(--text-muted)]"
           style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
         >
-          We'll turn it into 4 destinations with reasoning and itineraries.
+          We&apos;ll turn it into 4 destinations with reasoning and itineraries.
         </p>
       </header>
 
