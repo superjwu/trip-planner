@@ -2,6 +2,7 @@ import { getCheapestFlightOffer, getCheapestHotelOffer } from "./apis/amadeus";
 import { getWeather } from "./apis/weather";
 import { bookingComLodgingUrl, skyscannerFlightsUrl } from "./apis/booking-links";
 import { DESTINATION_AIRPORTS } from "./seed/airports";
+import { lodgingNights } from "./normalize";
 import { ORIGIN_CITIES, type BookingLinks, type CostBreakdown, type NormalizedTripInput, type SeedDestination, type WeatherForecast } from "./types";
 
 export interface HydrationBundle {
@@ -64,13 +65,14 @@ function buildCost(
   amadeusHotel: { perNightUsd: number } | null,
 ): CostBreakdown {
   const days = input.tripLengthDays;
+  const nights = lodgingNights(days);
   const seedFlight =
     destination.typicalCostBands.flightFromOrigin[input.originCode] ?? 350;
   const seedLodgingPerNight = destination.typicalCostBands.lodgingPerNightUsd;
 
   const flightUsd = amadeusFlight?.totalUsd ?? seedFlight;
   const lodgingPerNight = amadeusHotel?.perNightUsd ?? seedLodgingPerNight;
-  const lodgingUsd = lodgingPerNight * days;
+  const lodgingUsd = lodgingPerNight * nights;
   const foodUsd = destination.typicalCostBands.foodPerDayUsd * days;
   const activitiesUsd = destination.typicalCostBands.activitiesPerDayUsd * days;
 

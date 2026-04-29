@@ -72,13 +72,21 @@ export async function computeRecommendations(tripId: string): Promise<{
     return { ok: false, error: `Trip input invalid: ${(e as Error).message}` };
   }
 
-  // Race-safe lock: only the request that flips pending → computing proceeds.
-  // Concurrent callers (refresh, double-open) get zero rows back and bail out.
+  // Race-safe lock with stale-lock recovery: take the lock if status is
+  // 'pending' OR the lock has been held for >5 minutes (the previous worker
+  // probably died). PostgREST doesn't support OR across multiple .eq() calls
+  // so we use the .or() filter syntax.
+  const staleLockCutoff = new Date(Date.now() - 5 * 60_000).toISOString();
   const { data: lockRows, error: lockErr } = await sb
     .from("trips")
-    .update({ compute_status: "computing" })
+    .update({
+      compute_status: "computing",
+      computing_started_at: new Date().toISOString(),
+    })
     .eq("id", tripId)
-    .eq("compute_status", "pending")
+    .or(
+      `compute_status.eq.pending,and(compute_status.eq.computing,computing_started_at.lt.${staleLockCutoff})`,
+    )
     .select("id");
   if (lockErr) {
     return { ok: false, error: lockErr.message };

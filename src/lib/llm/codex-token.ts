@@ -152,15 +152,39 @@ export async function resolveCodexAuth(clerkUserId: string): Promise<ResolvedCod
     });
   } else {
     try {
-      const { error: writeErr } = await admin.rpc("codex_auth_upsert", {
-        p_clerk_user_id: clerkUserId,
-        p_access_token: fresh.accessToken,
-        p_refresh_token: fresh.refreshToken,
-        p_access_token_expires_at: fresh.expiresAt.toISOString(),
-        p_chatgpt_account_id: newAccountId,
-        p_key: key,
-      });
-      if (writeErr) throw new Error(`codex_auth_upsert failed: ${writeErr.message}`);
+      // Compare-and-swap: only persist if the row's expiry still matches
+      // what we observed before refreshing. If a parallel request already
+      // refreshed (rows_updated == 0), fall through and re-read so this
+      // request uses the fresher token.
+      const { data: rowsUpdated, error: writeErr } = await admin.rpc(
+        "codex_auth_upsert_cas",
+        {
+          p_clerk_user_id: clerkUserId,
+          p_access_token: fresh.accessToken,
+          p_refresh_token: fresh.refreshToken,
+          p_access_token_expires_at: fresh.expiresAt.toISOString(),
+          p_chatgpt_account_id: newAccountId,
+          p_key: key,
+          p_expected_old_expires: row.access_token_expires_at,
+        },
+      );
+      if (writeErr) throw new Error(`codex_auth_upsert_cas failed: ${writeErr.message}`);
+      if (rowsUpdated === 0) {
+        // Someone else refreshed first. Re-read and return their token.
+        const reread = await admin.rpc("codex_auth_read", {
+          p_clerk_user_id: clerkUserId,
+          p_key: key,
+        });
+        const rerows = (reread.data as Array<typeof row & object> | null) ?? [];
+        if (rerows.length > 0) {
+          return {
+            accessToken: rerows[0].access_token,
+            chatgptAccountId: rerows[0].chatgpt_account_id,
+            refreshed: true,
+          };
+        }
+        throw new CodexAuthExpiredError();
+      }
     } catch (err) {
       if (!shouldFallbackToMemory(err)) throw new CodexAuthExpiredError();
       logDevFallback("resolveCodexAuth refresh-write", err);

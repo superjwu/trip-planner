@@ -15,6 +15,15 @@ export function tripLengthDays(departOn: string, returnOn: string): number {
   return Math.max(1, Math.min(MAX_TRIP_DAYS, days));
 }
 
+/**
+ * Hotel nights = days - 1 for the standard depart-morning / return-evening
+ * pattern. A 4-day trip is 3 nights of lodging. Bumped to 1 minimum so a
+ * day-trip (departOn === returnOn) doesn't treat lodging as 0.
+ */
+export function lodgingNights(tripLengthDays: number): number {
+  return Math.max(1, tripLengthDays - 1);
+}
+
 export function seasonForDate(isoDate: string): NormalizedTripInput["seasonHint"] {
   const d = new Date(isoDate);
   const m = d.getUTCMonth() + 1; // 1-12

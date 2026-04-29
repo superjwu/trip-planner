@@ -24,6 +24,7 @@ import {
   type CodexTool,
 } from "./codex-client";
 import { resolveCodexAuth } from "./codex-token";
+import { lodgingNights } from "../normalize";
 
 // Upper-bound dollars per band. Pre-filter rejects any destination whose
 // rough total-trip estimate (flight + lodging × days + food × days +
@@ -39,10 +40,15 @@ const BUDGET_CEILING_BY_BAND: Record<string, number> = {
 const BUDGET_HEADROOM = 1.15;
 
 /**
- * Rough all-in trip cost from origin = flight + lodging·days + food·days +
+ * Rough all-in trip cost from origin = flight + lodging·nights + food·days +
  * activities·days. Mirrors the formula in src/lib/hydrate.ts:buildCost (which
  * runs at hydration time, against possibly-live Amadeus data) so the
  * pre-filter sees what the user will eventually see on the card.
+ *
+ * Note: nights = days - 1 (depart-morning / return-evening). A 4-day trip is
+ * 3 hotel nights. This was a Codex audit catch — the prior version used
+ * days for lodging and over-counted by ~1 night, which pushed scenic
+ * destinations like Aspen and Big Sur over budget bands artificially.
  */
 export function estimateTripCostUsd(
   destination: SeedDestination,
@@ -50,7 +56,8 @@ export function estimateTripCostUsd(
 ): number {
   const flight = destination.typicalCostBands.flightFromOrigin[input.originCode] ?? 350;
   const days = input.tripLengthDays;
-  const lodging = destination.typicalCostBands.lodgingPerNightUsd * days;
+  const nights = lodgingNights(days);
+  const lodging = destination.typicalCostBands.lodgingPerNightUsd * nights;
   const food = destination.typicalCostBands.foodPerDayUsd * days;
   const activities = destination.typicalCostBands.activitiesPerDayUsd * days;
   return flight + lodging + food + activities;
@@ -105,14 +112,29 @@ export function cacheKey(input: NormalizedTripInput): string {
  * coming from the wizard (TS object literal order) vs being read from the DB
  * (storage order). Sort keys recursively at every level to make the hash
  * stable.
+ *
+ * Edge cases vs raw JSON.stringify:
+ * - `undefined` at the top level / inside objects: JSON.stringify omits the
+ *   key entirely. We do the same to keep `{notes: undefined}` and `{}`
+ *   collapse to the same hash. (For Codex review: this matters because a
+ *   trip without notes goes through normalize() with `notes: undefined`,
+ *   while a round-trip from JSONB drops the key entirely.)
+ * - `undefined` inside arrays: JSON.stringify writes `null`. We do the same.
+ * - Non-finite numbers (NaN, Infinity): JSON.stringify writes `null`. We do
+ *   the same. None of our inputs should ever produce NaN, but this catches
+ *   a future regression silently.
  */
 function stableStringify(value: unknown): string {
+  if (value === undefined) return "null";
+  if (typeof value === "number" && !Number.isFinite(value)) return "null";
   if (value === null || typeof value !== "object") return JSON.stringify(value);
   if (Array.isArray(value)) {
-    return "[" + value.map(stableStringify).join(",") + "]";
+    return "[" + value.map((v) => stableStringify(v)).join(",") + "]";
   }
   const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj).sort();
+  const keys = Object.keys(obj)
+    .filter((k) => obj[k] !== undefined)
+    .sort();
   return (
     "{" +
     keys
