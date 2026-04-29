@@ -11,6 +11,7 @@ import {
   type Vibe,
 } from "@/lib/types";
 import { createTrip } from "@/app/plan/actions";
+import { DateRangePicker } from "@/components/plan/DateRangePicker";
 
 const VIBES: { code: Vibe; label: string; hint: string }[] = [
   { code: "city",      label: "City",      hint: "neighborhoods, museums, urban energy" },
@@ -133,13 +134,18 @@ export function PreferenceWizard() {
         </div>
       </Section>
 
-      <Section title="When?" eyebrow="Dates">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <DateField label="Depart" value={departOn} onChange={setDepartOn} />
-          <DateField label="Return" value={returnOn} onChange={setReturnOn} min={departOn} />
-        </div>
+      <Section title="When?" eyebrow="Dates" hint="Pick a range">
+        <DateRangePicker
+          start={departOn}
+          end={returnOn}
+          onChange={({ start, end }) => {
+            setDepartOn(start);
+            setReturnOn(end);
+          }}
+          maxLengthDays={14}
+        />
         <p className="mt-2 text-xs text-[var(--text-muted)]">
-          {tripDays} {tripDays === 1 ? "day" : "days"} · {seasonHint(departOn)}
+          Season: {seasonHint(departOn)}
         </p>
       </Section>
 
@@ -315,33 +321,6 @@ function Chip({
     >
       {children}
     </button>
-  );
-}
-
-function DateField({
-  label,
-  value,
-  onChange,
-  min,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  min?: string;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-        {label}
-      </span>
-      <input
-        type="date"
-        value={value}
-        min={min}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white focus:border-[var(--primary)] focus:outline-none"
-      />
-    </label>
   );
 }
 

@@ -166,7 +166,11 @@ export async function computeRecommendations(tripId: string): Promise<{
       .update({ compute_status: "ready", compute_error: null })
       .eq("id", tripId);
 
-    revalidatePath(`/trips/${tripId}`);
+    // No revalidatePath() here: this action is invoked during the trip page's
+    // server-render (page calls compute → re-fetches → renders). Next.js 16
+    // forbids calling revalidatePath during render. The page reads fresh data
+    // explicitly via fetchTrip/fetchRecs after compute returns, which is
+    // sufficient.
     return { ok: true };
   } catch (err) {
     const message = friendlyComputeError(err);
@@ -275,7 +279,7 @@ export async function ensureItinerary(args: {
       .from("recommendations")
       .update({ itinerary: response })
       .eq("id", rec.id);
-    revalidatePath(`/trips/${args.tripId}`);
+    // No revalidatePath here either — same reason as computeRecommendations.
     return { ok: true };
   } catch (err) {
     return { ok: false, error: friendlyComputeError(err) };
