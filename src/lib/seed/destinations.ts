@@ -1,4 +1,6 @@
 import type { SeedDestination } from "../types";
+import { EXTRA_DESTINATIONS } from "./destinations-extras";
+import { CURATED_EXTRAS } from "./destinations-curated-extras";
 
 /**
  * Hand-curated US destinations reachable from NYC / CHI / LAX / SFO / SEA.
@@ -11,7 +13,7 @@ import type { SeedDestination } from "../types";
  * Cost bands are rough planning estimates, not quotes. Amadeus may override
  * them at runtime when its test env returns usable data.
  */
-export const DESTINATIONS: SeedDestination[] = [
+const HAND_CURATED_DESTINATIONS: SeedDestination[] = [
   // ───── Cities ─────────────────────────────────────────────────
   {
     slug: "boston-ma",
@@ -667,4 +669,13 @@ export const DESTINATIONS: SeedDestination[] = [
     typicalCostBands: { flightFromOrigin: { NYC: 220, CHI: 220, LAX: 380, SFO: 400, SEA: 400 }, lodgingPerNightUsd: 180, foodPerDayUsd: 65, activitiesPerDayUsd: 30 },
     bestSeasons: ["summer", "fall"],
   },
+];
+
+// Order matters: hand-curated first, then v3 curated extras, then auto-imported.
+// `enrich-destinations.ts` dedup keeps the FIRST occurrence on collision, so
+// hand-curated and v3 curated entries always win over auto-import duplicates.
+export const DESTINATIONS: SeedDestination[] = [
+  ...HAND_CURATED_DESTINATIONS,
+  ...CURATED_EXTRAS,
+  ...EXTRA_DESTINATIONS,
 ];

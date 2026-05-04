@@ -9,9 +9,11 @@ import {
   cacheKey,
   preFilter,
   rankDestinationsWithRetry,
+  estimateTripCostUsd,
 } from "@/lib/llm/recommend";
+import { computeTradeoffs } from "@/lib/llm/tradeoffs";
 import type { RefineContext } from "@/lib/llm/prompts";
-import { DESTINATIONS } from "@/lib/seed/destinations";
+import { ENRICHED_DESTINATIONS as DESTINATIONS } from "@/lib/seed/enrich-destinations";
 import {
   NormalizedTripInputSchema,
   RecommendationResponseSchema,
@@ -145,6 +147,13 @@ interface RankAndPersistArgs {
   input: NormalizedTripInput;
   refine: RefineContext | undefined;
   userId: string;
+  /**
+   * Optional explicit candidate pool. When provided, replaces the default
+   * `preFilter(input)` result. Used by `createRefineRound` to apply
+   * avoided-slug + preset filters BEFORE rank — per CLAUDE.md, "Pre-filter
+   * is a hard guarantee, the prompt is a soft one."
+   */
+  candidatePoolOverride?: SeedDestination[];
 }
 
 /**
@@ -158,7 +167,7 @@ async function rankAndPersist(args: RankAndPersistArgs): Promise<{
   const sb = await createOwnerScopedSupabase();
   const admin = createAdminSupabase();
 
-  const candidates = preFilter(args.input);
+  const candidates = args.candidatePoolOverride ?? preFilter(args.input);
   if (candidates.length < 4) {
     return {
       ok: false,
@@ -187,6 +196,33 @@ async function rankAndPersist(args: RankAndPersistArgs): Promise<{
 
   if (cached?.response) {
     response = RecommendationResponseSchema.parse(cached.response);
+    // Codex audit (high): cached responses bypassed candidate validation,
+    // so a stale cache row could reintroduce avoided slugs or picks
+    // filtered out by presets. Validate every cached pick against the
+    // current candidate pool; on mismatch, treat the cache as a miss
+    // and re-rank.
+    const slugSet = new Set(candidates.map((d) => d.slug));
+    const cacheValid = response.picks.every((p) => slugSet.has(p.slug));
+    if (!cacheValid) {
+      const ranked = await rankDestinationsWithRetry({
+        clerkUserId: args.userId,
+        input: args.input,
+        candidates,
+        refine: args.refine,
+      });
+      response = ranked.response;
+      meta = {
+        ...(ranked.meta as unknown as Record<string, unknown>),
+        refined: !!args.refine,
+        cacheBypass: "candidate-mismatch",
+      };
+      const { error: cacheWriteErr } = await admin
+        .from("rec_cache")
+        .upsert({ key, response }, { onConflict: "key" });
+      if (cacheWriteErr && process.env.NODE_ENV !== "production") {
+        console.warn("[rec_cache] write failed:", cacheWriteErr.message);
+      }
+    }
   } else {
     const ranked = await rankDestinationsWithRetry({
       clerkUserId: args.userId,
@@ -240,7 +276,9 @@ async function rankAndPersist(args: RankAndPersistArgs): Promise<{
     destination_slug: pick.slug,
     reasoning: pick.reasoning,
     match_tags: pick.match_tags,
-    tradeoffs: pick.tradeoffs,
+    // Tradeoffs computed in code from (input, destination) — coherent across
+    // rounds. The LLM-emitted `pick.tradeoffs` is ignored.
+    tradeoffs: computeTradeoffs(args.input, dest),
     destination_snapshot: dest,
     hydration: { weather: bundle.weather, cost: bundle.cost },
     booking_links: bundle.bookingLinks,
@@ -253,6 +291,80 @@ async function rankAndPersist(args: RankAndPersistArgs): Promise<{
   if (insertErr) return { ok: false, error: insertErr.message };
 
   return { ok: true };
+}
+
+/**
+ * Map refine preset chips to code-side candidate-pool transforms. Each preset
+ * either filters the pool (hard) or reorders it (soft boost — the LLM still
+ * picks 4 from this pool, but now the relevant candidates are surfaced first).
+ *
+ * v1 of this mapping. Future: per-preset weights, multi-preset interactions.
+ */
+function applyRefinePresets(
+  pool: SeedDestination[],
+  presets: string[],
+  input: NormalizedTripInput,
+): SeedDestination[] {
+  if (presets.length === 0) return pool;
+  let filtered = pool.slice();
+
+  // Each hard-trim preset falls back to the bottom-4 (cheapest, shortest,
+  // quietest) when the median/heuristic trim would leave <4 candidates.
+  // Codex audit: median-only filter can produce 3 in tight pools.
+  if (presets.includes("cheaper")) {
+    const sorted = [...filtered].sort(
+      (a, b) => estimateTripCostUsd(a, input) - estimateTripCostUsd(b, input),
+    );
+    const totals = sorted.map((d) => estimateTripCostUsd(d, input));
+    const median = totals[Math.floor(totals.length / 2)];
+    const trimmed = sorted.filter((d) => estimateTripCostUsd(d, input) <= median);
+    filtered = trimmed.length >= 4 ? trimmed : sorted.slice(0, Math.max(4, Math.floor(sorted.length / 2)));
+  }
+  if (presets.includes("shorter-flight")) {
+    const sorted = [...filtered].sort(
+      (a, b) =>
+        (a.typicalCostBands.flightFromOrigin[input.originCode] ?? 350) -
+        (b.typicalCostBands.flightFromOrigin[input.originCode] ?? 350),
+    );
+    const flights = sorted.map(
+      (d) => d.typicalCostBands.flightFromOrigin[input.originCode] ?? 350,
+    );
+    const median = flights[Math.floor(flights.length / 2)];
+    const trimmed = sorted.filter(
+      (d) => (d.typicalCostBands.flightFromOrigin[input.originCode] ?? 350) <= median,
+    );
+    filtered = trimmed.length >= 4 ? trimmed : sorted.slice(0, Math.max(4, Math.floor(sorted.length / 2)));
+  }
+  if (presets.includes("less-crowded")) {
+    const isQuiet = (d: SeedDestination) =>
+      d.slug.endsWith("-np") ||
+      d.tags.includes("chill") ||
+      (!d.tags.includes("city") && !d.tags.includes("nightlife"));
+    const trimmed = filtered.filter(isQuiet);
+    if (trimmed.length >= 4) {
+      filtered = trimmed;
+    } else {
+      // Soften: keep `trimmed` at the top, then fill with whatever's left.
+      const rest = filtered.filter((d) => !isQuiet(d));
+      filtered = [...trimmed, ...rest];
+    }
+  }
+
+  // Boost-only presets — reorder, don't trim.
+  const boostTags: string[] = [];
+  if (presets.includes("more-food")) boostTags.push("foodie");
+  if (presets.includes("more-nature")) boostTags.push("nature", "scenic");
+  if (presets.includes("more-cultural")) boostTags.push("cultural");
+
+  if (boostTags.length > 0) {
+    filtered.sort((a, b) => {
+      const aHits = a.tags.filter((t) => boostTags.includes(t)).length;
+      const bHits = b.tags.filter((t) => boostTags.includes(t)).length;
+      return bHits - aHits;
+    });
+  }
+
+  return filtered;
 }
 
 function friendlyComputeError(err: unknown): string {
@@ -455,28 +567,29 @@ export async function createRefineRound(args: {
   try {
     const userId = await requireUserId();
 
-    // Apply hard exclusions BEFORE rank: anything in avoided_slugs cannot
-    // come back. The model is also told to avoid them, but the pre-filter
-    // is the actual guarantee.
-    const filtered = preFilter(input).filter(
+    // Apply hard exclusions + preset filters/boosts BEFORE rank. Per
+    // CLAUDE.md: pre-filter is a hard guarantee, prompt is a soft one.
+    let filtered = preFilter(input).filter(
       (d) => !args.avoidedSlugs.includes(d.slug),
     );
+
+    // Map preset chips → code-side filters/boosts so refine actually changes
+    // the candidate pool, not just the prompt.
+    filtered = applyRefinePresets(filtered, args.feedbackPresets, input);
+
     if (filtered.length < 4) {
       throw new Error(
-        `Only ${filtered.length} candidates left after applying your avoid list — try keeping more of the previous picks or relaxing constraints.`,
+        `Only ${filtered.length} candidates left after applying your avoid list and presets — try keeping more of the previous picks or relaxing constraints.`,
       );
     }
 
-    // rankAndPersist re-runs preFilter inside, but with avoided_slugs in
-    // refine the prompt-side filtering is the same as our hard exclude.
-    // So we patch the input via a shadowed candidate pool? Simpler: call
-    // rankAndPersist with the full input; the prompt's avoid list is robust.
     const result = await rankAndPersist({
       tripId: args.tripId,
       roundId: newRound.id,
       input,
       refine,
       userId,
+      candidatePoolOverride: filtered,
     });
     if (!result.ok) throw new Error(result.error);
 

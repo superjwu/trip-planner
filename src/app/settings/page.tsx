@@ -33,30 +33,56 @@ export default async function SettingsPage() {
   return (
     <>
       <MainNav />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
-        <header className="mb-8">
-          <p className="hero-eyebrow mb-2 text-[var(--accent)]">Settings</p>
-          <h1
-            className="font-serif text-3xl font-semibold text-[var(--ink)]"
-            style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+      <main
+        className="mx-auto w-full max-w-3xl flex-1 px-6 py-12"
+        style={{ backgroundColor: "var(--paper)" }}
+      >
+        {/* Page header */}
+        <header className="mb-10">
+          <p
+            className="mb-1 text-xs tracking-[0.18em] uppercase"
+            style={{
+              fontFamily: "var(--font-body-stack)",
+              color: "var(--slate-primary)",
+            }}
           >
             Account
+          </p>
+          <h1
+            className="text-3xl font-medium text-[var(--ink)]"
+            style={{ fontFamily: "var(--font-display-stack)" }}
+          >
+            Settings
           </h1>
         </header>
 
-        <section className="paper-strong bg-white px-7 py-6">
+        {/* ChatGPT integration card */}
+        <section
+          className="rounded-3xl border border-[var(--hairline)] bg-white px-7 py-6 shadow-[0_8px_24px_-8px_rgba(31,41,55,0.08)]"
+        >
+          {/* Section kicker + header */}
+          <p
+            className="mb-1 text-xs tracking-[0.16em] uppercase"
+            style={{
+              fontFamily: "var(--font-body-stack)",
+              color: "var(--slate-primary)",
+            }}
+          >
+            Integrations
+          </p>
           <h2
-            className="font-serif text-xl font-bold text-[var(--ink)]"
-            style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+            className="text-xl font-medium text-[var(--ink)]"
+            style={{ fontFamily: "var(--font-display-stack)" }}
           >
             ChatGPT integration
           </h2>
+
           {!isCodexOAuthEnabled() ? (
-            <p className="mt-2 text-sm text-[var(--text-muted)]">
+            <p className="mt-3 text-sm text-[var(--ink-soft)]">
               ChatGPT integration is currently disabled at the server.
             </p>
           ) : status.connected ? (
-            <div className="mt-4 flex items-center justify-between gap-6">
+            <div className="mt-5 flex items-center justify-between gap-6">
               <div>
                 <p className="text-sm text-[var(--ink)]">
                   Connected ·{" "}
@@ -64,33 +90,31 @@ export default async function SettingsPage() {
                     {status.chatgptAccountId?.slice(0, 12) ?? "…"}…
                   </span>
                 </p>
-                <p className="mt-1 text-xs text-[var(--text-muted)]">
+                <p className="mt-1 text-xs text-[var(--ink-soft)]">
                   Recommendations and itineraries route through your ChatGPT
-                  subscription. Token expires {" "}
+                  subscription. Token expires{" "}
                   {status.expiresAt
                     ? new Date(status.expiresAt).toLocaleString()
                     : "unknown"}{" "}
                   and refreshes automatically.
                 </p>
               </div>
+              {/* Destructive action — coral btn-accent */}
               <DisconnectChatGPTButton />
             </div>
           ) : (
-            <div className="mt-4 space-y-3">
-              <p className="text-sm text-[var(--text-muted)]">
+            <div className="mt-5 space-y-3">
+              <p className="text-sm text-[var(--ink-soft)]">
                 Not connected. Plan a trip to start the connection flow, or:
               </p>
-              <Link
-                href="/plan"
-                className="inline-block rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-soft)]"
-              >
+              <Link href="/plan" className="btn-slate inline-block px-5 py-2.5 text-sm font-semibold">
                 Connect ChatGPT
               </Link>
             </div>
           )}
         </section>
 
-        <p className="mt-8 text-[11px] leading-relaxed text-[var(--text-muted)]">
+        <p className="mt-8 text-[11px] leading-relaxed text-[var(--ink-soft)]">
           The ChatGPT integration uses OpenAI&apos;s Codex device-code OAuth flow,
           the same one their official Codex CLI uses. We store an encrypted
           refresh token and call the Codex backend on your behalf using the

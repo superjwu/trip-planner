@@ -29,7 +29,10 @@ export default async function PlanPage() {
   return (
     <>
       <MainNav />
-      <main className="flex-1">
+      <main
+        className="flex-1 min-h-screen"
+        style={{ backgroundColor: "var(--paper)" }}
+      >
         {!isCodexOAuthEnabled() ? (
           <DisabledBanner />
         ) : connected ? (
@@ -45,17 +48,35 @@ export default async function PlanPage() {
 function DisabledBanner() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-20 text-center">
-      <div className="paper-strong bg-white px-8 py-10">
-        <p className="hero-eyebrow mb-3 text-[var(--accent)]">Temporarily unavailable</p>
+      <div
+        className="rounded-[3rem] border px-8 py-10 shadow-[0_30px_60px_-20px_rgba(31,41,55,0.15)]"
+        style={{ backgroundColor: "#ffffff", borderColor: "var(--hairline)" }}
+      >
+        {/* Kicker */}
+        <p
+          className="mb-3 text-xs font-semibold tracking-[0.22em] uppercase"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
+        >
+          Temporarily unavailable
+        </p>
+        {/* Headline */}
         <h1
-          className="font-serif text-2xl font-semibold text-[var(--ink)]"
-          style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+          className="text-2xl font-light"
+          style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
         >
           ChatGPT integration is paused.
         </h1>
-        <p className="mt-3 text-sm text-[var(--ink-soft)]">
+        {/* Body */}
+        <p
+          className="mt-3 text-sm leading-relaxed"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+        >
           The site operator has disabled trip planning. Check back later or browse the{" "}
-          <Link className="underline hover:text-[var(--ink)]" href="/trips/demo">
+          <Link
+            className="underline hover:opacity-70"
+            href="/trips/demo"
+            style={{ color: "var(--slate-primary)" }}
+          >
             demo result
           </Link>
           .

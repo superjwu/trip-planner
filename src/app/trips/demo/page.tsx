@@ -3,7 +3,8 @@ import { CompareHeader } from "@/components/recs/CompareHeader";
 import { DestinationCard } from "@/components/recs/DestinationCard";
 import { ExpandedDestination } from "@/components/recs/ExpandedDestination";
 import { skyscannerFlightsUrl, bookingComLodgingUrl } from "@/lib/apis/booking-links";
-import { DESTINATIONS } from "@/lib/seed/destinations";
+import { ENRICHED_DESTINATIONS as DESTINATIONS } from "@/lib/seed/enrich-destinations";
+import { getLocale } from "next-intl/server";
 import type {
   BookingLinks,
   CostBreakdown,
@@ -143,7 +144,8 @@ const DEST_IATA: Record<string, string> = {
   "big-sur-ca": "MRY",
 };
 
-export default function DemoTripPage() {
+export default async function DemoTripPage() {
+  const locale = await getLocale();
   const destinations = SLUGS.map((slug) => DESTINATIONS.find((d) => d.slug === slug)!);
   const featured = destinations[0];
   const featuredSlot = MOCK_SLOTS[SLUGS[0]];
@@ -151,10 +153,18 @@ export default function DemoTripPage() {
   return (
     <>
       <MainNav />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10" style={{ backgroundColor: "var(--paper)" }}>
+        {/* Page kicker */}
+        <p
+          className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--slate-primary)]"
+          style={{ fontFamily: "var(--font-body)" }}
+        >
+          Demo trip
+        </p>
+
         <CompareHeader input={MOCK_INPUT} destinationCount={4} />
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
+        <div className="mt-32 grid gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
           {destinations.map((dest, i) => {
             const slot = MOCK_SLOTS[SLUGS[i]];
             return (
@@ -164,13 +174,19 @@ export default function DemoTripPage() {
                 destination={dest}
                 cost={buildCost(dest, MOCK_INPUT)}
                 weather={slot.weather}
+                locale={locale}
               />
             );
           })}
         </div>
 
-        <div className="mt-12">
-          <p className="hero-eyebrow mb-3 text-[var(--accent)]">Top pick · expanded view</p>
+        <div className="mt-32">
+          <p
+            className="mb-3 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--slate-primary)]"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
+            Top pick · expanded view
+          </p>
           <ExpandedDestination
             pick={featuredSlot.pick}
             destination={featured}
@@ -178,10 +194,14 @@ export default function DemoTripPage() {
             weather={featuredSlot.weather}
             bookingLinks={buildBookingLinks(featured, MOCK_INPUT)}
             itinerary={featuredSlot.itinerary}
+            locale={locale}
           />
         </div>
 
-        <p className="mt-10 text-center text-xs text-[var(--text-muted)]">
+        <p
+          className="mt-10 text-center text-xs text-[var(--ink-soft)]"
+          style={{ fontFamily: "var(--font-body)" }}
+        >
           Demo data — preview of the v1 layout. Real recommendations land in Phase 4.
         </p>
       </main>

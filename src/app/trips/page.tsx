@@ -125,12 +125,18 @@ export default async function TripsPage() {
   return (
     <>
       <MainNav />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
-        <header className="mb-8">
-          <p className="hero-eyebrow mb-2 text-[var(--accent)]">Bucket</p>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10" style={{ backgroundColor: "var(--paper)" }}>
+        {/* Page header */}
+        <header className="mb-10">
+          <p
+            className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--slate-primary)]"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
+            Bucket
+          </p>
           <h1
-            className="font-serif text-3xl font-bold text-[var(--ink)]"
-            style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+            className="text-3xl font-medium text-[var(--ink)]"
+            style={{ fontFamily: "var(--font-display)" }}
           >
             My trips
           </h1>
@@ -156,13 +162,17 @@ export default async function TripsPage() {
 
 function EmptyState() {
   return (
-    <div className="paper-strong bg-white px-7 py-12 text-center">
-      <p className="text-base text-[var(--ink-soft)]">
+    <div className="rounded-3xl border border-[var(--hairline)] bg-white px-7 py-14 text-center shadow-[0_30px_60px_-20px_rgba(31,41,55,0.15)]">
+      <p
+        className="text-base text-[var(--ink-soft)]"
+        style={{ fontFamily: "var(--font-body)" }}
+      >
         No trips yet. Plan one to get started.
       </p>
       <Link
         href="/plan"
-        className="mt-5 inline-block rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-[var(--accent-soft)]"
+        className="mt-6 inline-block rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-medium text-white shadow-[0_8px_20px_-8px_rgba(231,111,81,0.40)] transition hover:opacity-90"
+        style={{ fontFamily: "var(--font-body)" }}
       >
         Plan a trip →
       </Link>
@@ -173,7 +183,12 @@ function EmptyState() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-10">
-      <h2 className="hero-eyebrow mb-3 text-[var(--accent)]">{title}</h2>
+      <p
+        className="mb-3 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--slate-primary)]"
+        style={{ fontFamily: "var(--font-body)" }}
+      >
+        {title}
+      </p>
       {children}
     </section>
   );
@@ -210,32 +225,44 @@ function TripList({
           <Link
             key={t.id}
             href={`/trips/${t.id}`}
-            className="paper paper-hover flex items-center justify-between gap-5 bg-white px-5 py-4"
+            className="group flex items-center justify-between gap-5 rounded-3xl border border-[var(--hairline)] bg-white px-5 py-4 shadow-[0_4px_12px_-4px_rgba(31,41,55,0.08)] transition hover:border-[var(--slate-primary)] hover:shadow-[0_20px_40px_-12px_rgba(44,84,116,0.12)]"
           >
             <div className="min-w-0 flex-1">
               <p
-                className="font-serif text-lg font-semibold text-[var(--ink)]"
-                style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+                className="text-lg font-medium text-[var(--ink)]"
+                style={{ fontFamily: "var(--font-display)" }}
               >
                 {title}
               </p>
-              <p className="truncate text-sm text-[var(--ink-soft)]">
+              <p
+                className="truncate text-sm text-[var(--ink-soft)]"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
                 {summary}
               </p>
-              <p className="mt-1 text-xs text-[var(--ink-soft)]">
+              <p
+                className="mt-1 text-xs italic text-[var(--ink-soft)]"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
                 {t.depart_on ? `${t.depart_on} → ${t.return_on}` : "—"} ·
                 {" "}from {t.origin_city ?? "—"}
               </p>
             </div>
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
-                t.user_status === "saved"
-                  ? "bg-[var(--rose)] text-[var(--accent)]"
-                  : "bg-[var(--paper-deep)] text-[var(--ink-soft)]"
-              }`}
-            >
-              {t.user_status}
-            </span>
+            <div className="flex items-center gap-3 shrink-0">
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wider ${
+                  t.user_status === "saved"
+                    ? "bg-[var(--slate-tint)] text-[var(--slate-primary)]"
+                    : "bg-[var(--paper-deep)] text-[var(--ink-soft)]"
+                }`}
+                style={{ fontFamily: "var(--font-body)" }}
+              >
+                {t.user_status}
+              </span>
+              <span className="text-[var(--slate-primary)] transition group-hover:translate-x-0.5">
+                Open trip →
+              </span>
+            </div>
           </Link>
         );
       })}

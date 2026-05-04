@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 export interface RoundSummary {
   id: string;
@@ -13,7 +14,7 @@ export interface RoundSummary {
  * trip page to view that round's recs (read-only). The active chip is
  * always the latest round; round 1 is the initial compute.
  */
-export function RoundSwitcher({
+export async function RoundSwitcher({
   tripId,
   rounds,
   activeRoundId,
@@ -22,11 +23,16 @@ export function RoundSwitcher({
   rounds: RoundSummary[];
   activeRoundId: string | null;
 }) {
+  const t = await getTranslations("trip");
+
   if (rounds.length <= 1) return null;
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
-      <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--ink-soft)]">
-        Rounds
+      <span
+        className="text-[10px] font-semibold uppercase tracking-[0.22em]"
+        style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+      >
+        {t("rounds")}
       </span>
       {rounds
         .slice()
@@ -40,15 +46,26 @@ export function RoundSwitcher({
             <Link
               key={r.id}
               href={`/trips/${tripId}?round=${r.roundNumber}`}
-              className={`group inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium transition ${
+              className="group inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium transition"
+              style={
                 isActive
-                  ? "bg-[var(--accent)] text-white"
-                  : "border border-[var(--hairline)] bg-white text-[var(--ink)] hover:border-[var(--ink-soft)]"
-              }`}
+                  ? {
+                      background: "var(--slate-primary)",
+                      color: "#ffffff",
+                      border: "1px solid var(--slate-primary)",
+                      fontFamily: "var(--font-body-stack)",
+                    }
+                  : {
+                      background: "#ffffff",
+                      color: "var(--ink)",
+                      border: "1px solid var(--hairline)",
+                      fontFamily: "var(--font-body-stack)",
+                    }
+              }
             >
-              <span className="font-semibold">Round {r.roundNumber}</span>
+              <span className="font-semibold">{t("round", { num: r.roundNumber })}</span>
               {presetLabel && (
-                <span className={isActive ? "text-white/85" : "text-[var(--ink-soft)]"}>
+                <span style={{ color: isActive ? "rgba(255,255,255,0.85)" : "var(--ink-soft)" }}>
                   · {presetLabel}
                 </span>
               )}

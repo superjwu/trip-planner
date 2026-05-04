@@ -53,45 +53,69 @@ export default function Home() {
       <MainNav />
       <HeroCarousel slides={slides} />
 
-      <section className="mx-auto w-full max-w-5xl px-6 py-20">
-        <p className="hero-eyebrow mb-3 text-[var(--accent)]">How it works</p>
-        <h2
-          className="font-serif text-3xl font-semibold leading-tight text-[var(--ink)] sm:text-4xl"
-          style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+      {/* ── How it works section ── */}
+      <section
+        className="mx-auto w-full max-w-5xl px-6 py-20"
+        style={{ backgroundColor: "var(--paper)" }}
+      >
+        {/* Kicker */}
+        <p
+          className="mb-3 text-xs font-semibold tracking-[0.22em] uppercase"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
         >
-          Tell us a few things, get four destinations that actually fit.
+          How it works
+        </p>
+
+        {/* Section headline — DM Sans display, italic accent word */}
+        <h2
+          className="text-3xl font-light leading-tight sm:text-4xl"
+          style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+        >
+          Tell us a few things, get{" "}
+          <em style={{ fontStyle: "italic" }}>four destinations</em>{" "}
+          that actually fit.
         </h2>
 
+        {/* Step cards */}
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           <Step
             n="01"
-            tone="butter"
             title="Tell us your shape"
             body="Origin city, dates, vibes (scenic, foodie, chill), budget band, pace. Two minutes, no account guesswork."
           />
           <Step
             n="02"
-            tone="sage"
             title="See four destinations"
             body="A model ranks our curated U.S. seed list against your priorities. Each pick comes with a why and a tradeoff matrix."
           />
           <Step
             n="03"
-            tone="rose"
             title="Refine + book"
             body="Keep, pass, or ask for cheaper / less crowded — round 2 lands in seconds. Day-by-day itinerary, cost, weather, booking links."
           />
         </div>
 
+        {/* Single coral CTA */}
         <div className="mt-12 flex flex-col items-center gap-3">
           <Link
             href="/plan"
-            className="rounded-full bg-[var(--accent)] px-8 py-3.5 text-base font-semibold text-white shadow-md transition hover:bg-[var(--accent-soft)]"
+            className="btn-accent inline-block px-10 py-4 text-base"
+            style={{ fontFamily: "var(--font-body-stack)" }}
           >
             Plan a trip →
           </Link>
-          <p className="text-xs text-[var(--ink-soft)]">
-            Browse the <Link href="/trips/demo" className="underline hover:text-[var(--ink)]">demo result</Link>{" "}
+          <p
+            className="text-xs"
+            style={{ fontFamily: "var(--font-display-stack)", fontStyle: "italic", color: "var(--ink-soft)" }}
+          >
+            Browse the{" "}
+            <Link
+              href="/trips/demo"
+              className="underline hover:opacity-70"
+              style={{ color: "var(--slate-primary)" }}
+            >
+              demo result
+            </Link>{" "}
             without signing up.
           </p>
         </div>
@@ -104,30 +128,38 @@ function Step({
   n,
   title,
   body,
-  tone,
 }: {
   n: string;
   title: string;
   body: string;
-  tone: "butter" | "sage" | "rose";
 }) {
-  const bg =
-    tone === "butter" ? "bg-[var(--butter)]" : tone === "sage" ? "bg-[var(--sage)]" : "bg-[var(--rose)]";
   return (
-    <div className={`px-6 py-6 ${bg}`} style={{ borderRadius: "var(--radius-lg)" }}>
+    <div
+      className="rounded-3xl border px-7 py-7 shadow-[0_20px_40px_-20px_rgba(31,41,55,0.10)]"
+      style={{
+        backgroundColor: "#ffffff",
+        borderColor: "var(--hairline)",
+      }}
+    >
+      {/* Step number — slate-primary italic display */}
       <p
-        className="font-serif text-3xl font-semibold text-[var(--accent)]"
-        style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+        className="text-3xl font-light"
+        style={{ fontFamily: "var(--font-display-stack)", fontStyle: "italic", color: "var(--slate-primary)" }}
       >
         {n}
       </p>
+      {/* Step title */}
       <h3
-        className="mt-3 font-serif text-lg font-semibold text-[var(--ink)]"
-        style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+        className="mt-3 text-lg font-medium"
+        style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
       >
         {title}
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-[var(--ink)]/85">
+      {/* Step body */}
+      <p
+        className="mt-2 text-sm leading-relaxed"
+        style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+      >
         {body}
       </p>
     </div>

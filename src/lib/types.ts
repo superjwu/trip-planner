@@ -50,6 +50,44 @@ export interface NormalizedTripInput {
   notes?: string;
 }
 
+/**
+ * v3 enrichment axes — populated for every destination via the curated
+ * overrides + deterministic inference pipeline in `enrich-destinations.ts`.
+ * The browse page and the rec engine both consume the enriched shape.
+ */
+export type Landscape =
+  | "mountain"
+  | "coast"
+  | "desert"
+  | "forest"
+  | "lake"
+  | "canyon"
+  | "island"
+  | "city";
+
+export type Experience =
+  | "hiking"
+  | "foodie"
+  | "museums"
+  | "scenic-drives"
+  | "beaches"
+  | "hot-springs"
+  | "wildlife";
+
+export type ScenicSignal =
+  | "iconic-vista"
+  | "wildlife"
+  | "geological-feature"
+  | "water-feature"
+  | "dark-sky"
+  | "fall-color"
+  | "wildflower-bloom"
+  | "coastal-cliffs"
+  | "alpine"
+  | "redwood";
+
+export type SceneryScore = 1 | 2 | 3 | 4 | 5;
+
 export interface SeedDestination {
   slug: string;
   name: string;
@@ -69,6 +107,24 @@ export interface SeedDestination {
   };
   bestSeasons: ("spring" | "summer" | "fall" | "winter")[];
   maxFlightHoursFromOrigin?: Partial<Record<OriginCityCode, number>>;
+  // v3 enrichment — populated by `enrich-destinations.ts` for every entry.
+  // Optional on the raw input shape; required after enrichment.
+  landscape?: Landscape;
+  secondaryLandscapes?: Landscape[];
+  experiences?: Experience[];
+  sceneryScore?: SceneryScore;
+  scenicSignals?: ScenicSignal[];
+}
+
+/**
+ * Same as `SeedDestination` but with all v3 enrichment fields required.
+ * Returned by `enrich-destinations.ts` and used everywhere downstream
+ * (browse page, rec engine, prompts).
+ */
+export interface EnrichedDestination extends SeedDestination {
+  landscape: Landscape;
+  experiences: Experience[];
+  sceneryScore: SceneryScore;
 }
 
 export interface Tradeoffs {
@@ -122,8 +178,21 @@ export interface ItineraryDay {
 // flight cost + season fit) and reasoning effort was raised from "none" → "low",
 // per Codex audit. The cache key embeds this, so old `rec_cache` rows and the
 // Codex backend's prompt cache are invalidated automatically.
-export const SEED_VERSION = 3;
-export const REC_PROMPT_VERSION = "rec-v3-codex";
+// Bumped to 4 when 286 destinations were imported from the
+// superjwu/tourist-plan repo (40 hand-curated + 286 imported = 326 total).
+// Geocoded via Wikipedia REST API; cost bands heuristic per haversine
+// distance. See `scripts/import-tourist-plan-extras.ts`.
+// Bumped to 5 when v3 enrichment landed: landscape / secondaryLandscapes /
+// experiences / sceneryScore / scenicSignals on every destination, plus
+// ~100 hand-curated extras (lake/beach/island/scenic-byway/missing-cities).
+export const SEED_VERSION = 5;
+// Bumped to v4 when (a) attraction descriptions + lat/lng + nearby list
+// added to candidates block, (b) tradeoffs moved to code-side computation,
+// (c) refine pre-filter + preset boosts wired through.
+// Bumped to v5-phase-e when the candidate block adds landscape +
+// experiences + descriptive scenic profile, and the system prompt picks up
+// the "scenery as tiebreaker" rule. Required for cache key freshness.
+export const REC_PROMPT_VERSION = "rec-v5-phase-e";
 export const ITIN_PROMPT_VERSION = "itin-v2-codex";
 
 // Codex-backend model names (per numman-ali/opencode-openai-codex-auth README).

@@ -1,38 +1,57 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 
-export function MainNav() {
+export async function MainNav() {
+  const t = await getTranslations("nav");
+
   return (
     <header
-      className="sticky top-0 z-50 flex h-16 items-center border-b border-[var(--hairline)] bg-[var(--paper)]/85 px-6 backdrop-blur-md"
+      className="sticky top-0 z-50 flex items-center border-b border-[var(--hairline)] bg-[var(--paper-deep)]/90 px-6 backdrop-blur-md"
       style={{ height: "var(--nav-h)" }}
     >
+      {/* Wordmark */}
       <Link
         href="/"
-        className="flex-1 font-serif text-lg font-semibold text-[var(--ink)]"
-        style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+        className="flex-1 text-lg text-[var(--ink)] select-none"
+        style={{ fontFamily: "var(--font-display-stack)", fontWeight: 500 }}
       >
-        <span className="text-[var(--accent)]">·</span> Trip Planner
+        <em style={{ color: "var(--slate-primary)" }}>Trip</em>{" "}
+        <span>Planner</span>
       </Link>
-      <nav className="flex items-center gap-2 text-sm">
-        <Link
-          href="/trips"
-          className="rounded-full border border-[var(--hairline)] bg-white/60 px-4 py-1.5 text-[var(--ink-soft)] transition hover:border-[var(--ink-soft)] hover:text-[var(--ink)]"
-        >
-          My trips
-        </Link>
-        <Link
-          href="/settings"
-          className="rounded-full border border-[var(--hairline)] bg-white/60 px-4 py-1.5 text-[var(--ink-soft)] transition hover:border-[var(--ink-soft)] hover:text-[var(--ink)]"
-        >
-          Settings
-        </Link>
-        <Link
-          href="/plan"
-          className="rounded-full bg-[var(--accent)] px-4 py-1.5 font-semibold text-white transition hover:bg-[var(--accent-soft)]"
-        >
-          New trip
-        </Link>
+
+      {/* Nav links */}
+      <nav className="flex items-center gap-1 text-sm mr-3">
+        {(
+          [
+            { href: "/trips", label: t("myTrips") },
+            { href: "/destinations", label: t("browse") },
+            { href: "/settings", label: t("settings") },
+          ] as const
+        ).map(({ href, label }) => (
+          <Link
+            key={href}
+            href={href}
+            className="group relative px-4 py-1.5 text-[var(--ink-soft)] transition-colors hover:text-[var(--slate-primary)]"
+            style={{ fontFamily: "var(--font-body-stack)" }}
+          >
+            {label}
+            {/* coral underline on hover */}
+            <span
+              className="absolute bottom-0 left-4 right-4 h-[2px] origin-left scale-x-0 rounded-full bg-[var(--accent)] transition-transform group-hover:scale-x-100"
+              aria-hidden="true"
+            />
+          </Link>
+        ))}
       </nav>
+
+      {/* Locale switcher */}
+      <LocaleSwitcher />
+
+      {/* Primary CTA */}
+      <Link href="/plan" className="btn-accent px-5 py-2 text-sm font-semibold">
+        {t("newTrip")}
+      </Link>
     </header>
   );
 }

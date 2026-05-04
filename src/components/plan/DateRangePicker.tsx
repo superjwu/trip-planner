@@ -116,19 +116,29 @@ export function DateRangePicker({
   const rangeEnd = previewEnd ?? endDate;
 
   return (
-    <div className="paper px-4 py-4 sm:px-6 sm:py-5">
+    <div
+      className="rounded-2xl border px-4 py-4 sm:px-6 sm:py-5"
+      style={{ backgroundColor: "#ffffff", borderColor: "var(--hairline)" }}
+    >
+      {/* Month nav header */}
       <div className="mb-4 flex items-center justify-between">
         <NavButton
           dir="prev"
           onClick={() => setAnchor((a) => addMonthsUTC(a, -1))}
           disabled={anchor <= startOfMonthUTC(minDate.getUTCFullYear(), minDate.getUTCMonth())}
         />
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--ink-soft)]">
-          {MONTH_NAMES[anchor.getUTCMonth()]} {anchor.getUTCFullYear()} – {MONTH_NAMES[addMonthsUTC(anchor, 1).getUTCMonth()]} {addMonthsUTC(anchor, 1).getUTCFullYear()}
+        <p
+          className="text-xs font-semibold tracking-[0.20em] uppercase"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+        >
+          {MONTH_NAMES[anchor.getUTCMonth()]} {anchor.getUTCFullYear()} –{" "}
+          {MONTH_NAMES[addMonthsUTC(anchor, 1).getUTCMonth()]}{" "}
+          {addMonthsUTC(anchor, 1).getUTCFullYear()}
         </p>
         <NavButton dir="next" onClick={() => setAnchor((a) => addMonthsUTC(a, 1))} />
       </div>
 
+      {/* Two-month grid */}
       <div className="grid gap-6 sm:grid-cols-2">
         <MonthGrid
           year={anchor.getUTCFullYear()}
@@ -152,19 +162,35 @@ export function DateRangePicker({
         />
       </div>
 
-      <div className="mt-5 flex items-center justify-between text-sm">
+      {/* Date summary row */}
+      <div
+        className="mt-5 flex items-center justify-between text-sm"
+        style={{ borderTop: "1px solid var(--hairline)", paddingTop: "1rem" }}
+      >
         <div className="flex gap-3">
-          <span className="text-[var(--ink-soft)]">
-            <span className="mr-1 inline-block h-2 w-2 rounded-full bg-[var(--accent)] align-middle" />
-            <span className="text-[var(--ink)]">{toISO(startDate)}</span>
+          <span style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}>
+            <span
+              className="mr-1 inline-block h-2 w-2 rounded-full align-middle"
+              style={{ backgroundColor: "var(--accent)" }}
+            />
+            <span style={{ color: "var(--ink)" }}>{toISO(startDate)}</span>
             <span className="mx-2">→</span>
-            <span className="text-[var(--ink)]">{toISO(endDate)}</span>
+            <span style={{ color: "var(--ink)" }}>{toISO(endDate)}</span>
           </span>
         </div>
-        <span className="text-xs text-[var(--ink-soft)]">
+        <span
+          className="text-xs"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+        >
           {tripDays} {tripDays === 1 ? "day" : "days"}
           {tripDays > maxLengthDays && (
-            <span className="ml-2 rounded bg-[var(--butter)] px-1.5 py-0.5 text-[#7a6638]">
+            <span
+              className="ml-2 rounded px-1.5 py-0.5"
+              style={{
+                backgroundColor: "var(--butter)",
+                color: "#7a6638",
+              }}
+            >
               max {maxLengthDays}
             </span>
           )}
@@ -197,17 +223,25 @@ function MonthGrid(props: {
 
   return (
     <div>
+      {/* Month name — DM Sans medium */}
       <p
-        className="mb-2 text-center font-serif text-base font-semibold text-[var(--ink)]"
-        style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+        className="mb-2 text-center text-base font-medium"
+        style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
       >
         {MONTH_NAMES[month]} {year}
       </p>
-      <div className="grid grid-cols-7 gap-1 text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">
+
+      {/* Weekday letters — Manrope tracked-caps */}
+      <div
+        className="grid grid-cols-7 gap-1 text-[10px] font-semibold uppercase tracking-widest"
+        style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+      >
         {WEEKDAY_LABELS.map((w, i) => (
           <span key={i} className="py-1 text-center">{w}</span>
         ))}
       </div>
+
+      {/* Day cells */}
       <div className="grid grid-cols-7 gap-1" onMouseLeave={() => onHover(null)}>
         {cells.map((cell, i) => {
           if (!cell.date || cell.day === null) {
@@ -220,17 +254,47 @@ function MonthGrid(props: {
           const inRange = !isStart && !isEnd && isBetween(date, start, end);
           const isHover = hover && isSameDay(date, hover);
 
-          let cls = "relative aspect-square text-sm rounded-lg transition select-none ";
+          // Build inline styles for the coastal-slate look:
+          // endpoints: coral border + coral fill
+          // in-range: slate-tint bg
+          // hover: paper-deep bg
+          let cellStyle: React.CSSProperties = {};
+          let cellClass = "relative aspect-square text-sm rounded-lg transition select-none ";
+
           if (beforeMin) {
-            cls += "text-[var(--ink)]/25 cursor-not-allowed";
+            cellClass += "cursor-not-allowed";
+            cellStyle = {
+              color: "rgba(31,41,55,0.25)",
+              fontFamily: "var(--font-body-stack)",
+            };
           } else if (isStart || isEnd) {
-            cls += "bg-[var(--accent)] text-white font-semibold cursor-pointer";
+            cellClass += "cursor-pointer font-semibold";
+            cellStyle = {
+              backgroundColor: "var(--accent)",
+              border: "2px solid var(--accent)",
+              color: "#ffffff",
+              fontFamily: "var(--font-display-stack)",
+            };
           } else if (inRange) {
-            cls += "bg-[var(--rose)] text-[var(--ink)] cursor-pointer";
+            cellClass += "cursor-pointer";
+            cellStyle = {
+              backgroundColor: "var(--slate-tint)",
+              color: "var(--ink)",
+              fontFamily: "var(--font-body-stack)",
+            };
           } else if (isHover) {
-            cls += "bg-[var(--paper-deep)] text-[var(--ink)] cursor-pointer";
+            cellClass += "cursor-pointer";
+            cellStyle = {
+              backgroundColor: "var(--paper-deep)",
+              color: "var(--ink)",
+              fontFamily: "var(--font-body-stack)",
+            };
           } else {
-            cls += "text-[var(--ink)] hover:bg-[var(--paper-deep)] cursor-pointer";
+            cellClass += "cursor-pointer";
+            cellStyle = {
+              color: "var(--ink)",
+              fontFamily: "var(--font-body-stack)",
+            };
           }
 
           return (
@@ -240,7 +304,8 @@ function MonthGrid(props: {
               disabled={beforeMin}
               onMouseEnter={() => onHover(date)}
               onClick={() => onClick(date)}
-              className={cls}
+              className={cellClass}
+              style={cellStyle}
             >
               <span className="absolute inset-0 flex items-center justify-center">
                 {cell.day}
@@ -268,7 +333,23 @@ function NavButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={dir === "prev" ? "Previous month" : "Next month"}
-      className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--hairline)] bg-white text-sm text-[var(--ink-soft)] transition hover:border-[var(--accent)] hover:text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[var(--hairline)] disabled:hover:text-[var(--ink-soft)]"
+      className="flex h-8 w-8 items-center justify-center rounded-full border text-sm transition disabled:cursor-not-allowed disabled:opacity-40"
+      style={{
+        fontFamily: "var(--font-body-stack)",
+        borderColor: "var(--hairline)",
+        backgroundColor: "#ffffff",
+        color: "var(--ink-soft)",
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.borderColor = "var(--slate-primary)";
+          e.currentTarget.style.color = "var(--slate-primary)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "var(--hairline)";
+        e.currentTarget.style.color = "var(--ink-soft)";
+      }}
     >
       {dir === "prev" ? "‹" : "›"}
     </button>

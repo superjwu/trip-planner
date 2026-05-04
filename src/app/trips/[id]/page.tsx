@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { getLocale } from "next-intl/server";
 import { MainNav } from "@/components/nav/MainNav";
 import { CompareHeader } from "@/components/recs/CompareHeader";
 import { DestinationCard } from "@/components/recs/DestinationCard";
@@ -9,6 +10,7 @@ import { TradeoffMatrix } from "@/components/recs/TradeoffMatrix";
 import { RefinePanel } from "@/components/recs/RefinePanel";
 import { RoundSwitcher, type RoundSummary } from "@/components/recs/RoundSwitcher";
 import { GeneratingProgress } from "@/components/recs/GeneratingProgress";
+import { RouteAtlas } from "@/components/recs/RouteAtlas";
 import { SaveTripButton } from "@/components/trip/SaveTripButton";
 import { createOwnerScopedSupabase } from "@/lib/supabase/server";
 import {
@@ -30,6 +32,7 @@ import type {
   WeatherForecast,
 } from "@/lib/types";
 import { computeRecommendations, ensureItinerary } from "./actions";
+import { localizeDestination } from "@/lib/i18n/localizeDestination";
 
 export const dynamic = "force-dynamic";
 // First-visit compute is synchronous within the server-render: preFilter →
@@ -175,6 +178,7 @@ export default async function TripPage({
 }) {
   const { id } = await params;
   const { focus: focusRaw, round: roundRaw } = await searchParams;
+  const locale = await getLocale();
   const initial = await fetchTrip(id);
   if (initial.error || !initial.trip) notFound();
   let trip: TripRowRaw = initial.trip;
@@ -236,9 +240,16 @@ export default async function TripPage({
   return (
     <>
       <MainNav />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10" style={{ backgroundColor: "var(--paper)" }}>
         {normalized && (
           <div className="mb-6">
+            {/* Trip header kicker */}
+            <p
+              className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--slate-primary)]"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              Your trip
+            </p>
             <CompareHeader input={normalized} />
             {trip.compute_status === "ready" && (
               <div className="mt-4 flex justify-end">
@@ -251,11 +262,11 @@ export default async function TripPage({
               </div>
             )}
             {!isActiveRound && renderRound && (
-              <div className="mt-4 rounded-2xl border border-[var(--hairline)] bg-[var(--butter)] px-4 py-2 text-xs text-[var(--ink)]">
+              <div className="mt-4 rounded-2xl border border-[var(--hairline)] bg-[var(--paper-deep)] px-4 py-2 text-xs text-[var(--ink)]" style={{ fontFamily: "var(--font-body)" }}>
                 Viewing Round {renderRound.round_number} (read-only).{" "}
                 <Link
                   href={`/trips/${id}`}
-                  className="font-semibold text-[var(--accent)] underline"
+                  className="font-medium text-[var(--slate-primary)] underline"
                 >
                   Back to current round →
                 </Link>
@@ -274,48 +285,96 @@ export default async function TripPage({
         )}
 
         {trip.compute_status === "ready" && refocused && (
-          <FocusedView tripId={id} rec={refocused} />
+          <FocusedView tripId={id} rec={refocused} locale={locale} />
         )}
 
         {trip.compute_status === "ready" && recs.length > 0 && !refocused && (
           <>
-            <RoundSwitcher
-              tripId={id}
-              rounds={roundSummaries}
-              activeRoundId={trip.active_round_id}
-            />
-            <TradeoffMatrix
-              whyTheseFour={renderRound?.why_these_four}
-              rows={recs.map((r) => ({
-                rank: r.rank,
-                name: r.destination.name,
-                state: r.destination.state,
-                tradeoffs: r.tradeoffs,
-              }))}
-            />
-            <ResultsGrid tripId={id} recs={recs} />
-            {isActiveRound && (
-              <RefinePanel
+            <div className="mt-32">
+              <RoundSwitcher
                 tripId={id}
-                picks={recs.map((r) => ({
+                rounds={roundSummaries}
+                activeRoundId={trip.active_round_id}
+              />
+            </div>
+            <div className="mt-32">
+              <TradeoffMatrix
+                whyTheseFour={renderRound?.why_these_four}
+                rows={recs.map((r) => ({
                   rank: r.rank,
-                  slug: r.destination_slug,
                   name: r.destination.name,
+                  state: r.destination.state,
+                  tradeoffs: r.tradeoffs,
                 }))}
               />
+            </div>
+            <div className="mt-32">
+              <section>
+                <p
+                  className="mb-3 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--slate-primary)]"
+                  style={{ fontFamily: "var(--font-body)" }}
+                >
+                  The routes
+                </p>
+                <h2
+                  className="mb-2 text-2xl tracking-tight md:text-3xl"
+                  style={{ fontFamily: "var(--font-display)", fontWeight: 500, color: "var(--ink)" }}
+                >
+                  {recs.length} routes drawn from {normalized!.originCode}.
+                </h2>
+                <p
+                  className="mb-8 max-w-xl text-sm leading-relaxed text-[var(--ink-soft)]"
+                  style={{ fontFamily: "var(--font-body)" }}
+                >
+                  Each destination plotted at its real coordinates — rendered from US Census state
+                  geometry, not a sketch.
+                </p>
+                <div
+                  className="rounded-3xl border border-[var(--hairline)] bg-white p-6 md:p-10"
+                  style={{ boxShadow: "var(--shadow-md)" }}
+                >
+                  <RouteAtlas
+                    originCode={normalized!.originCode}
+                    originLabel={trip.origin_city ?? normalized!.originCode}
+                    picks={recs.map((r) => ({
+                      slug: r.destination_slug,
+                      name: r.destination.name,
+                      state: r.destination.state,
+                      lat: r.destination.lat,
+                      lng: r.destination.lng,
+                      rank: r.rank,
+                    }))}
+                  />
+                </div>
+              </section>
+            </div>
+            <div className="mt-32">
+              <ResultsGrid tripId={id} recs={recs} locale={locale} />
+            </div>
+            {isActiveRound && (
+              <div className="mt-32">
+                <RefinePanel
+                  tripId={id}
+                  picks={recs.map((r) => ({
+                    rank: r.rank,
+                    slug: r.destination_slug,
+                    name: r.destination.name,
+                  }))}
+                />
+              </div>
             )}
           </>
         )}
 
         {trip.compute_status === "ready" && refocused && recs.length > 1 && (
-          <CompactGrid tripId={id} recs={recs} activeRank={refocused.rank} />
+          <CompactGrid tripId={id} recs={recs} activeRank={refocused.rank} locale={locale} />
         )}
       </main>
     </>
   );
 }
 
-function FocusedView({ tripId, rec }: { tripId: string; rec: ParsedRec }) {
+function FocusedView({ tripId, rec, locale = "en" }: { tripId: string; rec: ParsedRec; locale?: string }) {
   const pick: RecommendationPick = {
     slug: rec.destination_slug,
     rank: rec.rank,
@@ -330,7 +389,8 @@ function FocusedView({ tripId, rec }: { tripId: string; rec: ParsedRec }) {
     <div className="mb-10">
       <Link
         href={`/trips/${tripId}`}
-        className="mb-4 inline-flex items-center gap-1 text-sm text-[var(--ink-soft)] transition hover:text-[var(--ink)]"
+        className="mb-6 inline-flex items-center gap-1 text-sm text-[var(--slate-primary)] transition hover:opacity-70"
+        style={{ fontFamily: "var(--font-body)" }}
       >
         ← Back to all 4
       </Link>
@@ -342,6 +402,7 @@ function FocusedView({ tripId, rec }: { tripId: string; rec: ParsedRec }) {
         bookingLinks={bookingLinks}
         itinerary={rec.itinerary?.days}
         itineraryMissing={!rec.itinerary}
+        locale={locale}
       />
     </div>
   );
@@ -350,31 +411,42 @@ function FocusedView({ tripId, rec }: { tripId: string; rec: ParsedRec }) {
 function ResultsGrid({
   tripId,
   recs,
+  locale = "en",
 }: {
   tripId: string;
   recs: ParsedRec[];
+  locale?: string;
 }) {
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
-      {recs.map((r) => {
-        const pick: RecommendationPick = {
-          slug: r.destination_slug,
-          rank: r.rank,
-          reasoning: r.reasoning,
-          matchTags: r.match_tags,
-        };
-        return (
-          <Link key={r.id} href={`/trips/${tripId}?focus=${r.rank}`} className="block">
-            <DestinationCard
-              pick={pick}
-              destination={r.destination}
-              cost={r.hydration?.cost}
-              weather={r.hydration?.weather}
-            />
-          </Link>
-        );
-      })}
-    </div>
+    <>
+      <p
+        className="mb-4 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--slate-primary)]"
+        style={{ fontFamily: "var(--font-body)" }}
+      >
+        The destinations
+      </p>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+        {recs.map((r) => {
+          const pick: RecommendationPick = {
+            slug: r.destination_slug,
+            rank: r.rank,
+            reasoning: r.reasoning,
+            matchTags: r.match_tags,
+          };
+          return (
+            <Link key={r.id} href={`/trips/${tripId}?focus=${r.rank}`} className="block">
+              <DestinationCard
+                pick={pick}
+                destination={r.destination}
+                cost={r.hydration?.cost}
+                weather={r.hydration?.weather}
+                locale={locale}
+              />
+            </Link>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -382,14 +454,21 @@ function CompactGrid({
   tripId,
   recs,
   activeRank,
+  locale = "en",
 }: {
   tripId: string;
   recs: ParsedRec[];
   activeRank: number;
+  locale?: string;
 }) {
   return (
     <section className="mt-10">
-      <p className="hero-eyebrow mb-3 text-[var(--accent)]">Other picks</p>
+      <p
+        className="mb-3 text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--slate-primary)]"
+        style={{ fontFamily: "var(--font-body)" }}
+      >
+        Other picks
+      </p>
       <div className="grid gap-3 sm:grid-cols-3">
         {recs
           .filter((r) => r.rank !== activeRank)
@@ -397,26 +476,32 @@ function CompactGrid({
             <Link
               key={r.id}
               href={`/trips/${tripId}?focus=${r.rank}`}
-              className="paper paper-hover flex items-center gap-3 bg-white px-4 py-3"
+              className="group flex items-center gap-3 rounded-3xl border border-[var(--hairline)] bg-white px-4 py-3 shadow-[0_4px_12px_-4px_rgba(31,41,55,0.08)] transition hover:border-[var(--slate-primary)] hover:shadow-[0_8px_20px_-8px_rgba(44,84,116,0.15)]"
             >
-              <span className="rounded-full bg-[var(--paper-deep)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--ink)]">
+              <span
+                className="rounded-full bg-[var(--slate-tint)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--slate-primary)]"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
                 #{r.rank}
               </span>
               <div className="min-w-0 flex-1">
                 <p
-                  className="truncate font-serif text-sm font-semibold text-[var(--ink)]"
-                  style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+                  className="truncate text-sm font-medium text-[var(--ink)]"
+                  style={{ fontFamily: "var(--font-display)" }}
                 >
-                  {r.destination.name}
+                  {localizeDestination(r.destination, locale).name}
                 </p>
-                <p className="truncate text-xs text-[var(--ink-soft)]">
+                <p
+                  className="truncate text-xs text-[var(--ink-soft)]"
+                  style={{ fontFamily: "var(--font-body)" }}
+                >
                   {r.destination.region}
                   {r.hydration?.cost?.totalUsd
                     ? ` · ~$${r.hydration.cost.totalUsd.toLocaleString()}`
                     : ""}
                 </p>
               </div>
-              <span className="text-[var(--accent)]">→</span>
+              <span className="text-[var(--slate-primary)] transition group-hover:translate-x-0.5">→</span>
             </Link>
           ))}
       </div>
@@ -426,23 +511,23 @@ function CompactGrid({
 
 function ComputingState() {
   return (
-    <section className="mt-2">
+    <section className="mt-8">
       <GeneratingProgress />
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <article
             key={i}
-            className="paper relative overflow-hidden bg-white"
-            style={{ minHeight: 420, borderRadius: "var(--radius-lg)" }}
+            className="relative overflow-hidden rounded-3xl border border-[var(--hairline)] bg-white shadow-[0_30px_60px_-20px_rgba(31,41,55,0.15)]"
+            style={{ minHeight: 420 }}
           >
-            <div className="h-56 w-full animate-pulse bg-[var(--paper-deep)]" />
+            <div className="h-56 w-full animate-pulse rounded-t-3xl bg-[var(--paper-deep)]" />
             <div className="space-y-3 px-5 py-4">
-              <div className="h-5 w-3/5 animate-pulse rounded bg-[var(--paper-deep)]" />
-              <div className="h-3 w-2/5 animate-pulse rounded bg-[var(--paper-deep)]" />
+              <div className="h-5 w-3/5 animate-pulse rounded-full bg-[var(--paper-deep)]" />
+              <div className="h-3 w-2/5 animate-pulse rounded-full bg-[var(--paper-deep)]" />
               <div className="space-y-1.5">
-                <div className="h-3 w-full animate-pulse rounded bg-[var(--paper-deep)]" />
-                <div className="h-3 w-5/6 animate-pulse rounded bg-[var(--paper-deep)]" />
-                <div className="h-3 w-4/6 animate-pulse rounded bg-[var(--paper-deep)]" />
+                <div className="h-3 w-full animate-pulse rounded-full bg-[var(--paper-deep)]" />
+                <div className="h-3 w-5/6 animate-pulse rounded-full bg-[var(--paper-deep)]" />
+                <div className="h-3 w-4/6 animate-pulse rounded-full bg-[var(--paper-deep)]" />
               </div>
             </div>
           </article>
@@ -454,11 +539,19 @@ function ComputingState() {
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <div className="paper-strong mt-6 bg-white px-7 py-6 text-center">
-      <p className="text-base font-semibold text-[#7a3f3f]">
+    <div className="mt-6 rounded-3xl border border-[var(--hairline)] bg-white px-7 py-8 text-center shadow-[0_30px_60px_-20px_rgba(31,41,55,0.15)]">
+      <p
+        className="text-base font-medium text-[#7a3f3f]"
+        style={{ fontFamily: "var(--font-display)" }}
+      >
         Couldn&apos;t generate recommendations
       </p>
-      <p className="mt-1 text-sm text-[var(--ink-soft)]">{message}</p>
+      <p
+        className="mt-1 text-sm text-[var(--ink-soft)]"
+        style={{ fontFamily: "var(--font-body)" }}
+      >
+        {message}
+      </p>
     </div>
   );
 }

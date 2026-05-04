@@ -4,7 +4,7 @@ import {
   REC_TOOL_PARAMETERS_SCHEMA,
   type RecommendationResponse,
 } from "../schemas";
-import { DESTINATIONS } from "../seed/destinations";
+import { ENRICHED_DESTINATIONS as DESTINATIONS } from "../seed/enrich-destinations";
 import {
   REC_MODEL,
   REC_PROMPT_VERSION,
@@ -70,12 +70,28 @@ export function estimateTripCostUsd(
  * candidate list, season compat, and budget feasibility (whole-trip estimate,
  * not just flight cost).
  */
+/**
+ * Vibes that point toward natural-beauty destinations. When the user's vibes
+ * include any of these, scenic 5★ parks are first-class candidates. When they
+ * include NONE of these, we narrow the pool below to keep the LLM from
+ * defaulting to "iconic park" picks for what is really a city/foodie trip.
+ */
+const NATURE_VIBES = new Set(["scenic", "nature", "adventure"]);
+
+/**
+ * Landscapes that can comfortably serve city/foodie/cultural vibes even when
+ * the destination's `tags` don't explicitly list those vibes.
+ */
+const CITY_FRIENDLY_LANDSCAPES = new Set(["city", "coast", "lake", "island"]);
+
 export function preFilter(
   input: NormalizedTripInput,
   pool: SeedDestination[] = DESTINATIONS,
 ): SeedDestination[] {
   const ceiling = BUDGET_CEILING_BY_BAND[input.budgetBand] ?? 2000;
   const cap = ceiling * BUDGET_HEADROOM;
+  const userVibes = new Set(input.vibes);
+  const userHasNatureVibe = [...userVibes].some((v) => NATURE_VIBES.has(v));
 
   return pool.filter((d) => {
     if (d.slug === slugForOrigin(input.originCode)) return false;
@@ -84,6 +100,20 @@ export function preFilter(
     }
     const total = estimateTripCostUsd(d, input);
     if (total > cap) return false;
+
+    // Codex post-review fix: when the user has zero nature-leaning vibes,
+    // exclude pure-wilderness destinations that lack any vibe overlap with
+    // the user's preferences. Without this, descriptive-only scenic profile +
+    // soft prompt rule still leak through as "iconic park" anchoring on
+    // city/foodie/nightlife trips.
+    if (!userHasNatureVibe) {
+      const landscape = d.landscape;
+      const isCityFriendly =
+        !landscape || CITY_FRIENDLY_LANDSCAPES.has(landscape);
+      const tagOverlap = d.tags.some((t) => userVibes.has(t));
+      if (!isCityFriendly && !tagOverlap) return false;
+    }
+
     return true;
   });
 }

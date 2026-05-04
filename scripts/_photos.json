@@ -1,0 +1,2546 @@
+{
+  "boston-ma": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/ISH_WC_Boston4.jpg",
+    "attribution": {
+      "author": "Ian Howard",
+      "license": "CC BY 2.5",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "charleston-sc": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/2e/East_Battery_Street_Charleston_Aug2010.jpg",
+    "attribution": {
+      "author": "Chris Pruitt",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "savannah-ga": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Savannah.tif/lossy-page1-3840px-Savannah.tif.jpg",
+    "attribution": {
+      "author": "Bigdaverhuberg",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "new-orleans-la": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/cb/New_Orleans_from_the_Air_September_2019_-_Central_Business_District_Skyline_%28cropped%29.jpg",
+    "attribution": {
+      "author": "George Bannister",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "nashville-tn": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Nashville%2C_TN_skyline.jpg/3840px-Nashville%2C_TN_skyline.jpg",
+    "attribution": {
+      "author": "Quintin Soloviev",
+      "license": "CC BY 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "austin-tx": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Skyline_of_Austin%2C_Texas_%28cropped%29.jpg/3840px-Skyline_of_Austin%2C_Texas_%28cropped%29.jpg",
+    "attribution": {
+      "author": "Quintin Soloviev",
+      "license": "CC BY 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "asheville-nc": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Asheville_at_dusk_%28cropped%29.jpg",
+    "attribution": {
+      "author": "Michael Tracey",
+      "license": "CC0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "santa-fe-nm": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Palace_of_the_Governors.jpg/3840px-Palace_of_the_Governors.jpg",
+    "attribution": {
+      "author": "Tony Hisgett from Birmingham, UK",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "acadia-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e9/Acadia_National_Park_02.JPG",
+    "attribution": {
+      "author": "Plh1234us",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "yellowstone-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Grand_Canyon_of_yellowstone.jpg",
+    "attribution": {
+      "author": "Grastel",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "yosemite-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Half_Dome_with_Eastern_Yosemite_Valley_%2850MP%29.jpg/3840px-Half_Dome_with_Eastern_Yosemite_Valley_%2850MP%29.jpg",
+    "attribution": {
+      "author": "Thomas Wolf, www.foto-tw.de",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "zion-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/10/Zion_angels_landing_view.jpg",
+    "attribution": {
+      "author": "Diliff",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "joshua-tree-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Joshua_Tree_-_Cyclops_%2B_Potato_Head_-_Sunrise.jpg/3840px-Joshua_Tree_-_Cyclops_%2B_Potato_Head_-_Sunrise.jpg",
+    "attribution": {
+      "author": "Jarek Tuszyński",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "smoky-mountains-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/View_atop_Cliff_Tops_on_Mount_LeConte%2C_GSMNP%2C_TN.jpg",
+    "attribution": {
+      "author": "AppalachianCentrist",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "glacier-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Mountain_Goat_at_Hidden_Lake.jpg/3840px-Mountain_Goat_at_Hidden_Lake.jpg",
+    "attribution": {
+      "author": "Robert M. Russell",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "olympic-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Cedar_Creek_Abbey_Island_Ruby_Beach.jpg/3840px-Cedar_Creek_Abbey_Island_Ruby_Beach.jpg",
+    "attribution": {
+      "author": "Adbar",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "aspen-co": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Downtown_of_Aspen%2C_Colorado.jpg",
+    "attribution": {
+      "author": "Unknown",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "jackson-hole-wy": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Barns_grand_tetons.jpg",
+    "attribution": {
+      "author": "Jon Sullivan, PD Photo.",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "sedona-az": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Cathedral_Rock_-_Sedona_AZ-1.jpg/3840px-Cathedral_Rock_-_Sedona_AZ-1.jpg",
+    "attribution": {
+      "author": "Terrydarc",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "big-sur-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Central_Californian_Coastline%2C_Big_Sur_-_May_2013.jpg/3840px-Central_Californian_Coastline%2C_Big_Sur_-_May_2013.jpg",
+    "attribution": {
+      "author": "Diliff",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "maui-hi": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Maui_Landsat_Photo.jpg",
+    "attribution": {
+      "author": "Unknown",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "kauai-hi": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/63/Kauai_from_space_2.jpg",
+    "attribution": {
+      "author": "The original uploader was Ulfl at German Wikipedia.",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "key-west-fl": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Southernmost_point_buoy%2C_NE_view.jpg/3840px-Southernmost_point_buoy%2C_NE_view.jpg",
+    "attribution": {
+      "author": "Radomianin",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "hudson-valley-ny": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3d/BrunswickAutumn.JPG",
+    "attribution": {
+      "author": "UpstateNYer",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cape-cod-ma": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/White_Crest_Beach_Wellfleet.jpg/3840px-White_Crest_Beach_Wellfleet.jpg",
+    "attribution": {
+      "author": "This image or media was taken or created by Matt H. Wade. To…",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "san-diego-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/ea/La_Jolla_Shores_view_%28cropped%29.jpg",
+    "attribution": {
+      "author": "Dirk Hansen",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "philadelphia-pa": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Philadelphia_skyline_20240528_%28cropped_2-1%29.jpg/3840px-Philadelphia_skyline_20240528_%28cropped_2-1%29.jpg",
+    "attribution": {
+      "author": "颐园居",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "portland-or": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Portland_Oregon_Aerial%2C_June_2025.jpg",
+    "attribution": {
+      "author": "Spicypepper999",
+      "license": "CC0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "grand-canyon-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Dawn_on_the_S_rim_of_the_Grand_Canyon_%288645178272%29.jpg",
+    "attribution": {
+      "author": "Murray Foubister",
+      "license": "CC BY-SA 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "rocky-mountain-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Rocky_Mountain_National_Park_in_September_2011_-_Glacier_Gorge_from_Bear_Lake.JPG",
+    "attribution": {
+      "author": "Daniel Mayer (Mav)",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "bryce-canyon-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Inspiration_Point_Bryce_Canyon_November_2018_panorama.jpg/3840px-Inspiration_Point_Bryce_Canyon_November_2018_panorama.jpg",
+    "attribution": {
+      "author": "King of Hearts",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "arches-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Delicate_arch_sunset.jpg",
+    "attribution": {
+      "author": "Palacemusic",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "death-valley-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/87/Mesquite_Sand_Dunes_in_Death_Valley.jpg",
+    "attribution": {
+      "author": "Brocken Inaglory",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "mt-rainier-np": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Mount_Rainier_from_above_Myrtle_Falls_in_August.JPG/3840px-Mount_Rainier_from_above_Myrtle_Falls_in_August.JPG",
+    "attribution": {
+      "author": "Samuel Kerr",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "lake-tahoe-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Tahoe_North_Shore_from_the_East_Shore.jpg/3840px-Tahoe_North_Shore_from_the_East_Shore.jpg",
+    "attribution": {
+      "author": "Lara Farhadi",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "bend-or": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/20210803_03_Bend%2C_Oregon.jpg",
+    "attribution": {
+      "author": "David Wilson",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "taos-nm": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Taos_plaza_la_fonda.jpg",
+    "attribution": {
+      "author": "Zeality",
+      "license": "CC BY 2.5",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "marfa-tx": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/23/MarfaTX_Downtown_15Aug2012.jpg",
+    "attribution": {
+      "author": "Mathieu Lebreton from Paris, France",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "outer-banks-nc": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/65/NCOuterBanks-EO.jpg",
+    "attribution": {
+      "author": "Pierre cb",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "niagara-falls-ny": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/3Falls_Niagara.jpg",
+    "attribution": {
+      "author": "Saffron Blaze",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "yellowstone": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Grand_Canyon_of_yellowstone.jpg",
+    "attribution": {
+      "author": "Grastel",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "yosemite": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Half_Dome_with_Eastern_Yosemite_Valley_%2850MP%29.jpg/3840px-Half_Dome_with_Eastern_Yosemite_Valley_%2850MP%29.jpg",
+    "attribution": {
+      "author": "Thomas Wolf, www.foto-tw.de",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "grand-canyon": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Dawn_on_the_S_rim_of_the_Grand_Canyon_%288645178272%29.jpg",
+    "attribution": {
+      "author": "Murray Foubister",
+      "license": "CC BY-SA 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "zion": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/10/Zion_angels_landing_view.jpg",
+    "attribution": {
+      "author": "Diliff",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "olympic": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Cedar_Creek_Abbey_Island_Ruby_Beach.jpg/3840px-Cedar_Creek_Abbey_Island_Ruby_Beach.jpg",
+    "attribution": {
+      "author": "Adbar",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "acadia": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e9/Acadia_National_Park_02.JPG",
+    "attribution": {
+      "author": "Plh1234us",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "great-smoky": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/View_atop_Cliff_Tops_on_Mount_LeConte%2C_GSMNP%2C_TN.jpg",
+    "attribution": {
+      "author": "AppalachianCentrist",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "rocky-mountain": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Rocky_Mountain_National_Park_in_September_2011_-_Glacier_Gorge_from_Bear_Lake.JPG",
+    "attribution": {
+      "author": "Daniel Mayer (Mav)",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "joshua-tree": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Joshua_Tree_-_Cyclops_%2B_Potato_Head_-_Sunrise.jpg/3840px-Joshua_Tree_-_Cyclops_%2B_Potato_Head_-_Sunrise.jpg",
+    "attribution": {
+      "author": "Jarek Tuszyński",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "arches": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Delicate_arch_sunset.jpg",
+    "attribution": {
+      "author": "Palacemusic",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "bryce-canyon": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Inspiration_Point_Bryce_Canyon_November_2018_panorama.jpg/3840px-Inspiration_Point_Bryce_Canyon_November_2018_panorama.jpg",
+    "attribution": {
+      "author": "King of Hearts",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "crater-lake": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Above_Crater_Lake_%28cropped%29.jpg/3840px-Above_Crater_Lake_%28cropped%29.jpg",
+    "attribution": {
+      "author": "Athleticamps derivative work: User:Maps and stuff (cropped t…",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "badlands": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b9/MK00609_Badlands.jpg",
+    "attribution": {
+      "author": "Martin Kraft",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "everglades": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Sunset_over_the_River_of_Grass%2C_NPSphoto%2C_G.Gardner_%289255157507%29.jpg/3840px-Sunset_over_the_River_of_Grass%2C_NPSphoto%2C_G.Gardner_%289255157507%29.jpg",
+    "attribution": {
+      "author": "Everglades NPS from Homestead, Florida, United States",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "grand-teton": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Barns_grand_tetons.jpg",
+    "attribution": {
+      "author": "Jon Sullivan, PD Photo.",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "hawaii-volcanoes": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/89/P%C4%81hoehoe_and_Aa_flows_at_Hawaii.jpg",
+    "attribution": {
+      "author": "Brocken Inaglory",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "mount-rainier": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Mount_Rainier_from_above_Myrtle_Falls_in_August.JPG/3840px-Mount_Rainier_from_above_Myrtle_Falls_in_August.JPG",
+    "attribution": {
+      "author": "Samuel Kerr",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "shenandoah": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Skyline_Drive_in_the_Fall_%2821852619608%29.jpg/3840px-Skyline_Drive_in_the_Fall_%2821852619608%29.jpg",
+    "attribution": {
+      "author": "Shenandoah National Park from Virginia",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "sequoia": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/General_Sherman_Tree_in_Sequoia_National_Park_-_June_2022.jpg",
+    "attribution": {
+      "author": "Marty Aligata",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "niagara-falls": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/3Falls_Niagara.jpg",
+    "attribution": {
+      "author": "Saffron Blaze",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "statue-of-liberty": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d6/Liberty_and_Ellis_Island.jpg",
+    "attribution": {
+      "author": "originally uploaded by OptimumPx on en-wp (file log)",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "antelope-canyon": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b5/USA_Antelope-Canyon.jpg",
+    "attribution": {
+      "author": "Lucas Löffler",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "death-valley": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/87/Mesquite_Sand_Dunes_in_Death_Valley.jpg",
+    "attribution": {
+      "author": "Brocken Inaglory",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "denali": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Every_Road-_Denali_%287945497984%29.jpg/3840px-Every_Road-_Denali_%287945497984%29.jpg",
+    "attribution": {
+      "author": "Denali National Park and Preserve",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "canyonlands-ut": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/99/Green_River_Overlook_Ekker_Butte.jpg",
+    "attribution": {
+      "author": "au_ears",
+      "license": "CC BY-SA 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "capitol-reef-ut": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Capitol_Reef_National_Park.jpg",
+    "attribution": {
+      "author": "Wolfgang Staudt",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "mesa-verde-cliff": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Cliff_Palace-Colorado-Mesa_Verde_NP.jpg/3840px-Cliff_Palace-Colorado-Mesa_Verde_NP.jpg",
+    "attribution": {
+      "author": "Tobi 87",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "white-sands-nm": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/cf/White_Sands_National_Park_visitor_center_and_native_plant_garden%2C_New_Mexico%2C_United_States.jpg",
+    "attribution": {
+      "author": "uncredited National Park Service employee",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "guadalupe-mountains-tx": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Guadalupe_Peak_from_Hunter_Peak.jpg/3840px-Guadalupe_Peak_from_Hunter_Peak.jpg",
+    "attribution": {
+      "author": "CarlCarlsonIV",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "big-bend-tx": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Canyon%2C_Rio_Grande%2C_Texas.jpeg",
+    "attribution": {
+      "author": "Michael from Minnesota (@Michael)",
+      "license": "CC BY-SA 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "carlsbad-caverns-nm": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Carlsbad_Interior_Formations.jpg",
+    "attribution": {
+      "author": "Eric Guinther, User:Marshman",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "petrified-forest-az": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/51/Jasper_Forest_at_Petrified_Forest_NP_in_AZ_12.jpg",
+    "attribution": {
+      "author": "Jeffhollett",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "pinnacles-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Rock_formations_at_Pinnacles_National_Park.jpg/3840px-Rock_formations_at_Pinnacles_National_Park.jpg",
+    "attribution": {
+      "author": "Brocken Inaglory",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "channel-islands-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Channel_Islands_National_Park_by_Sentinel-2.jpg/3840px-Channel_Islands_National_Park_by_Sentinel-2.jpg",
+    "attribution": {
+      "author": "Copernicus Sentinel-2, ESA",
+      "license": "CC BY-SA 3.0 igo",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "redwood-np-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/de/Redwood_National_Park%2C_fog_in_the_forest.jpg",
+    "attribution": {
+      "author": "Michael Schweppe",
+      "license": "CC BY-SA 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "lassen-volcanic-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Lassen_Peak_and_Lake_Helen.jpg",
+    "attribution": {
+      "author": "NPS Photo",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "north-cascades-wa": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/80/Cascade_Pass_and_Pelton_Basin.jpg",
+    "attribution": {
+      "author": "National Park Service/Deby Dixon",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "kenai-fjords-ak": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Kenai_Fjords_coast.jpg",
+    "attribution": {
+      "author": "NPS",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "gates-of-the-arctic-ak": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Remote_river_in_Gates_of_the_Arctic_%2816524035298%29.jpg",
+    "attribution": {
+      "author": "Sean Tevebaugh, National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "biscayne-np-fl": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/48/Biscayne.JPG",
+    "attribution": {
+      "author": "Catholic 85 at English Wikipedia",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "dry-tortugas-fl": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Fort-Jefferson_Dry-Tortugas.jpg",
+    "attribution": {
+      "author": "U.S. National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "congaree-np-sc": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/A548%2C_Congaree_National_Park%2C_South_Carolina%2C_USA%2C_2012.jpg",
+    "attribution": {
+      "author": "Brian W. Schaller",
+      "license": "FAL",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "new-river-gorge-wv": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Grandview_Overlook%2C_New_River.jpg/3840px-Grandview_Overlook%2C_New_River.jpg",
+    "attribution": {
+      "author": "Aparkswv",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cuyahoga-valley-oh": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Cuyahoga_Valley_National_Park_20.jpg",
+    "attribution": {
+      "author": "Niagara66",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "isle-royale-mi": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/88/Edisen_Fishery_at_IRNP.jpg",
+    "attribution": {
+      "author": "William Wadas",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "voyageurs-np-mn": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bd/Voyageurs_National_Park.jpg",
+    "attribution": {
+      "author": "Unknown",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "theodore-roosevelt-nd": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/34/View_of_Theodore_Roosevelt_National_Park.jpg",
+    "attribution": {
+      "author": "NPS/Mark Hoffman",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "wind-cave-sd": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/1c/Skyway_Lake%2C_stalactites%2C_Wind_Cave.jpg",
+    "attribution": {
+      "author": "National Park Service of the United States of America",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "hot-springs-np-ar": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a1/Steamy_Entrance_Springs_on_Cold_Night_in_Hot_Springs_National_Park.jpg",
+    "attribution": {
+      "author": "TripOfALifestyle.com",
+      "license": "CC BY 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "mount-rushmore-sd": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Mount_Rushmore_detail_view_%28100MP%29.jpg/3840px-Mount_Rushmore_detail_view_%28100MP%29.jpg",
+    "attribution": {
+      "author": "Thomas Wolf, www.foto-tw.de",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "crazy-horse-memorial-sd": {
+    "url": "https://upload.wikimedia.org/wikipedia/en/thumb/4/4f/CrazyHorse.jpg/3840px-CrazyHorse.jpg",
+    "attribution": {
+      "author": "Unknown",
+      "source": "Wikimedia Commons",
+      "license": "Wikimedia Commons"
+    }
+  },
+  "independence-hall-pa": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/39/Independence_Hall.jpg",
+    "attribution": {
+      "author": "Rdsmith4",
+      "license": "CC BY-SA 2.5",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "liberty-bell-center-pa": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/37/Liberty_Bell_2017a.jpg",
+    "attribution": {
+      "author": "William Zhang",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "gettysburg-nmp-pa": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/6d/15-23-0291%2C_artillery_on_seminary_ridge_-_panoramio.jpg",
+    "attribution": {
+      "author": "David Dugan",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "little-bighorn-battlefield-mt": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Little_Bighorn_memorial_obelisk.jpg",
+    "attribution": {
+      "author": "Durwood Brandon",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "chaco-culture-nhp-nm": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/48/Chaco_Culture_NHP_%288023723138%29.jpg",
+    "attribution": {
+      "author": "Greg Willis from Denver, CO, usa",
+      "license": "CC BY-SA 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "devils-tower-wy": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Devils_Tower_in_Wyoming.jpg",
+    "attribution": {
+      "author": "Ben Stephenson from Cleveland, OH",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "muir-woods-nm-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/12/Muir_Woods_National_Monument_%2847879029461%29.jpg",
+    "attribution": {
+      "author": "Matthew Dillon from Hollywood, CA, USA",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "golden-gate-nra-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b6/Golden_Gate_-_Lands_End_-_Point_Lobos_2009.jpg",
+    "attribution": {
+      "author": "Leaflet",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "alcatraz-island-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/17/Alcatraz_2021.jpg",
+    "attribution": {
+      "author": "Chris6d",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "monument-valley-navajo-az": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Monument_Valley%2C_Utah%2C_USA_%2823611451292%29.jpg/3840px-Monument_Valley%2C_Utah%2C_USA_%2823611451292%29.jpg",
+    "attribution": {
+      "author": "Domenico Convertini",
+      "license": "CC BY-SA 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "rainbow-bridge-nm-ut": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bb/Utah_Rainbow_Arch.jpg",
+    "attribution": {
+      "author": "Unknown",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "natural-bridges-nm-ut": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/be/Owachomo_laban.jpg",
+    "attribution": {
+      "author": "Laban712 on en",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "craters-of-the-moon-nm-id": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/CratersDrone1.jpg/3840px-CratersDrone1.jpg",
+    "attribution": {
+      "author": "BroMcjoe",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "lava-beds-nm-ca": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Lava_Beds_Cave_collapse_trench.jpg",
+    "attribution": {
+      "author": "U.S. National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "dinosaur-nm-co": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Dinosaur_National_Monument_Camarasaurus.jpg/3840px-Dinosaur_National_Monument_Camarasaurus.jpg",
+    "attribution": {
+      "author": "Rob Glover from Bradford, UK",
+      "license": "CC BY-SA 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "jewel-cave-nm-sd": {
+    "url": "https://upload.wikimedia.org/wikipedia/en/5/59/Scenic_Tour_Route.JPG",
+    "attribution": {
+      "author": "Unknown",
+      "source": "Wikimedia Commons",
+      "license": "Wikimedia Commons"
+    }
+  },
+  "sunset-crater-volcano-nm-az": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/db/Sunsetcrater13.JPG",
+    "attribution": {
+      "author": "Mikesanchez1109",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "wupatki-nm-az": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Wukoki_Ruin.tif/lossy-page1-3840px-Wukoki_Ruin.tif.jpg",
+    "attribution": {
+      "author": "Stephen M Alden",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "na-pali-coast": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/7d/NaPali_overlook_Kalalau_Valley.jpg",
+    "attribution": {
+      "author": "Dcrjsr",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "havasu-falls": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/41/New_havasu_falls.JPG",
+    "attribution": {
+      "author": "Gonzo fan2007",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "going-to-the-sun-road": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Going-to-the-Sun_Road_-_Glacier_National_Park.jpg",
+    "attribution": {
+      "author": "MPSharwood",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cape-hatteras": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/29/Lighthouse_at_Cape_Hatteras_National_Seashore._NPS-Michael_B._Edwards_%2818497979278%29.jpg",
+    "attribution": {
+      "author": "NPS Natural Resources",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "assateague-island": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Assateague_Island_aerial_view.jpg",
+    "attribution": {
+      "author": "Susanne Bledsoe, U.S. Army Corps of Engineers",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "indiana-dunes": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Indiana_Dunes_National_Lakeshore%2C_Michigan_City%2C_Indiana%2C_Estados_Unidos%2C_2012-10-20%2C_DD_03.jpg/3840px-Indiana_Dunes_National_Lakeshore%2C_Michigan_City%2C_Indiana%2C_Estados_Unidos%2C_2012-10-20%2C_DD_03.jpg",
+    "attribution": {
+      "author": "Diego Delso",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "pictured-rocks": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Pictured_Rocks_Bridalveil_Falls.jpg",
+    "attribution": {
+      "author": "National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "great-sand-dunes": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Great_Sand_Dunes_National_Park_and_Preserve%2C_United_States_%28Unsplash%29.jpg/3840px-Great_Sand_Dunes_National_Park_and_Preserve%2C_United_States_%28Unsplash%29.jpg",
+    "attribution": {
+      "author": "Lionello DelPiccolo liodp",
+      "license": "CC0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "apostle-islands": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Big_waves_on_Devils_Island_shoreline_%28e99f5cd1-548c-439d-962d-0c03204c2bf8%29.jpg",
+    "attribution": {
+      "author": "NPS Photo",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "mammoth-cave": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/70/Mammoth_Cave_Rotunda_%28USGS_Lwt02830%29.jpg",
+    "attribution": {
+      "author": "Willis Thomas Lee",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "sleeping-bear-dunes": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Sleeping_Bear_Dunes_Nat_Park_2024.jpg/3840px-Sleeping_Bear_Dunes_Nat_Park_2024.jpg",
+    "attribution": {
+      "author": "MemeGod27",
+      "license": "CC0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "wrangell-st-elias": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Mt_Saint_Elias%2C_South_Central_Alaska.jpg",
+    "attribution": {
+      "author": "Mr. David Sinson, NOAA, Office of Coast Survey",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "valley-of-fire": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Valley_of_fire_State_Park.jpg",
+    "attribution": {
+      "author": "Clément Bardot",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "garden-of-the-gods": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Garden_of_the_Gods_%286174065038%29.jpg",
+    "attribution": {
+      "author": "John Fowler from Placitas, NM, USA",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "waimea-canyon": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Waimea_Canyon_mar_2010.jpg/3840px-Waimea_Canyon_mar_2010.jpg",
+    "attribution": {
+      "author": "Aaronbernstein",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "painted-hills": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Painted_Hills_2009.08.13.11.08.52.jpg/3840px-Painted_Hills_2009.08.13.11.08.52.jpg",
+    "attribution": {
+      "author": "MrX",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "kobuk-valley": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/de/Kobuk_Bendlova_235.jpg",
+    "attribution": {
+      "author": "16Terezka",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "saguaro": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Saguaro_Sunset.jpg/3840px-Saguaro_Sunset.jpg",
+    "attribution": {
+      "author": "Saguaro Pictures",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "columbia-river-gorge": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/06/Multnomah_OR_July_14_2004.jpg",
+    "attribution": {
+      "author": "Blue Ice at English Wikipedia",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "congaree": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/A548%2C_Congaree_National_Park%2C_South_Carolina%2C_USA%2C_2012.jpg",
+    "attribution": {
+      "author": "Brian W. Schaller",
+      "license": "FAL",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "theodore-roosevelt": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/34/View_of_Theodore_Roosevelt_National_Park.jpg",
+    "attribution": {
+      "author": "NPS/Mark Hoffman",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "kenai-fjords": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Kenai_Fjords_coast.jpg",
+    "attribution": {
+      "author": "NPS",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "mesa-verde-cliff-dwellings": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Cliff_Palace-Colorado-Mesa_Verde_NP.jpg/3840px-Cliff_Palace-Colorado-Mesa_Verde_NP.jpg",
+    "attribution": {
+      "author": "Tobi 87",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "biscayne": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/48/Biscayne.JPG",
+    "attribution": {
+      "author": "Catholic 85 at English Wikipedia",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cuyahoga-valley": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Cuyahoga_Valley_National_Park_20.jpg",
+    "attribution": {
+      "author": "Niagara66",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "guadalupe-mountains": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Guadalupe_Peak_from_Hunter_Peak.jpg/3840px-Guadalupe_Peak_from_Hunter_Peak.jpg",
+    "attribution": {
+      "author": "CarlCarlsonIV",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "channel-islands": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Channel_Islands_National_Park_by_Sentinel-2.jpg/3840px-Channel_Islands_National_Park_by_Sentinel-2.jpg",
+    "attribution": {
+      "author": "Copernicus Sentinel-2, ESA",
+      "license": "CC BY-SA 3.0 igo",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "haleakala": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/48/Haleakala_National_Park_02.jpg",
+    "attribution": {
+      "author": "Niagara66",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "great-basin": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/be/Prometheus_Wheeler.jpg",
+    "attribution": {
+      "author": "James R Bouldin (talk · contribs)",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "black-canyon-gunnison": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Black_Canyon_and_Gunnison_River_2008.jpg",
+    "attribution": {
+      "author": "Terry Foote",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "virgin-islands": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/St_John_Trunk_Bay_3.jpg/3840px-St_John_Trunk_Bay_3.jpg",
+    "attribution": {
+      "author": "Fred Hsu (Wikipedia:User:Fred Hsu on en.wikipedia)",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "american-samoa": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Pola_Islands_Tutuila_NPS.jpg",
+    "attribution": {
+      "author": "Tavita Togia, National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "grand-staircase-escalante": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Grand_Staircase_Escalante_National_Monument_in_Utah_-_2015-02-07.jpg",
+    "attribution": {
+      "author": "Bureau of Land Management (mypubliclands on Flickr) https://…",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "bears-ears": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Bears_Ears_Buttes.jpg/3840px-Bears_Ears_Buttes.jpg",
+    "attribution": {
+      "author": "Bigbear213",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cascade-siskiyou": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Views_from_Cascade-Siskiyou_National_Monument_%2818362936785%29.jpg",
+    "attribution": {
+      "author": "Bureau of Land Management Oregon and Washington",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "organ-pipe-cactus": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Organ_Pipe_Nat%27l_Monument_-_panoramio.jpg",
+    "attribution": {
+      "author": "Klaus Eltrop",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "chiricahua": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/14/Chiricahua_balanced_rock.jpg",
+    "attribution": {
+      "author": "Pretzelpaws",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "colorado-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Colorado_National_Monument_entrance.jpg/3840px-Colorado_National_Monument_entrance.jpg",
+    "attribution": {
+      "author": "Daniel Schwen",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "bandelier": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/65/Bandelier_Kiva.jpg",
+    "attribution": {
+      "author": "Unknown",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "ocmulgee-mounds": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Mounds_at_Ocmulgee_National_Monument%2C_Bibb_County%2C_GA%2C_US.jpg/3840px-Mounds_at_Ocmulgee_National_Monument%2C_Bibb_County%2C_GA%2C_US.jpg",
+    "attribution": {
+      "author": "Bubba73",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "watkins-glen": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Watkins_Glen_by_Peter_Rivera.jpg",
+    "attribution": {
+      "author": "Flickr user: Peter Rivera Stamford, Connecticut https://www.…",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "aztec-ruins": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Aztec_Ruins_National_Monument_by_RO.JPG/3840px-Aztec_Ruins_National_Monument_by_RO.JPG",
+    "attribution": {
+      "author": "Rationalobserver",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "florissant-fossil-beds": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/54/Florissant_Formation.jpg",
+    "attribution": {
+      "author": "Kent G. Budge",
+      "license": "CC0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "scotts-bluff": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d6/Covered_Wagon_In_Scotts_Bluff_National_Monument%2C_Nebraska.jpg",
+    "attribution": {
+      "author": "Podruznik at English Wikipedia",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "effigy-mounds": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b5/Big_bear_mound_at_Effigy_Mounds_State_Park.jpg",
+    "attribution": {
+      "author": "Archbob",
+      "license": "CC0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cabrillo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Cabrillo_National_Monument_and_Lighthouse.jpg/3840px-Cabrillo_National_Monument_and_Lighthouse.jpg",
+    "attribution": {
+      "author": "Blervis",
+      "license": "CC0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "alibates-flint-quarries": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Alibates_Flint_Queries_National_Monument_-_Flint_Quary_Closeup.jpg/3840px-Alibates_Flint_Queries_National_Monument_-_Flint_Quary_Closeup.jpg",
+    "attribution": {
+      "author": "Ted.gould",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "petroglyph": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Petroglyph_National_Monument_Aerial_%2852260985771%29.jpg",
+    "attribution": {
+      "author": "formulanone",
+      "license": "CC BY-SA 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "tonto": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/42/Tonto_National_Monument_02.jpg",
+    "attribution": {
+      "author": "Bernard Gagnon",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "montezuma-castle": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f6/2021_Montezuma_Castle_3.jpg",
+    "attribution": {
+      "author": "Beyond My Ken",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "canyons-of-the-ancients": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/My_Public_Lands_Roadtrip-_Canyons_of_the_Ancients_National_Monument_in_Colorado_%2819773890122%29.jpg",
+    "attribution": {
+      "author": "Bureau of Land Management",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cape-cod": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Cape_Cod_National_Seashore_logo.png",
+    "attribution": {
+      "author": "Unknown, Cape Cod National Seashore",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "point-reyes": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Chimney_Rock_Trail_Point_Reyes_December_2016_panorama_1.jpg/3840px-Chimney_Rock_Trail_Point_Reyes_December_2016_panorama_1.jpg",
+    "attribution": {
+      "author": "King of Hearts",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "padre-island": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/8f/Padre_Island_National_Seashore%2C_beach%2C_Kleberg_Co%2C_TX%3B_1_Nov_2022.jpg",
+    "attribution": {
+      "author": "William L. Farr",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cumberland-island": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/CINS_Beach%2C_Looking_North.jpg/3840px-CINS_Beach%2C_Looking_North.jpg",
+    "attribution": {
+      "author": "Flatwoods 36",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fire-island": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Fire_Island_Lighthouse-New_York_State-NPS.jpg",
+    "attribution": {
+      "author": "US National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "gulf-islands": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Gulf_Islands_NS.jpg",
+    "attribution": {
+      "author": "National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "pictured-rocks-mi": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Pictured_Rocks_Bridalveil_Falls.jpg",
+    "attribution": {
+      "author": "National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "canaveral": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Canaveral_National_Seashore.jpg/3840px-Canaveral_National_Seashore.jpg",
+    "attribution": {
+      "author": "TripOfALifestyle.com",
+      "license": "CC BY 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "olympic-coast-marine": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/18/Aerial_view_of_Teahwhit_Head_and_James_Island.jpg",
+    "attribution": {
+      "author": "National Oceanic and Atmospheric Administration",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "glen-canyon": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Glen_Canyon_National_Recreation_Area_-_Lake_Powell_-_Reflection_Canyon.jpg/3840px-Glen_Canyon_National_Recreation_Area_-_Lake_Powell_-_Reflection_Canyon.jpg",
+    "attribution": {
+      "author": "NPS Photo/Gary Ladd",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "whiskeytown": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Whiskey_Town_Lake_Redding_CA.jpg",
+    "attribution": {
+      "author": "RoyalMayfair",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "delaware-water-gap": {
+    "url": "https://upload.wikimedia.org/wikipedia/en/5/5f/Seal_of_the_Delaware_Water_Gap_National_Recreation_Area.jpg",
+    "attribution": {
+      "author": "Unknown",
+      "source": "Wikimedia Commons",
+      "license": "Wikimedia Commons"
+    }
+  },
+  "curecanti": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Dillonpin.JPG",
+    "attribution": {
+      "author": "The original uploader was Nationalparks at English Wikipedia…",
+      "license": "CC BY-SA 2.5",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "flaming-gorge": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Evening_view_of_Flaming_Gorge_from_Sheep_Creek_Overlook%2C_2009.jpg",
+    "attribution": {
+      "author": "DimiTalen",
+      "license": "CC0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "chattahoochee-river": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/East_Palisades.JPG",
+    "attribution": {
+      "author": "Keizers",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "lake-roosevelt": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/64/LakeRooseveltNationalRecreationArea.jpg",
+    "attribution": {
+      "author": "Karyn Christner",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "gateway-nra": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/ISS067-E-13967_view_of_the_Gateway_National_Recreation_Area.jpg/3840px-ISS067-E-13967_view_of_the_Gateway_National_Recreation_Area.jpg",
+    "attribution": {
+      "author": "NASA",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "santa-monica-mountains": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Backbone_Trail_near_Mishe_Mokwa.jpg",
+    "attribution": {
+      "author": "Seanydelight",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "martin-luther-king-jr": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Ebenezer-Baptist-from-pulpit.jpg/3840px-Ebenezer-Baptist-from-pulpit.jpg",
+    "attribution": {
+      "author": "Jet Lowe",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "harpers-ferry": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/2010-09-02-Harpers-Ferry-From-Maryland-Heights-Panorama-Crop.jpg/3840px-2010-09-02-Harpers-Ferry-From-Maryland-Heights-Panorama-Crop.jpg",
+    "attribution": {
+      "author": "Mark Fickett",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "minute-man": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Hartwell_Tavern_2.jpeg/3840px-Hartwell_Tavern_2.jpeg",
+    "attribution": {
+      "author": "Seasider53",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "boston-nhp": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b9/BostonFaneuilHall25June07C.jpg",
+    "attribution": {
+      "author": "Infrogmation of New Orleans",
+      "license": "CC BY 2.5",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "abraham-lincoln-birthplace": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Abraham_Lincoln_Birthplace_National_Historical_Park_side.jpg/3840px-Abraham_Lincoln_Birthplace_National_Historical_Park_side.jpg",
+    "attribution": {
+      "author": "Jon698",
+      "license": "CC BY 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "tuskegee-airmen": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Moton_Field_Hangar_2_and_control_tower.jpg",
+    "attribution": {
+      "author": "Lestocq",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "palo-duro-canyon": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Campground2_Palo_Duro_Canyon_State_Park_Texas_2024.jpg",
+    "attribution": {
+      "author": "Larry D. Moore",
+      "license": "CC BY 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fords-theatre": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Ford%27s_Theatre_2016.jpg",
+    "attribution": {
+      "author": "Difference engine",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "san-antonio-missions": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/93/Mission_Concepcion_San_Antonio.JPG",
+    "attribution": {
+      "author": "Liveon001 ©Travis Witt",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "salem-maritime": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/85/Salem_Customs_House.jpg",
+    "attribution": {
+      "author": "Jesse Lee Tucker",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "antietam": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/75/Antietam_Bloody_Lane.JPG",
+    "attribution": {
+      "author": "Sswonk",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "kings-canyon": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3a/KingsCanyonNP.JPG",
+    "attribution": {
+      "author": "Crd637",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "katmai-national-park-and-preserve": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/1e/Katmai_Crater_1980.jpg",
+    "attribution": {
+      "author": "Captain Budd Christman, NOAA Corps",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "lake-clark-national-park-and-preserve": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/ac/Lake_Clark_National_Park.jpg",
+    "attribution": {
+      "author": "Unknown",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "african-burial-ground-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/0d/African_Burial_Ground.jpg",
+    "attribution": {
+      "author": "Dmadeo",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "agate-fossil-beds-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b8/Agathe_National_Monument10.jpg",
+    "attribution": {
+      "author": "The original uploader was Urban at French Wikipedia.",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "belmont-paul-womens-equality-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/75/BEPA-Sept2021.jpg",
+    "attribution": {
+      "author": "Eric T Gunther",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "booker-t-washington-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Booker_T_Washington_bust_Booker_T_Washington_National_Monument.JPG/3840px-Booker_T_Washington_bust_Booker_T_Washington_National_Monument.JPG",
+    "attribution": {
+      "author": "MarmadukePercy",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "buck-island-reef-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/56/BuckIsland_StCroix_fire_coral.jpg",
+    "attribution": {
+      "author": "Katka Nemčoková",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "camp-nelson-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Camp_Nelson_landscape.JPG",
+    "attribution": {
+      "author": "C. Bedford Crenshaw, aka Bedford at English Wikipedia",
+      "license": "Attribution",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "canyon-de-chelly-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Canyon_de_Chelly%2C_Navajo.jpg",
+    "attribution": {
+      "author": "Edward S. Curtis",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cape-krusenstern-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Tundra_River_%2820258476344%29.jpg",
+    "attribution": {
+      "author": "Western Arctic National Parklands",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "capulin-volcano-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/63/Capulin_1980_tde00005.jpg",
+    "attribution": {
+      "author": "R.D. Miller, USGS",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "carlisle-federal-indian-boarding-school-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/12/Carlisle_Indian_School_Logo.png",
+    "attribution": {
+      "author": "Carlisle Indian Industrial School",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "casa-grande-ruins-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/69/CasaGrandeRuin.jpg",
+    "attribution": {
+      "author": "Greg Hume",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "castillo-de-san-marcos-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Aerial_view_of_the_Castillo_de_San_Marcos%2C_St._Augustine%2C_FL_2025-05-20.jpg/3840px-Aerial_view_of_the_Castillo_de_San_Marcos%2C_St._Augustine%2C_FL_2025-05-20.jpg",
+    "attribution": {
+      "author": "Schwerdf",
+      "license": "CC BY 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "castle-clinton-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Habs_castle_clinton.jpg/3840px-Habs_castle_clinton.jpg",
+    "attribution": {
+      "author": "Unknown authorUnknown author",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "castle-mountains-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f8/Castle_Mountains_and_Joshua_Trees.jpg",
+    "attribution": {
+      "author": "David Lamfrom",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cedar-breaks-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Utah%2C_Cedar_Breaks_National_Monument%2C_amphitheater.jpg",
+    "attribution": {
+      "author": "Lucas·G",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cesar-e-chavez-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/2013-0211-CaesarChavezGravesite.jpg/3840px-2013-0211-CaesarChavezGravesite.jpg",
+    "attribution": {
+      "author": "Bobak Ha'Eri",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "devils-postpile-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/05/Devils_Postpile_National_Monument_near_Mammoth_Lakes.jpg",
+    "attribution": {
+      "author": "Frank Kovalchek from Anchorage, Alaska, USA",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "el-malpais-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Malpais_pahoehoe.jpg",
+    "attribution": {
+      "author": "Phil Stoffer (USGS)",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "el-morro-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/80/El_morro_view.JPG",
+    "attribution": {
+      "author": "Joel Mills",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "emmett-till-and-mamie-till-mobley-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Tallahatchie_County_Mississippi_Courthouse.jpg",
+    "attribution": {
+      "author": "Calvin Beale",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-frederica-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Cannon_outside_magazine_at_Frederica_National_Monument.jpg/3840px-Cannon_outside_magazine_at_Frederica_National_Monument.jpg",
+    "attribution": {
+      "author": "HAL333",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-matanzas-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Ft_Matanzas_2008.JPG",
+    "attribution": {
+      "author": "Intergalacticz9 (talk)",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-mchenry-national-monument-and-historic-shrine": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b7/FortMcHenryAerialView.jpg",
+    "attribution": {
+      "author": "Fort McHenry Social Media Team",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-monroe-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Fort_Monroe_Aerial.jpg",
+    "attribution": {
+      "author": "Unknown",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-pulaski-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/FtPulaskiInside.jpg",
+    "attribution": {
+      "author": "Jud McCranie, en:user:Bubba73",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-stanwix-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Fost_areal_image007.jpg",
+    "attribution": {
+      "author": "NPS photo",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-union-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/68/Fortunion.JPG",
+    "attribution": {
+      "author": "en:User:Nationalparks (Talk)",
+      "license": "CC BY-SA 2.5",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fossil-butte-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Fossil_Butte_National_Monument_entrance_sign.jpg/3840px-Fossil_Butte_National_Monument_entrance_sign.jpg",
+    "attribution": {
+      "author": "TigerScientist",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "frances-perkins-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d7/PerkinsHomestead.jpg",
+    "attribution": {
+      "author": "Robert Reed, NPS employee (per the same source)",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "freedom-riders-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Former_Greyhound_station%2C_Anniston%2C_Alabama.jpg",
+    "attribution": {
+      "author": "Ser Amantio di Nicolao",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "george-washington-birthplace-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Geo_Washington_birthplace.jpg",
+    "attribution": {
+      "author": "JGHowes, photographer Original uploader was JGHowes at en.wi…",
+      "license": "Attribution",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "george-washington-carver-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/eb/George_Washington_Carver_National_Monument_-_Visitor_Center.jpg",
+    "attribution": {
+      "author": "National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "gila-cliff-dwellings-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Gila_Cliff_Dwellings%2C_New_Mexico%2C_USA_2012.jpg/3840px-Gila_Cliff_Dwellings%2C_New_Mexico%2C_USA_2012.jpg",
+    "attribution": {
+      "author": "Rociomcoss",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "governors-island-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Castle_Williams_Facade.jpg",
+    "attribution": {
+      "author": "Fletcher6",
+      "license": "CC BY 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "grand-canyon-parashant-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/97/Grand_Canyon_Parashant_sign%2C_Arizona.JPG",
+    "attribution": {
+      "author": "Tainter at English Wikipedia",
+      "license": "GFDL",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "grand-portage-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/5a/050820_GrandPortageNationalMonument.jpg",
+    "attribution": {
+      "author": "Rufus Sarsaparilla on wikipédia en",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "hagerman-fossil-beds-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/05/HAFO_FlowersRiver.jpg",
+    "attribution": {
+      "author": "NPS photo",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "hovenweep-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Hovenweep_in_snow.jpg/3840px-Hovenweep_in_snow.jpg",
+    "attribution": {
+      "author": "Larry Lamsa",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "john-day-fossil-beds-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Sheep_Rock_near_sunset.jpg/3840px-Sheep_Rock_near_sunset.jpg",
+    "attribution": {
+      "author": "Finetooth",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "katahdin-woods-and-waters-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Katahdin_Woods_and_Waters_Pond_Pitch.jpg",
+    "attribution": {
+      "author": "National Park Service / Jason Gablaski",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "medgar-and-myrlie-evers-home-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Medgar_Evers_house%2C_Jackson%2C_MS%2C_US.jpg/3840px-Medgar_Evers_house%2C_Jackson%2C_MS%2C_US.jpg",
+    "attribution": {
+      "author": "Jud McCranie",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "mill-springs-battlefield-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Mill_Springs_Battlefield_Visitor_Center.JPG",
+    "attribution": {
+      "author": "C. Bedford Crenshaw",
+      "license": "Attribution",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "navajo-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Interior_of_Keet_Seel_ruin%2C.jpg/3840px-Interior_of_Keet_Seel_ruin%2C.jpg",
+    "attribution": {
+      "author": "PatrickRapps",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "pipe-spring-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Pipe_Spring_NM01.jpg",
+    "attribution": {
+      "author": "Nikater",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "pipestone-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/QuarryPipestoneMN.jpg/3840px-QuarryPipestoneMN.jpg",
+    "attribution": {
+      "author": "Jonathunder",
+      "license": "GFDL 1.2",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "poverty-point-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/76/Louisiana_-_Poverty_Point_-_Karte_%28English_version%29.png",
+    "attribution": {
+      "author": "Maximilian Dörrbecker (Chumwa)",
+      "license": "CC BY-SA 2.5",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "russell-cave-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Russell_Cave.JPG",
+    "attribution": {
+      "author": "Fredlyfish4",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "salinas-pueblo-missions-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/fd/Salinas_Pueblo_Missions_National_Monument_ruins.jpg",
+    "attribution": {
+      "author": "National Park Service Digital Image Archives",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "starved-rock": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Starved_Rock_Illinois_on_Illinois_River.jpg",
+    "attribution": {
+      "author": "Chris Light (talk)",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "stonewall-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Stonewall_Inn_5_pride_weekend_2016.jpg/3840px-Stonewall_Inn_5_pride_weekend_2016.jpg",
+    "attribution": {
+      "author": "Rhododendrites",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "tule-lake-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Tule_Lake_War_Relocation_Center.jpg/3840px-Tule_Lake_War_Relocation_Center.jpg",
+    "attribution": {
+      "author": "Russell Lee",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "tule-springs-fossil-beds-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Tule_Springs_Fossil_Beds_National_Monument.jpg",
+    "attribution": {
+      "author": "National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "tuzigoot-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Tuzigoot_December_2013_1.JPG",
+    "attribution": {
+      "author": "Fredlyfish4",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "waco-mammoth-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/77/Waco_mammoth_site_QRT.jpg",
+    "attribution": {
+      "author": "Larry D. Moore",
+      "license": "CC BY 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "walnut-canyon-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Walnut_Canyon_Natl_Monument.jpg",
+    "attribution": {
+      "author": "William Wadas",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "yucca-house-national-monument": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Yucca-House-NM.jpg",
+    "attribution": {
+      "author": "National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cape-lookout-national-seashore": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Cape_Lookout_Lighthouse_-_2013-06_-_07.JPG/3840px-Cape_Lookout_Lighthouse_-_2013-06_-_07.JPG",
+    "attribution": {
+      "author": "Jarek Tuszyński",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "amistad-national-recreation-area": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Amistad_Res_%26_Bridges2.jpg",
+    "attribution": {
+      "author": "National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "bighorn-canyon-national-recreation-area": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Bighorn_Canyon_North_District_Snow.jpg",
+    "attribution": {
+      "author": "National Park Service, Bighorn Canyon National Recreation Ar…",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "bluestone-national-scenic-river": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/05/Pipestem_Resort_State_Park-Bluestone_Gorge.jpg",
+    "attribution": {
+      "author": "Brian M. Powell (user Bitmapped on en.wikipedia)",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "boston-harbor-islands-national-recreation-area": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/ba/SpectacleIsland_9.8.24.jpg",
+    "attribution": {
+      "author": "Qworkqwork",
+      "license": "CC BY 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "chickasaw-national-recreation-area": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Travertine_creek_fall_evening.jpg",
+    "attribution": {
+      "author": "Jbrown84 at English Wikipedia",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "gauley-river-national-recreation-area": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/73/SummersvilleDam.jpg",
+    "attribution": {
+      "author": "US Army Corps of Engineers",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "ice-age-national-scenic-trail": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/IATWoodLake.jpg",
+    "attribution": {
+      "author": "MDuchek",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "lake-meredith-national-recreation-area": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/24/Lake_Meredith_at_Sunset.jpg",
+    "attribution": {
+      "author": "NPS",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "lower-delaware-national-wild-and-scenic-river": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Lumberville-Raven_Rock_Bridge_20071105-jag9889.jpg",
+    "attribution": {
+      "author": "Jag9889",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "niobrara-national-scenic-river": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/84/Niobrara_scenic_river.jpg",
+    "attribution": {
+      "author": "National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "ozark-national-scenic-riverways": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/MO_locator_ONSR_%2B_EP_NWSR.png",
+    "attribution": {
+      "author": "Original content by Kbh3rd plus inclusion of the work Map_of…",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "saint-croix-national-scenic-riverway": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bb/StCroixRiver-Osceola-063-050507.jpg",
+    "attribution": {
+      "author": "Bobak Ha'Eri",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "adams-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e9/John_Adams_birthplace%2C_Quincy%2C_Massachusetts.JPG",
+    "attribution": {
+      "author": "Daderot at English Wikipedia",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "allegheny-portage-railroad-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/08/Alpo-incline-trail.jpg",
+    "attribution": {
+      "author": "Matthew A. Lynn; Original uploader was Mosamiazaz at en.wiki…",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "amache-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/07/Granada_Relocation_Center%2C_Amache%2C_Colorado._A_general_all_over_view_of_a_section_of_the_emergency_._._._-_NARA_-_539071.jpg",
+    "attribution": {
+      "author": "Tom Parker",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "andersonville-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/9d/AndersonvilleWall.jpg",
+    "attribution": {
+      "author": "Jud McCranie at en.wikipedia",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "andrew-johnson-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/fd/Andrew-johnson-house-tn1.jpg",
+    "attribution": {
+      "author": "Brian Stansberry",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "appomattox-court-house-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Appomattox_Court_House_Historical_Park.jpg",
+    "attribution": {
+      "author": "Doug Coldwell",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "arkansas-post-national-memorial": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/97/Arkansas_Post_National_Memorial_005.jpg",
+    "attribution": {
+      "author": "Brandonrush",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "bents-old-fort-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bf/BentsFort.jpg",
+    "attribution": {
+      "author": "Sally Pearce, Colorado Department of Transportation; cleaned…",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "big-hole-national-battlefield": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Big_Hole_Battlefield.jpg",
+    "attribution": {
+      "author": "Unknown authorUnknown author",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "blackstone-river-valley-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/LincolnRI_OldAshton_KelleyHouse_BlackstoneCanal.jpg",
+    "attribution": {
+      "author": "User:Magicpiano",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "blackwell-school-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/NPS_photo_of_Blackwell_School.jpg",
+    "attribution": {
+      "author": "David Larson",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "boston-african-american-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b6/African_Meeting_House.jpg",
+    "attribution": {
+      "author": "The original uploader was Swampyank at English Wikipedia.",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "brices-cross-roads-national-battlefield-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/BricesCrossroads2010.jpg",
+    "attribution": {
+      "author": "Wilson44691",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cane-river-creole-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Log_house_in_the_Cane_River_Creole_National_Historical_Park.jpg/3840px-Log_house_in_the_Cane_River_Creole_National_Historical_Park.jpg",
+    "attribution": {
+      "author": "James W. Rosenthal",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "carl-sandburg-home-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Carl_Sandurg_House%2C_Henderson_County%2C_NC%2C_US.jpg",
+    "attribution": {
+      "author": "Bubba73",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "carter-g-woodson-home-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Carter_G._Woodson_Home_National_Historic_Site_-_2017.jpg/3840px-Carter_G._Woodson_Home_National_Historic_Site_-_2017.jpg",
+    "attribution": {
+      "author": "Ted Eytan",
+      "license": "CC BY-SA 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "chamizal-national-memorial": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b5/Chamizal_visitor_center.JPG",
+    "attribution": {
+      "author": "Original uploader was Mosamiazaz at en.wikipedia",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "charles-pinckney-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Snee_House.jpg",
+    "attribution": {
+      "author": "C.O. Greene",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "chesapeake-and-ohio-canal-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Cumberland_Basin_looking_North.jpg/3840px-Cumberland_Basin_looking_North.jpg",
+    "attribution": {
+      "author": "Bonnachoven",
+      "license": "CC0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "chickamauga-and-chattanooga-national-military-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Cannon_Row.jpg",
+    "attribution": {
+      "author": "Lhughesw5",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "christiansted-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Church_Tower_20230924_121820.jpg/3840px-Church_Tower_20230924_121820.jpg",
+    "attribution": {
+      "author": "CaptJayRuffins",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "clara-barton-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Clara_Barton%27s_Home%2C_Glen_Echo%2C_Maryland_LCCN2011631520.tif/lossy-page1-3840px-Clara_Barton%27s_Home%2C_Glen_Echo%2C_Maryland_LCCN2011631520.tif.jpg",
+    "attribution": {
+      "author": "Carol M. Highsmith",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "colonial-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Yorktown_monument1.jpg",
+    "attribution": {
+      "author": "No machine-readable author provided. Aude assumed (based on…",
+      "license": "CC BY-SA 2.5",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "coltsville-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a1/Armsmear_%28Hartford%2C_CT%29.jpg",
+    "attribution": {
+      "author": "Robert Fulton III.",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "coronado-national-memorial": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Coronado_National_Memorial.jpg/3840px-Coronado_National_Memorial.jpg",
+    "attribution": {
+      "author": "Alb2001",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cowpens-national-battlefield": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Cowpens_-_main_sign_2.JPG",
+    "attribution": {
+      "author": "The original uploader was Circuitloss at English Wikipedia.",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "cumberland-gap-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/68/Pinnacle_overlook.jpg",
+    "attribution": {
+      "author": "J654567",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "dayton-aviation-heritage-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/14/Wright_Cycle_Shop.JPG",
+    "attribution": {
+      "author": "Chris Light (talk)",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "de-soto-national-memorial": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Bradenton_FL_DeSoto_Natl_Mem01.jpg/3840px-Bradenton_FL_DeSoto_Natl_Mem01.jpg",
+    "attribution": {
+      "author": "Ebyabe",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "dwight-d-eisenhower-memorial": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Eisenhower_Memorial_Washington_DC_Facing_South.jpg/3840px-Eisenhower_Memorial_Washington_DC_Facing_South.jpg",
+    "attribution": {
+      "author": "Eric T Gunther",
+      "license": "CC BY 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "edgar-allan-poe-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/83/Edal_359.jpg",
+    "attribution": {
+      "author": "NPS Photo",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "eisenhower-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/HABS_Eisenhower_Farm.jpg/3840px-HABS_Eisenhower_Farm.jpg",
+    "attribution": {
+      "author": "Jack E. Boucher",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "eleanor-roosevelt-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Stone_Cottage_Val-Kill_NY1.jpg/3840px-Stone_Cottage_Val-Kill_NY1.jpg",
+    "attribution": {
+      "author": "Acroterion",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "eugene-oneill-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Tao_House_%289242981442%29.jpg",
+    "attribution": {
+      "author": "Dennis Miller",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "federal-hall-national-memorial": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Federal_Hall_%2848126566178%29.jpg/3840px-Federal_Hall_%2848126566178%29.jpg",
+    "attribution": {
+      "author": "Ajay Suresh from New York, NY, USA",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "first-ladies-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/7f/First_Ladies_National_Historic_Site_main_entrance_at_the_1895_City_National_Bank_Building.JPG",
+    "attribution": {
+      "author": "Dustin M. Ramsey",
+      "license": "Attribution",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "first-state-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/New_Castle_Court_House_Museum.jpg/3840px-New_Castle_Court_House_Museum.jpg",
+    "attribution": {
+      "author": "Ataraxy22",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "flight-93-national-memorial": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/27/A_tour_of_the_Flight_93_National_Memorial_-_13.jpg",
+    "attribution": {
+      "author": "James Steakley",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-bowie-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bb/Fort_Bowie_in_1893.jpg",
+    "attribution": {
+      "author": "Unknown authorUnknown author",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-davis-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Fort_Davis_National_Historic_Site_P9102741.jpg",
+    "attribution": {
+      "author": "National Park Service Digital Image Archives",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-laramie-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/23/Fort_Laramie_NHS-Gate.jpg",
+    "attribution": {
+      "author": "Chris Light (talk)",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-larned-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/67/Fort_Larned.jpg",
+    "attribution": {
+      "author": "Nathan King / National Park Service",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-necessity-national-battlefield": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c0/Fort_Necessity_101114.jpg",
+    "attribution": {
+      "author": "Wilson44691",
+      "license": "CC0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-point-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Golden_Gate_Bridge_tower_views_07.jpg/3840px-Golden_Gate_Bridge_tower_views_07.jpg",
+    "attribution": {
+      "author": "Ɱ",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-raleigh-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a1/Fort-Raleigh-fort.jpg",
+    "attribution": {
+      "author": "Historic American Buildings Survey",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-scott-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Fortscottks.JPG",
+    "attribution": {
+      "author": "The original uploader was Nationalparks at English Wikipedia…",
+      "license": "CC BY-SA 2.5",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-smith-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Fortsmithhist.jpg",
+    "attribution": {
+      "author": "Photolitherland (talk) Chris Litherland",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-sumter-and-fort-moultrie-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/98/FortsumterNM-welcome.jpg",
+    "attribution": {
+      "author": "Staib",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-union-trading-post-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Fort_Union_Trading_Post_NHS.JPG",
+    "attribution": {
+      "author": "Xerxes2004 (talk)",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "fort-vancouver-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Fort_Vancouver%2C_W.T._-_G._Sohon%2C_del._%3B_Sarony_Major_%26_Knapp%2C_Liths._LCCN2011647869_%28cropped%29.jpg/3840px-Fort_Vancouver%2C_W.T._-_G._Sohon%2C_del._%3B_Sarony_Major_%26_Knapp%2C_Liths._LCCN2011647869_%28cropped%29.jpg",
+    "attribution": {
+      "author": "Sarony, Major & Knapp Lith., lithographer; Sohon, Gustav, 18…",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "frederick-douglass-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c8/Frederick_Douglass_House.jpg",
+    "attribution": {
+      "author": "Walter Smalling for the Historic American Buildings Survey",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "frederick-law-olmsted-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Frederick_Law_Olmsted_National_Historical_Site%2C_August_2005.JPG",
+    "attribution": {
+      "author": "Original uploader was Daderot at en.wikipedia",
+      "license": "CC BY-SA 3.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "friendship-hill-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Albertfriendship.jpg",
+    "attribution": {
+      "author": "VitaleBaby at en.wikipedia",
+      "license": "Public domain",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "general-grant-national-memorial": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/General_Grant_National_Memorial_New_York_November_2016_003.jpg/3840px-General_Grant_National_Memorial_New_York_November_2016_003.jpg",
+    "attribution": {
+      "author": "King of Hearts",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "george-rogers-clark-national-historical-park": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/George_Rogers_Clark_Memorial.JPG/3840px-George_Rogers_Clark_Memorial.JPG",
+    "attribution": {
+      "author": "Bubba73 (Jud McCranie)",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "gloria-dei-church-national-historic-site": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/18/2014_Gloria_Dei_%28Old_Swedes%27%29_Church_from_west.jpg",
+    "attribution": {
+      "author": "Beyond My Ken",
+      "license": "CC BY-SA 4.0",
+      "source": "Wikimedia Commons"
+    }
+  },
+  "lake-tahoe": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Tahoe_North_Shore_from_the_East_Shore.jpg/3840px-Tahoe_North_Shore_from_the_East_Shore.jpg",
+    "attribution": {
+      "author": "Lara Farhadi",
+      "license": "CC BY 2.0",
+      "source": "Wikimedia Commons"
+    }
+  }
+}

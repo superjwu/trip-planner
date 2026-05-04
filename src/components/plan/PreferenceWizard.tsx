@@ -1,6 +1,8 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   BUDGET_BANDS,
   ORIGIN_CITIES,
@@ -12,22 +14,23 @@ import {
 } from "@/lib/types";
 import { createTrip } from "@/app/plan/actions";
 import { DateRangePicker } from "@/components/plan/DateRangePicker";
+import { ENRICHED_DESTINATIONS as DESTINATIONS } from "@/lib/seed/enrich-destinations";
 
-const VIBES: { code: Vibe; label: string; hint: string }[] = [
-  { code: "city",      label: "City",      hint: "neighborhoods, museums, urban energy" },
-  { code: "nature",    label: "Nature",    hint: "national parks, forests, lakes" },
-  { code: "foodie",    label: "Foodie",    hint: "iconic restaurants, food scenes" },
-  { code: "scenic",    label: "Scenic",    hint: "iconic drives, viewpoints" },
-  { code: "chill",     label: "Chill",     hint: "low-key, slow pace, rest" },
-  { code: "adventure", label: "Adventure", hint: "hiking, climbing, water sports" },
-  { code: "cultural",  label: "Cultural",  hint: "history, art, architecture" },
-  { code: "nightlife", label: "Nightlife", hint: "live music, bars, late dinners" },
+const VIBE_CODES: { code: Vibe; hint: string }[] = [
+  { code: "city",      hint: "neighborhoods, museums, urban energy" },
+  { code: "nature",    hint: "national parks, forests, lakes" },
+  { code: "foodie",    hint: "iconic restaurants, food scenes" },
+  { code: "scenic",    hint: "iconic drives, viewpoints" },
+  { code: "chill",     hint: "low-key, slow pace, rest" },
+  { code: "adventure", hint: "hiking, climbing, water sports" },
+  { code: "cultural",  hint: "history, art, architecture" },
+  { code: "nightlife", hint: "live music, bars, late dinners" },
 ];
 
-const PACES: { code: Pace; label: string; hint: string }[] = [
-  { code: "relaxed",  label: "Relaxed",  hint: "1–2 things per day" },
-  { code: "balanced", label: "Balanced", hint: "a few highlights + downtime" },
-  { code: "packed",   label: "Packed",   hint: "see as much as possible" },
+const PACE_CODES: { code: Pace; hint: string }[] = [
+  { code: "relaxed",  hint: "1–2 things per day" },
+  { code: "balanced", hint: "a few highlights + downtime" },
+  { code: "packed",   hint: "see as much as possible" },
 ];
 
 function todayPlus(days: number) {
@@ -38,17 +41,33 @@ function todayPlus(days: number) {
 
 export function PreferenceWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const anchorSlug = searchParams.get("anchor");
+  const anchorDest = anchorSlug ? DESTINATIONS.find((d) => d.slug === anchorSlug) : null;
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const t = useTranslations("plan");
 
   const [origin, setOrigin] = useState<OriginCityCode>("NYC");
   const [departOn, setDepartOn] = useState(todayPlus(60));
   const [returnOn, setReturnOn] = useState(todayPlus(64));
-  const [vibes, setVibes] = useState<Vibe[]>(["scenic", "foodie"]);
+  // Lazy initializer so the anchor's primary tag is folded in at construction
+  // time (avoids setState-in-effect cascading-render warning).
+  const [vibes, setVibes] = useState<Vibe[]>(() => {
+    const base: Vibe[] = ["scenic", "foodie"];
+    if (anchorDest && anchorDest.tags.length > 0) {
+      const firstTag = anchorDest.tags[0];
+      if (!base.includes(firstTag)) return [firstTag, ...base];
+    }
+    return base;
+  });
   const [budget, setBudget] = useState<BudgetBand>("1000-2000");
   const [pace, setPace] = useState<Pace>("balanced");
   const [dislikes, setDislikes] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Anchor tag is folded into initial vibes via lazy useState above; no
+  // effect-based setState needed.
 
   const tripDays = Math.max(
     1,
@@ -77,6 +96,15 @@ export function PreferenceWizard() {
       return;
     }
 
+    // If the user navigated from /destinations?anchor={slug}, surface that
+    // hint in the user notes so the ranker can bias toward the anchor +
+    // nearby destinations. Soft signal — the candidate pool isn't restricted.
+    const anchorHint = anchorDest
+      ? `Anchor preference: trip should center on ${anchorDest.name} (${anchorDest.region}). Prioritize the anchor and nearby destinations.`
+      : "";
+    const userNotes = notes.trim();
+    const combinedNotes = [anchorHint, userNotes].filter(Boolean).join("\n\n");
+
     const raw: RawTripInput = {
       origin,
       departOn,
@@ -85,7 +113,7 @@ export function PreferenceWizard() {
       budget,
       pace,
       dislikes: dislikes.trim() || undefined,
-      notes: notes.trim() || undefined,
+      notes: combinedNotes || undefined,
     };
 
     startTransition(async () => {
@@ -101,25 +129,55 @@ export function PreferenceWizard() {
   return (
     <form
       onSubmit={onSubmit}
-      className="mx-auto max-w-3xl space-y-8 px-6 py-10"
+      className="mx-auto max-w-3xl space-y-8 px-6 py-12"
+      style={{ backgroundColor: "var(--paper)" }}
     >
-      <header className="mb-2 text-center">
-        <p className="hero-eyebrow mb-3 text-[var(--accent)]">Plan a trip</p>
-        <h1
-          className="font-serif text-4xl font-semibold leading-tight text-[var(--ink)]"
-          style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+      {/* ── Anchor pill ── */}
+      {anchorDest && (
+        <div
+          className="flex items-center justify-between rounded-2xl border px-5 py-3"
+          style={{ borderColor: "var(--slate-primary)", backgroundColor: "var(--slate-tint)" }}
         >
-          Tell us a few things.
+          <p className="text-sm" style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}>
+            Planning around <strong style={{ fontFamily: "var(--font-display-stack)" }}>{anchorDest.name}</strong>
+          </p>
+          <button
+            type="button"
+            onClick={() => router.replace("/plan")}
+            className="ml-4 text-lg font-semibold leading-none transition-opacity hover:opacity-60"
+            style={{ color: "var(--slate-primary)" }}
+            aria-label="Clear anchor destination"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      <input type="hidden" name="anchorSlug" value={anchorSlug ?? ""} />
+
+      {/* ── Page header ── */}
+      <header className="mb-2 text-center">
+        <p
+          className="mb-3 text-xs font-semibold tracking-[0.22em] uppercase"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
+        >
+          {t("planATrip")}
+        </p>
+        <h1
+          className="text-4xl font-light leading-tight"
+          style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+        >
+          {t("tellUsFewThings")}
         </h1>
         <p
-          className="mt-2 text-base italic text-[var(--ink-soft)]"
-          style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}
+          className="mt-2 text-base italic"
+          style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink-soft)" }}
         >
-          We&apos;ll turn it into 4 destinations with reasoning and itineraries.
+          {t("subheadFull")}
         </p>
       </header>
 
-      <Section title="Where are you flying from?" eyebrow="Origin">
+      {/* ── Step 01 · Where from? ── */}
+      <Section step="01" stepLabel="WHERE FROM?" title={t("whereFlying")}>
         <div className="flex flex-wrap gap-2">
           {ORIGIN_CITIES.map((c) => (
             <Chip
@@ -128,13 +186,14 @@ export function PreferenceWizard() {
               onClick={() => setOrigin(c.code)}
             >
               {c.label}
-              <span className="ml-1.5 text-xs opacity-70">({c.airport})</span>
+              <span className="ml-1.5 text-xs opacity-60">({c.airport})</span>
             </Chip>
           ))}
         </div>
       </Section>
 
-      <Section title="When?" eyebrow="Dates" hint="Pick a range">
+      {/* ── Step 02 · Dates ── */}
+      <Section step="02" stepLabel="WHEN?" title={t("whenPickRange")} hint={t("whenHint")}>
         <DateRangePicker
           start={departOn}
           end={returnOn}
@@ -144,40 +203,47 @@ export function PreferenceWizard() {
           }}
           maxLengthDays={14}
         />
-        <p className="mt-2 text-xs text-[var(--ink-soft)]">
+        <p
+          className="mt-2 text-xs"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+        >
           Season: {seasonHint(departOn)}
         </p>
       </Section>
 
-      <Section title="What's the vibe?" eyebrow="Vibes" hint="Pick 1+">
+      {/* ── Step 03 · Vibes ── */}
+      <Section step="03" stepLabel="THE VIBE" title={t("vibeLabel")} hint={t("vibeHint")}>
         <div className="grid gap-2 sm:grid-cols-2">
-          {VIBES.map((v) => {
+          {VIBE_CODES.map((v) => {
             const active = vibes.includes(v.code);
             return (
               <button
                 type="button"
                 key={v.code}
                 onClick={() => toggleVibe(v.code)}
-                className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
-                  active
-                    ? "border-[var(--accent)] bg-[var(--rose)]"
-                    : "border-[var(--hairline)] bg-white hover:border-[var(--ink-soft)]"
-                }`}
+                className="flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition"
+                style={{
+                  borderColor: active ? "var(--accent)" : "var(--hairline)",
+                  backgroundColor: active ? "rgba(231,111,81,0.08)" : "#ffffff",
+                }}
               >
                 <div>
                   <p
-                    className={`text-sm font-semibold ${
-                      active ? "text-[var(--ink)]" : "text-[var(--ink)]"
-                    }`}
+                    className="text-sm font-medium"
+                    style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
                   >
-                    {v.label}
+                    {t(`vibe.${v.code}`)}
                   </p>
-                  <p className="text-xs text-[var(--ink-soft)]">{v.hint}</p>
+                  <p
+                    className="text-xs"
+                    style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+                  >
+                    {v.hint}
+                  </p>
                 </div>
                 <span
-                  className={`text-lg ${
-                    active ? "text-[var(--accent)]" : "text-transparent"
-                  }`}
+                  className="text-lg"
+                  style={{ color: active ? "var(--accent)" : "transparent" }}
                   aria-hidden="true"
                 >
                   ✓
@@ -188,111 +254,175 @@ export function PreferenceWizard() {
         </div>
       </Section>
 
-      <Section title="Total budget" eyebrow="Budget" hint="Per person, all-in">
+      {/* ── Step 04 · Budget ── */}
+      <Section step="04" stepLabel="BUDGET" title={t("totalBudget")} hint={t("budgetHint")}>
         <div className="grid gap-2 sm:grid-cols-2">
           {BUDGET_BANDS.map((b) => (
             <button
               type="button"
               key={b.code}
               onClick={() => setBudget(b.code)}
-              className={`rounded-2xl border px-4 py-3 text-left transition ${
-                budget === b.code
-                  ? "border-[var(--accent)] bg-[var(--butter)] text-[var(--ink)]"
-                  : "border-[var(--hairline)] bg-white text-[var(--ink-soft)] hover:border-[var(--ink-soft)]"
-              }`}
+              className="rounded-2xl border px-4 py-3 text-left transition"
+              style={{
+                borderColor: budget === b.code ? "var(--accent)" : "var(--hairline)",
+                backgroundColor: budget === b.code ? "rgba(231,111,81,0.08)" : "#ffffff",
+              }}
             >
-              <span className="text-sm font-semibold">{b.label}</span>
+              <span
+                className="text-sm font-medium"
+                style={{
+                  fontFamily: "var(--font-display-stack)",
+                  color: budget === b.code ? "var(--ink)" : "var(--ink-soft)",
+                }}
+              >
+                {b.label}
+              </span>
             </button>
           ))}
         </div>
       </Section>
 
-      <Section title="Pace" eyebrow="Pace">
+      {/* ── Step 05 · Pace ── */}
+      <Section step="05" stepLabel="PACE" title={t("paceLabel")}>
         <div className="grid gap-2 sm:grid-cols-3">
-          {PACES.map((p) => (
+          {PACE_CODES.map((p) => (
             <button
               type="button"
               key={p.code}
               onClick={() => setPace(p.code)}
-              className={`rounded-2xl border px-4 py-3 text-left transition ${
-                pace === p.code
-                  ? "border-[var(--accent)] bg-[var(--sage)]"
-                  : "border-[var(--hairline)] bg-white hover:border-[var(--ink-soft)]"
-              }`}
+              className="rounded-2xl border px-4 py-3 text-left transition"
+              style={{
+                borderColor: pace === p.code ? "var(--slate-primary)" : "var(--hairline)",
+                backgroundColor: pace === p.code ? "var(--slate-tint)" : "#ffffff",
+              }}
             >
               <p
-                className={`text-sm font-semibold text-[var(--ink)]`}
+                className="text-sm font-medium"
+                style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
               >
-                {p.label}
+                {t(`pacePicked.${p.code}`)}
               </p>
-              <p className="text-xs text-[var(--ink-soft)]">{p.hint}</p>
+              <p
+                className="text-xs"
+                style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+              >
+                {p.hint}
+              </p>
             </button>
           ))}
         </div>
       </Section>
 
-      <Section title="Anything to avoid?" eyebrow="Dislikes" hint="Optional">
+      {/* ── Step 06 · Dislikes ── */}
+      <Section step="06" stepLabel="AVOID" title={t("avoidLabel")} hint={t("avoidHint")}>
         <textarea
           value={dislikes}
           onChange={(e) => setDislikes(e.target.value)}
-          placeholder="e.g. crowds, big resorts, long flights"
+          placeholder={t("avoidLongPlaceholder")}
           rows={2}
-          className="w-full rounded-2xl border border-[var(--hairline)] bg-white px-4 py-3 text-sm text-[var(--ink)] placeholder:text-[var(--ink-soft)] focus:border-[var(--accent)] focus:outline-none"
+          className="w-full rounded-2xl border px-4 py-3 text-sm transition focus:outline-none"
+          style={{
+            fontFamily: "var(--font-body-stack)",
+            borderColor: "var(--hairline)",
+            backgroundColor: "#ffffff",
+            color: "var(--ink)",
+          }}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
+          onBlur={(e) => (e.currentTarget.style.borderColor = "var(--hairline)")}
         />
       </Section>
 
-      <Section title="Anything else?" eyebrow="Notes" hint="Optional">
+      {/* ── Step 07 · Notes ── */}
+      <Section step="07" stepLabel="NOTES" title={t("notesLabel")} hint={t("notesHint")}>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="e.g. anniversary trip, traveling with toddler, dietary needs"
+          placeholder={t("notesPlaceholder")}
           rows={2}
-          className="w-full rounded-2xl border border-[var(--hairline)] bg-white px-4 py-3 text-sm text-[var(--ink)] placeholder:text-[var(--ink-soft)] focus:border-[var(--accent)] focus:outline-none"
+          className="w-full rounded-2xl border px-4 py-3 text-sm transition focus:outline-none"
+          style={{
+            fontFamily: "var(--font-body-stack)",
+            borderColor: "var(--hairline)",
+            backgroundColor: "#ffffff",
+            color: "var(--ink)",
+          }}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
+          onBlur={(e) => (e.currentTarget.style.borderColor = "var(--hairline)")}
         />
       </Section>
 
+      {/* ── Validation error ── */}
       {error && (
-        <p className="rounded-2xl border border-[#c97373]/40 bg-[#c97373]/10 px-4 py-3 text-sm text-[#7a3f3f]">
+        <p
+          className="rounded-2xl border px-4 py-3 text-sm"
+          style={{
+            borderColor: "rgba(201,115,115,0.40)",
+            backgroundColor: "rgba(201,115,115,0.10)",
+            color: "#7a3f3f",
+            fontFamily: "var(--font-body-stack)",
+          }}
+        >
           {error}
         </p>
       )}
 
+      {/* ── Submit — single coral CTA ── */}
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-[var(--accent)] py-3.5 text-base font-semibold text-white shadow-md transition hover:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="btn-accent w-full py-4 text-base disabled:cursor-not-allowed disabled:opacity-60"
+        style={{ fontFamily: "var(--font-body-stack)" }}
       >
-        {pending ? "Creating trip…" : "Show me 4 destinations →"}
+        {pending ? t("creating") : t("show4")}
       </button>
     </form>
   );
 }
 
 function Section({
+  step,
+  stepLabel,
   title,
-  eyebrow,
   hint,
   children,
 }: {
+  step: string;
+  stepLabel: string;
   title: string;
-  eyebrow: string;
   hint?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section>
-      <div className="mb-3 flex items-baseline gap-3">
-        <p className="hero-eyebrow text-[var(--accent)]">{eyebrow}</p>
+    <section
+      className="rounded-3xl border px-7 py-7 shadow-[0_12px_32px_-16px_rgba(31,41,55,0.10)]"
+      style={{ backgroundColor: "#ffffff", borderColor: "var(--hairline)" }}
+    >
+      {/* Tiny tracked-caps kicker */}
+      <p
+        className="mb-1 text-[10px] font-semibold tracking-[0.22em] uppercase"
+        style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
+      >
+        STEP {step} · {stepLabel}
+      </p>
+
+      {/* Section headline */}
+      <div className="mb-4 flex items-baseline gap-3">
+        <h2
+          className="text-xl font-medium"
+          style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+        >
+          {title}
+        </h2>
         {hint && (
-          <span className="text-xs text-[var(--ink-soft)]">{hint}</span>
+          <span
+            className="text-xs"
+            style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+          >
+            {hint}
+          </span>
         )}
       </div>
-      <h2
-        className="mb-3 font-serif text-xl font-semibold text-[var(--ink)]"
-        style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
-      >
-        {title}
-      </h2>
+
       {children}
     </section>
   );
@@ -311,11 +441,13 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${
-        active
-          ? "border-[var(--accent)] bg-[var(--accent)] text-white"
-          : "border-[var(--hairline)] bg-white text-[var(--ink-soft)] hover:border-[var(--ink-soft)] hover:text-[var(--ink)]"
-      }`}
+      className="rounded-full border px-4 py-1.5 text-sm font-medium transition"
+      style={{
+        fontFamily: "var(--font-body-stack)",
+        borderColor: active ? "var(--accent)" : "var(--hairline)",
+        backgroundColor: active ? "var(--accent)" : "#ffffff",
+        color: active ? "#ffffff" : "var(--ink-soft)",
+      }}
     >
       {children}
     </button>

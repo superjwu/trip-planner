@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface StartResponse {
   userCode?: string;
@@ -23,6 +24,7 @@ const POLL_INTERVAL_MS = 5000;
 
 export function ConnectChatGPTGate() {
   const router = useRouter();
+  const t = useTranslations("plan.connectChatGPT");
   const [phase, setPhase] = useState<Phase>("idle");
   const [userCode, setUserCode] = useState<string | null>(null);
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
@@ -92,115 +94,188 @@ export function ConnectChatGPTGate() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16">
-      <div className="paper-strong bg-[var(--butter)] px-8 py-10 text-center">
-        <p className="hero-eyebrow mb-3 text-[var(--accent)]">Connect ChatGPT</p>
-        <h1
-          className="font-serif text-3xl font-semibold text-[var(--ink)]"
-          style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+    <div
+      className="mx-auto max-w-2xl px-6 py-16"
+      style={{ backgroundColor: "var(--paper)" }}
+    >
+      {/* Coastal-cream card */}
+      <div
+        className="rounded-[3rem] border px-8 py-10 text-center shadow-[0_30px_60px_-20px_rgba(31,41,55,0.15)]"
+        style={{ backgroundColor: "#ffffff", borderColor: "var(--hairline)" }}
+      >
+        {/* 4-petal flower icon — slate-primary stroke */}
+        <div className="mb-5 flex justify-center" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="20" cy="12" rx="5" ry="10" fill="none" stroke="#2C5474" strokeWidth="1.8" />
+            <ellipse cx="20" cy="28" rx="5" ry="10" fill="none" stroke="#2C5474" strokeWidth="1.8" />
+            <ellipse cx="12" cy="20" rx="10" ry="5" fill="none" stroke="#2C5474" strokeWidth="1.8" />
+            <ellipse cx="28" cy="20" rx="10" ry="5" fill="none" stroke="#2C5474" strokeWidth="1.8" />
+            <circle cx="20" cy="20" r="3" fill="#2C5474" />
+          </svg>
+        </div>
+
+        {/* Kicker */}
+        <p
+          className="mb-3 text-xs font-semibold tracking-[0.22em] uppercase"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
         >
-          Bring your ChatGPT subscription.
+          {t("kicker")}
+        </p>
+
+        {/* Headline — DM Sans light */}
+        <h1
+          className="text-3xl font-light"
+          style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+        >
+          {t("headline")}
         </h1>
-        <p className="mt-3 text-base leading-relaxed text-[var(--ink-soft)]">
-          Trip Planner uses your ChatGPT Plus or Pro account to generate
-          recommendations. We never see your password — you authorize us at
-          OpenAI directly.
+
+        {/* Body — Manrope */}
+        <p
+          className="mt-3 text-base leading-relaxed"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+        >
+          {t("body")}
         </p>
 
         {phase === "idle" && (
           <button
             type="button"
             onClick={start}
-            className="mt-8 rounded-full bg-[var(--accent)] px-7 py-3 text-base font-semibold text-white shadow-md transition hover:bg-[var(--accent-soft)]"
+            className="btn-accent mt-8 px-8 py-3.5 text-base"
+            style={{ fontFamily: "var(--font-body-stack)" }}
           >
-            Connect ChatGPT →
+            {t("cta")}
           </button>
         )}
 
         {phase === "starting" && (
-          <p className="mt-8 animate-pulse text-sm text-[var(--ink-soft)]">
-            Requesting a one-time code from OpenAI…
+          <p
+            className="mt-8 animate-pulse text-sm"
+            style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+          >
+            {t("starting")}
           </p>
         )}
 
         {(phase === "awaiting_code" || phase === "polling") && userCode && (
           <div className="mt-8 space-y-4 text-left">
-            <ol className="space-y-3 text-sm leading-relaxed text-[var(--ink)]/90">
-              <li>
-                <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-semibold text-white">
+            <ol className="space-y-3 text-sm leading-relaxed" style={{ color: "var(--ink)" }}>
+              <li style={{ fontFamily: "var(--font-body-stack)" }}>
+                <span
+                  className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+                  style={{ backgroundColor: "var(--accent)" }}
+                >
                   1
                 </span>
-                A new tab opened to{" "}
+                {t("step1", { url: "auth.openai.com/codex/device" })}{" "}
                 <a
                   href={verificationUrl ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[var(--accent)] underline"
+                  className="underline hover:opacity-70"
+                  style={{ color: "var(--slate-primary)" }}
                 >
                   auth.openai.com/codex/device
                 </a>
-                . Sign in there with your ChatGPT account.
               </li>
-              <li>
-                <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-semibold text-white">
+              <li style={{ fontFamily: "var(--font-body-stack)" }}>
+                <span
+                  className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+                  style={{ backgroundColor: "var(--accent)" }}
+                >
                   2
                 </span>
-                Enter this one-time code:
+                {t("step2")}
               </li>
             </ol>
+            {/* Code display cell */}
             <div
-              className="select-all rounded-2xl border border-[var(--accent)]/40 bg-white py-4 text-center font-mono text-2xl font-semibold tracking-widest text-[var(--ink)]"
+              className="select-all rounded-2xl border py-4 text-center font-mono text-2xl font-semibold tracking-widest"
+              style={{
+                borderColor: "rgba(44,84,116,0.30)",
+                backgroundColor: "var(--paper-deep)",
+                color: "var(--ink)",
+              }}
               aria-label="One-time code"
             >
               {userCode}
             </div>
-            <p className="text-center text-xs italic text-[var(--ink-soft)]">
-              Waiting for OpenAI to confirm… this page updates automatically.
+            <p
+              className="text-center text-xs italic"
+              style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink-soft)" }}
+            >
+              {t("waiting")}
             </p>
           </div>
         )}
 
         {phase === "ready" && (
-          <p className="mt-8 text-base font-semibold text-[#4f5e3f]">
-            Connected. Reloading…
+          <p
+            className="mt-8 text-base font-semibold"
+            style={{ fontFamily: "var(--font-body-stack)", color: "#4f5e3f" }}
+          >
+            {t("connected")}
           </p>
         )}
 
         {phase === "expired" && (
           <div className="mt-8 space-y-4">
-            <p className="text-sm text-[#7a6638]">
-              That code expired. Try again with a fresh one.
+            <p
+              className="text-sm"
+              style={{ fontFamily: "var(--font-body-stack)", color: "#7a6638" }}
+            >
+              {t("expired")}
             </p>
             <button
               type="button"
               onClick={start}
-              className="rounded-full bg-[var(--accent)] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-soft)]"
+              className="btn-accent px-6 py-2.5 text-sm"
+              style={{ fontFamily: "var(--font-body-stack)" }}
             >
-              Restart
+              {t("restart")}
             </button>
           </div>
         )}
 
         {phase === "error" && (
           <div className="mt-8 space-y-4">
-            <p className="rounded-2xl border border-[#c97373]/40 bg-[#c97373]/10 px-4 py-3 text-sm text-[#7a3f3f]">
+            <p
+              className="rounded-2xl border px-4 py-3 text-sm"
+              style={{
+                borderColor: "rgba(201,115,115,0.40)",
+                backgroundColor: "rgba(201,115,115,0.10)",
+                color: "#7a3f3f",
+                fontFamily: "var(--font-body-stack)",
+              }}
+            >
               {error}
             </p>
             <button
               type="button"
               onClick={start}
-              className="rounded-full bg-[var(--accent)] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-soft)]"
+              className="btn-accent px-6 py-2.5 text-sm"
+              style={{ fontFamily: "var(--font-body-stack)" }}
             >
-              Retry
+              {t("retry")}
             </button>
           </div>
         )}
 
-        <p className="mt-10 text-[11px] leading-relaxed text-[var(--ink-soft)]">
-          We use the same OpenAI device-code OAuth flow that the Codex CLI uses.
-          This integration is provided for personal demo use; it depends on
-          OpenAI&apos;s Codex backend remaining available and your ChatGPT account&apos;s
-          rate limits. You can disconnect any time from Settings.
+        {/* Alt key line */}
+        <p
+          className="mt-6 text-sm italic"
+          style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink-soft)" }}
+        >
+          {t("altKey")}
+        </p>
+
+        {/* Fine print */}
+        <p
+          className="mt-4 text-[11px] leading-relaxed"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+        >
+          {t("finePrint")}
         </p>
       </div>
     </div>

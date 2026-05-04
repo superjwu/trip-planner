@@ -1,29 +1,40 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────
-   Theme tokens — v2 pastel migration (lifted from gallery v3-pastel).
-   Friendly, restrained palette for the trip-planning copilot.
+   Theme tokens — v3 Coastal Slate (lifted from gallery v54d).
+   Cool slate-blue paper, warm coral CTA, deep slate-blue ink.
+   Variable names match v2 pastel migration so legacy components
+   inherit the new palette without rewrites.
    ───────────────────────────────────────────────────────────── */
 :root {
-  --font-inter:
-    "Inter", "Avenir Next", "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
-  --font-merriweather:
-    "Merriweather", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --font-cormorant:
-    "Cormorant Garamond", "Baskerville", Garamond, "Times New Roman", serif;
+  /* Fonts — set as CSS variables so Tailwind utilities and inline styles can both reach them. The actual font files are loaded by next/font in layout.tsx and the variable names below get aliased to the next/font variables (--font-display, --font-body) at the <html> root. */
+  --font-display-stack: var(--font-display, "DM Sans"), "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body-stack: var(--font-body, "Manrope"), "Inter", "Segoe UI", system-ui, sans-serif;
 
-  /* Pastel palette */
-  --paper: #faf6ee;       /* page bg */
-  --paper-deep: #f3ecdb;  /* card bg / nav strip */
-  --butter: #f4e7c5;      /* warm panel */
-  --sage: #d7e0cb;        /* cool panel */
-  --rose: #ebd3cf;        /* accent panel */
-  --lavender: #dcd6e8;    /* tertiary panel */
-  --ink: #3f3a33;         /* primary text */
-  --ink-soft: #6b5a47;    /* secondary text / labels */
-  --hairline: #e3dccd;    /* 1px rules */
-  --accent: #b85c5c;      /* terracotta CTA + highlight */
-  --accent-soft: #c97373; /* hover */
+  /* Legacy font names — aliased so existing components keep working. */
+  --font-inter: var(--font-body-stack);
+  --font-merriweather: var(--font-display-stack);
+  --font-cormorant: var(--font-display-stack);
+
+  /* Coastal-slate core palette */
+  --paper: #f4f6f8;       /* page bg — cool light slate */
+  --paper-deep: #e8edf2;  /* card bg / nav strip — slate */
+  --butter: #fdf2e5;      /* warm panel — soft sand-cream */
+  --sage: #c4d4cc;        /* cool panel — muted sage */
+  --rose: #fad2c9;        /* accent panel — coral-tinted soft */
+  --lavender: #d4dde6;    /* tertiary panel — slate-lavender */
+  --ink: #1f2937;         /* primary text — deep slate-blue-black */
+  --ink-soft: #4b5563;    /* secondary text / labels */
+  --hairline: #cbd5e1;    /* 1px rules */
+  --accent: #e76f51;      /* warm coral CTA — the pop */
+  --accent-soft: #c75b43; /* hover — darker coral */
+
+  /* New: slate-blue primary (display headlines, section markers, borders).
+     v54d uses this as the dominant brand color alongside coral as the
+     activation/CTA color. Two-color system: slate dominant, coral activator. */
+  --slate-primary: #2c5474;
+  --slate-soft: #1e3a5f;
+  --slate-tint: rgba(44, 84, 116, 0.08);
 
   /* Aliases kept so legacy components don't break before they're restyled. */
   --bg: var(--paper);
@@ -32,7 +43,7 @@
   --primary: var(--accent);
   --primary-dark: var(--accent-soft);
   --primary-text: #ffffff;
-  --primary-glow: rgba(184, 92, 92, 0.18);
+  --primary-glow: rgba(231, 111, 81, 0.18);
   --text: var(--ink);
   --text-muted: var(--ink-soft);
 
@@ -41,10 +52,10 @@
   --card-bg-strong: #ffffff;
   --card-border: var(--hairline);
 
-  /* Effects */
-  --shadow-sm: 0 4px 14px -8px rgba(63, 58, 51, 0.15);
-  --shadow-md: 0 12px 32px -16px rgba(63, 58, 51, 0.18);
-  --shadow-lg: 0 24px 60px -32px rgba(63, 58, 51, 0.22);
+  /* Effects — softer, slightly cooler shadows for the slate palette */
+  --shadow-sm: 0 4px 14px -8px rgba(31, 41, 55, 0.12);
+  --shadow-md: 0 12px 32px -16px rgba(31, 41, 55, 0.16);
+  --shadow-lg: 0 24px 60px -32px rgba(31, 41, 55, 0.20);
 
   /* Motion */
   --t-fast: 0.15s;
@@ -52,9 +63,9 @@
   --t-slow: 0.4s;
   --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-  /* Geometry */
-  --radius: 18px;
-  --radius-lg: 28px;
+  /* Geometry — slightly larger radii for the wellness/biophilic feel */
+  --radius: 20px;
+  --radius-lg: 32px;
   --nav-h: 64px;
 }
 
@@ -69,6 +80,8 @@
   --color-ink-soft: var(--ink-soft);
   --color-accent: var(--accent);
   --color-hairline: var(--hairline);
+  --color-slate-primary: var(--slate-primary);
+  --color-slate-soft: var(--slate-soft);
 
   --color-bg: var(--paper);
   --color-bg-alt: var(--paper-deep);
@@ -79,9 +92,9 @@
   --color-text: var(--ink);
   --color-text-muted: var(--ink-soft);
   --color-card-border: var(--hairline);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-merriweather);
-  --font-italic: var(--font-cormorant);
+  --font-sans: var(--font-body-stack);
+  --font-serif: var(--font-display-stack);
+  --font-italic: var(--font-display-stack);
 }
 
 html,
@@ -92,18 +105,17 @@ body {
 }
 
 body {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-body-stack);
   font-size: 16px;
   line-height: 1.6;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/* `scroll-behavior: smooth` is intentionally NOT set on `html` — it
+   interferes with Next.js App Router's route-change scroll restoration
+   (causes pages to land mid-scroll before drifting to top). If you need
+   smooth scroll for in-page anchors, scope it: `:target { scroll-behavior: smooth }`. */
 
-/* ─── Soft pastel "paper" surface utilities ───────────────────
-   Replace the v1 .glass/.glass-strong utilities with their pastel
-   equivalents. Same class names — components don't need to swap.  */
+/* ─── Soft "paper" surface utilities ────────────────────────── */
 .glass,
 .paper {
   background: var(--card-bg-strong);
@@ -126,50 +138,45 @@ html {
 .paper-hover:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--accent);
+  border-color: var(--slate-primary);
 }
 
-/* Subtle off-white "page paper" for sections that need to lift off
-   the body slightly without being full white. */
+/* Subtle slate "page paper" surface for sections that need to lift slightly. */
 .surface-deep {
   background: var(--paper-deep);
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
 }
 
-/* ─── Mesh background — disabled in pastel mode ───────────────
-   Components still reference these classes; we hide them.  */
+/* ─── Mesh background — disabled in coastal-slate mode ──────── */
 .mesh-bg,
 .mesh-blob {
   display: none !important;
 }
 
-/* ─── Hero text styling ──────────────────────────────────────
-   Defaults assume a photo backdrop (HeroCarousel). On light bg surfaces
-   (PreferenceWizard, ConnectChatGPTGate, etc.) callers override the
-   color with text-[var(--ink)] / text-[var(--accent)] inline.            */
+/* ─── Hero text styling — recoded for coastal slate ─────────── */
 .hero-eyebrow {
   font-size: clamp(0.7rem, 1.5vw, 0.85rem);
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.82);
   font-weight: 600;
-  letter-spacing: 0.35em;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
 }
 .hero-title {
-  font-family: var(--font-merriweather), Georgia, serif;
+  font-family: var(--font-display-stack);
   font-size: clamp(2.6rem, 7vw, 5rem);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.0;
   letter-spacing: -0.02em;
   color: #ffffff;
 }
 .hero-tagline {
-  font-family: var(--font-cormorant), Georgia, serif;
+  font-family: var(--font-display-stack);
   font-style: italic;
   font-size: clamp(1rem, 2.2vw, 1.3rem);
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.88);
   font-weight: 400;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 /* ─── Ken Burns image effect — kept for landing hero photos ─── */
@@ -182,23 +189,26 @@ html {
   will-change: transform;
 }
 
-/* ─── Scrollbar trim ────────────────────────────────────────── */
+/* ─── Scrollbar trim — slate-tinted ────────────────────────── */
 .scroll-trim {
   scrollbar-width: thin;
-  scrollbar-color: rgba(63, 58, 51, 0.18) transparent;
+  scrollbar-color: rgba(31, 41, 55, 0.18) transparent;
 }
 .scroll-trim::-webkit-scrollbar { width: 6px; }
 .scroll-trim::-webkit-scrollbar-thumb {
-  background: rgba(63, 58, 51, 0.2);
+  background: rgba(31, 41, 55, 0.2);
   border-radius: 3px;
 }
 
-/* ─── Tag tone classes (mirrored in src/lib/ui/tag-tones.ts) ─── */
-.tag-foodie    { background: var(--rose);     color: #7a3f3f; }
-.tag-scenic    { background: var(--sage);     color: #4f5e3f; }
-.tag-chill     { background: var(--lavender); color: #564b7a; }
-.tag-cultural  { background: var(--butter);   color: #7a6638; }
-.tag-default   { background: #e8ddd0;         color: #6b5a47; }
+/* ─── Tag tone classes — coastal slate edition ──────────────
+   Mirrored in src/lib/ui/tag-tones.ts. Each tone keeps its semantic
+   role (foodie warm, scenic green, chill cool, cultural sand) but
+   recoded against the slate paper for harmony. */
+.tag-foodie    { background: var(--rose);     color: #8a3a26; }
+.tag-scenic    { background: var(--sage);     color: #3d5a45; }
+.tag-chill     { background: var(--lavender); color: #324a64; }
+.tag-cultural  { background: var(--butter);   color: #80552c; }
+.tag-default   { background: #dde4ea;         color: #4b5563; }
 
 /* ─── Buttons ────────────────────────────────────────────── */
 .btn-accent {
@@ -209,9 +219,10 @@ html {
   font-weight: 600;
   letter-spacing: 0.01em;
   border: 1px solid transparent;
-  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), box-shadow var(--t-normal) var(--ease);
+  box-shadow: 0 12px 28px -14px rgba(231, 111, 81, 0.45);
 }
-.btn-accent:hover { background: var(--accent-soft); }
+.btn-accent:hover { background: var(--accent-soft); box-shadow: 0 16px 32px -14px rgba(231, 111, 81, 0.55); }
 .btn-accent:active { transform: translateY(1px); }
 
 .btn-ghost {
@@ -221,6 +232,20 @@ html {
   border-radius: 999px;
   padding: 0.6rem 1.2rem;
   font-weight: 500;
-  transition: border-color var(--t-fast), background var(--t-fast);
+  transition: border-color var(--t-fast), background var(--t-fast), color var(--t-fast);
 }
-.btn-ghost:hover { border-color: var(--ink-soft); background: rgba(63, 58, 51, 0.04); }
+.btn-ghost:hover { border-color: var(--slate-primary); color: var(--slate-primary); background: var(--slate-tint); }
+
+/* ─── Slate-primary button (deep blue) — used for secondary CTAs */
+.btn-slate {
+  background: var(--slate-primary);
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 0.7rem 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.btn-slate:hover { background: var(--slate-soft); }
+.btn-slate:active { transform: translateY(1px); }

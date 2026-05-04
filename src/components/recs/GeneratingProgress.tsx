@@ -50,54 +50,102 @@ export function GeneratingProgress({ pollEnabled = true }: { pollEnabled?: boole
   const phase = PHASES.find((p) => pct <= p.upTo) ?? PHASES[PHASES.length - 1];
 
   return (
-    <section
-      className="mb-8 bg-white px-6 py-7"
-      style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--hairline)" }}
-    >
-      <div className="flex items-baseline justify-between">
-        <p className="hero-eyebrow text-[var(--accent)]">Generating</p>
-        <span className="font-mono text-sm font-semibold text-[var(--ink)]">
-          {pct}%
-        </span>
-      </div>
+    <>
+      {/* Keyframes for pulse animation — respects prefers-reduced-motion */}
+      <style>{`
+        @keyframes slateRulePulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+        @media (prefers-reduced-motion: no-preference) {
+          .slate-rule-pulse {
+            animation: slateRulePulse 2s ease-in-out infinite;
+          }
+        }
+      `}</style>
 
-      <h2
-        className="mt-2 font-serif text-2xl font-semibold text-[var(--ink)]"
-        style={{ fontFamily: "var(--font-merriweather), Georgia, serif" }}
+      <section
+        className="mb-8 px-6 py-7 relative overflow-hidden"
+        style={{
+          background: "radial-gradient(circle at 20% 50%, rgba(44,84,116,0.07), transparent 60%), radial-gradient(circle at 80% 20%, rgba(44,84,116,0.05), transparent 50%), #ffffff",
+          borderRadius: "1.5rem",
+          border: "1px solid var(--hairline)",
+          boxShadow: "0 30px 60px -20px rgba(31,41,55,0.15)",
+        }}
       >
-        Picking 4 destinations for you.
-      </h2>
-      <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">
-        {phase.label}
-      </p>
+        <div className="flex items-baseline justify-between">
+          <p
+            className="text-[10px] uppercase tracking-[0.22em]"
+            style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
+          >
+            Generating
+          </p>
+          <span
+            className="font-mono text-sm font-semibold tabular-nums"
+            style={{ color: "var(--ink)", fontFamily: "var(--font-display-stack)" }}
+          >
+            {pct}%
+          </span>
+        </div>
 
-      <div
-        aria-hidden="true"
-        className="mt-5 h-2 w-full overflow-hidden rounded-full bg-[var(--paper-deep)]"
-      >
+        <h2
+          className="mt-2 text-2xl font-semibold"
+          style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+        >
+          Picking 4 destinations for you.
+        </h2>
+
+        {/* Italic Manrope status line in soft ink */}
+        <p
+          className="mt-2 text-sm leading-relaxed italic"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+        >
+          {phase.label}
+        </p>
+
+        {/* Pulsing slate-primary rule */}
         <div
-          className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-500 ease-out"
-          style={{ width: `${pct}%` }}
+          aria-hidden="true"
+          className="slate-rule-pulse mt-4 h-0.5 w-12 rounded-full"
+          style={{ background: "var(--slate-primary)" }}
         />
-      </div>
 
-      <ul className="mt-4 grid grid-cols-1 gap-1 text-[11px] leading-relaxed text-[var(--ink-soft)] sm:grid-cols-2">
-        {PHASES.map((p, i) => {
-          const reached = pct >= p.upTo - 6;
-          return (
-            <li key={p.label} className="flex items-center gap-2">
-              <span
-                className={`inline-block h-1.5 w-1.5 rounded-full ${
-                  reached ? "bg-[var(--accent)]" : "bg-[var(--hairline)]"
-                }`}
-              />
-              <span className={reached ? "text-[var(--ink)]" : ""}>
-                {i + 1}. {p.label.replace("…", "")}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+        {/* Progress bar */}
+        <div
+          aria-hidden="true"
+          className="mt-4 h-2 w-full overflow-hidden rounded-full"
+          style={{ background: "var(--paper-deep)" }}
+        >
+          <div
+            className="h-full rounded-full transition-[width] duration-500 ease-out"
+            style={{ width: `${pct}%`, background: "var(--accent)" }}
+          />
+        </div>
+
+        {/* Phase checklist */}
+        <ul className="mt-4 grid grid-cols-1 gap-1 sm:grid-cols-2">
+          {PHASES.map((p, i) => {
+            const reached = pct >= p.upTo - 6;
+            return (
+              <li key={p.label} className="flex items-center gap-2">
+                <span
+                  className="inline-block h-1.5 w-1.5 rounded-full"
+                  style={{ background: reached ? "var(--slate-primary)" : "var(--hairline)" }}
+                />
+                <span
+                  className="text-[11px] leading-relaxed"
+                  style={{
+                    fontFamily: "var(--font-body-stack)",
+                    color: reached ? "var(--ink)" : "var(--ink-soft)",
+                  }}
+                >
+                  {i + 1}. {p.label.replace("…", "")}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    </>
   );
 }

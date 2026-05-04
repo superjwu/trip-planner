@@ -31,13 +31,35 @@ export function TradeoffMatrix({
 }) {
   return (
     <section
-      className="mb-8 bg-white px-6 py-6"
-      style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--hairline)" }}
+      className="mb-8 px-6 py-6"
+      style={{
+        background: "#ffffff",
+        borderRadius: "1.5rem",
+        border: "1px solid var(--hairline)",
+        boxShadow: "0 30px 60px -20px rgba(31,41,55,0.15)",
+      }}
     >
-      <p className="hero-eyebrow mb-2 text-[var(--accent)]">Why these 4</p>
-      <p className="text-base leading-relaxed text-[var(--ink)]">
+      {/* Title with slate-primary underline */}
+      <div className="mb-4">
+        <p
+          className="text-[10px] uppercase tracking-[0.22em] mb-1"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
+        >
+          Why these 4
+        </p>
+        <div
+          className="h-0.5 w-8 rounded-full"
+          style={{ background: "var(--slate-primary)" }}
+          aria-hidden="true"
+        />
+      </div>
+
+      <p
+        className="text-base leading-relaxed"
+        style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink)" }}
+      >
         {whyTheseFour || (
-          <span className="italic text-[var(--ink-soft)]">
+          <span className="italic" style={{ color: "var(--ink-soft)" }}>
             (no overall summary — try refreshing.)
           </span>
         )}
@@ -47,14 +69,18 @@ export function TradeoffMatrix({
         <table className="w-full min-w-[620px] border-separate" style={{ borderSpacing: 0 }}>
           <thead>
             <tr>
-              <th className="pb-2 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]">
+              <th
+                className="pb-2 text-left text-[10px] font-semibold uppercase tracking-[0.18em]"
+                style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink-soft)" }}
+              >
                 Tradeoffs
               </th>
               {AXES.map((axis) => (
                 <th
                   key={axis.key}
                   scope="col"
-                  className="pb-2 pl-3 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--ink-soft)]"
+                  className="pb-2 pl-3 text-left text-[10px] font-semibold uppercase tracking-[0.18em]"
+                  style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink-soft)" }}
                   title={axis.hint}
                 >
                   {axis.label}
@@ -67,25 +93,42 @@ export function TradeoffMatrix({
               .slice()
               .sort((a, b) => a.rank - b.rank)
               .map((row) => (
-                <tr key={row.rank} className="border-t border-[var(--hairline)]">
+                <tr key={row.rank} style={{ borderTop: "1px solid var(--hairline)" }}>
                   <th
                     scope="row"
-                    className="border-t border-[var(--hairline)] py-3 pr-3 text-left align-middle"
+                    className="py-3 pr-3 text-left align-middle"
+                    style={{ borderTop: "1px solid var(--hairline)" }}
                   >
-                    <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--paper-deep)] text-[11px] font-semibold text-[var(--ink)]">
+                    <span
+                      className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold"
+                      style={{
+                        background: "var(--slate-tint)",
+                        color: "var(--slate-primary)",
+                        fontFamily: "var(--font-display-stack)",
+                      }}
+                    >
                       {row.rank}
                     </span>
-                    <span className="font-serif text-sm font-semibold text-[var(--ink)]">
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+                    >
                       {row.name}
                     </span>
-                    <span className="ml-1 text-xs text-[var(--ink-soft)]">{row.state}</span>
+                    <span
+                      className="ml-1 text-xs"
+                      style={{ color: "var(--ink-soft)", fontFamily: "var(--font-body-stack)" }}
+                    >
+                      {row.state}
+                    </span>
                   </th>
                   {AXES.map((axis) => {
                     const score = row.tradeoffs?.[axis.key] ?? 0;
                     return (
                       <td
                         key={axis.key}
-                        className="border-t border-[var(--hairline)] py-3 pl-3 align-middle"
+                        className="py-3 pl-3 align-middle"
+                        style={{ borderTop: "1px solid var(--hairline)" }}
                       >
                         <DotScale score={score} />
                       </td>
@@ -97,7 +140,10 @@ export function TradeoffMatrix({
         </table>
       </div>
 
-      <p className="mt-3 text-[11px] leading-relaxed text-[var(--ink-soft)]">
+      <p
+        className="mt-3 text-[11px] leading-relaxed"
+        style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+      >
         ●●● = strong on this axis · ●○○ = a real trade. Hover the column header for what each axis means.
       </p>
     </section>
@@ -110,9 +156,10 @@ function DotScale({ score }: { score: number }) {
       {[1, 2, 3].map((i) => (
         <span
           key={i}
-          className={`inline-block h-2.5 w-2.5 rounded-full ${
-            i <= score ? "bg-[var(--accent)]" : "bg-[var(--paper-deep)]"
-          }`}
+          className="inline-block h-2.5 w-2.5 rounded-full"
+          style={{
+            background: i <= score ? "var(--slate-primary)" : "var(--hairline)",
+          }}
         />
       ))}
     </span>

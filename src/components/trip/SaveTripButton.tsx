@@ -26,11 +26,12 @@ export function SaveTripButton({ tripId, initialStatus }: Props) {
       onClick={onClick}
       disabled={pending}
       aria-pressed={saved}
-      className={`rounded-full px-5 py-2.5 text-sm font-semibold shadow-[0_0_24px_var(--primary-glow)] transition disabled:opacity-60 ${
+      className={`rounded-full px-5 py-2.5 text-sm font-medium transition disabled:opacity-60 ${
         saved
-          ? "border border-[var(--primary)] bg-transparent text-white hover:bg-[var(--primary)]/10"
-          : "bg-[var(--primary)] text-[var(--primary-text)] hover:opacity-90"
+          ? "border border-[var(--slate-primary)] bg-transparent text-[var(--slate-primary)] hover:bg-[var(--slate-tint)]"
+          : "bg-[var(--accent)] text-white shadow-[0_8px_20px_-8px_rgba(231,111,81,0.40)] hover:opacity-90"
       }`}
+      style={{ fontFamily: "var(--font-body)" }}
     >
       {pending ? "…" : saved ? "✦ Saved" : "✦ Save this trip"}
     </button>
