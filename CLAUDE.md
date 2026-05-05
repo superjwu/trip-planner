@@ -138,6 +138,23 @@ the commit. Don't silently dismiss.
   sure the locale resolves *before* the page renders, not after, or the
   user gets a flash of English. LLM-generated content stays English in
   v3; UI strings flip via the `EN | 中` toggle.
+- **Phase F anchor contract.** A trip's `normalized_input.anchorSlug` is
+  a structural commitment, not a soft hint. `preFilter()` gives the
+  anchor + 3 nearest neighbors immunity from soft filters (season /
+  budget / vibe-overlap). The system prompt requires the anchor at rank
+  1 or 2. `rankAndPersist` checks rank ≤ 2 post-rank and force-includes
+  the anchor at rank 1 if the LLM dropped it. Refine rounds restore the
+  anchor if presets like "cheaper" would've dropped it (unless explicitly
+  avoided). `NormalizedTripInputSchema` MUST include `anchorSlug` or DB
+  reads strip it on every refine round (codex blocking fix from F.4).
+- **Refine round navigation (Phase H).** After `createRefineRound`
+  succeeds, `RefinePanel.submit()` does `router.replace('/trips/${tripId}')`
+  *before* `router.refresh()` to clear any stale `?focus=N` or `?round=N`
+  query params. Without this, a user who'd clicked into a focused detail
+  view or a historical round chip would land back in that view after
+  refining and feel "stuck" with no RefinePanel visible. The historical-
+  round banner has been beefed up to a coral CTA with a clear "Back to
+  current round →" button.
 
 ## Stack quick reference
 
@@ -145,11 +162,17 @@ the commit. Don't silently dismiss.
 - Supabase (Third-Party Auth via Clerk's session token) · pgcrypto in
   the `extensions` schema (qualify calls as `extensions.pgp_sym_*`)
 - Per-user OAuth to OpenAI's Codex backend (NOT the public OpenAI API).
-  Disable with `CODEX_OAUTH_ENABLED=0`.
+  Disable with `CODEX_OAUTH_ENABLED=0`. Both flows (recs + itinerary) run
+  on `gpt-5.5` as of Phase G; reasoning is `medium` for the rec engine,
+  `low` for the itinerary writer.
 - `next-intl` cookie-based i18n (`tp-locale`) · `d3-geo` + `topojson-client` +
   `us-atlas` for the real-US-map RouteAtlas
-- Open-Meteo (weather, no key) · Amadeus best-effort (flight/hotel) ·
-  Skyscanner / Booking.com deep-links
+- Open-Meteo (weather, no key) · **deterministic flight pricing** via
+  `src/lib/seed/flight-estimator.ts` (Phase G — replaced Amadeus). No paid
+  API, no rate limits, prices keyed off (origin city, destination lat/lng)
+  through a piecewise-linear direct-flight curve. Output rounded to nearest
+  $10. The Skyscanner / Booking.com booking deep-links still handle the
+  actual *purchase* hand-off.
 
 Scripts you'll actually use:
 
@@ -204,6 +227,12 @@ path goes dark.
   are covered by the Wikipedia run; the eight gaps fall back to Picsum
   and are listed in `scripts/_photos.json` comments. `npm run seed:wiki-photos`
   is idempotent and safe to re-run.
+- Flight prices are **never live** — they're computed deterministically by
+  `flight-estimator.ts` and merged into `EnrichedDestination.typicalCostBands.flightFromOrigin`
+  during enrichment. Expect the same $10-rounded number every time for a
+  given (origin, destination) pair. The card UI shows "(estimate)" — there
+  is no longer an "(live)" path. Hotel + activity prices are also static
+  per-destination cost bands (no API, never were live).
 
 ## When you're stuck
 

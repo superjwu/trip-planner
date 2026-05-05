@@ -21,6 +21,7 @@ import type {
 } from "../types";
 import { DESTINATIONS } from "./destinations";
 import { META_OVERRIDES, type MetaOverride } from "./destinations-meta";
+import { buildFlightFromOriginMap } from "./flight-estimator";
 
 // ─────────────────────────────────────────────────────────────────
 // Inference helpers
@@ -179,6 +180,13 @@ export function enrichOne(
   const sceneryScore = o.sceneryScore ?? d.sceneryScore ?? inferSceneryScore(d, landscape);
   const scenicSignals = o.scenicSignals ?? d.scenicSignals ?? inferScenicSignals(d, landscape, sceneryScore);
 
+  // Phase G: deterministic direct-flight pricing replaces the seed's
+  // hand-curated / heuristic values. Same shape as before — every code path
+  // that reads `dest.typicalCostBands.flightFromOrigin[origin]` keeps working
+  // — but the numbers now come from a single piecewise curve in
+  // flight-estimator.ts. No API calls anywhere.
+  const flightFromOrigin = buildFlightFromOriginMap(d.lat, d.lng);
+
   return {
     ...d,
     landscape,
@@ -186,6 +194,10 @@ export function enrichOne(
     experiences,
     sceneryScore,
     scenicSignals: scenicSignals.length > 0 ? scenicSignals : undefined,
+    typicalCostBands: {
+      ...d.typicalCostBands,
+      flightFromOrigin,
+    },
   };
 }
 

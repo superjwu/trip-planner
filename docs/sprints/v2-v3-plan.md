@@ -465,3 +465,231 @@ User-locked direction (decided via interview):
 6. **E.6** (~30 min) — full verification suite.
 
 Phases E.1, E.2, and E.3 can land before E.4–E.6 even start (E.4 needs the new fields populated).
+
+---
+
+# Trip Planner — Phase F: Anchor Contract Fix
+
+## Context
+
+After v3 shipped, codex (gpt-5.5, xhigh) audited the live state and flagged a **shipped trust break**: the `/destinations` browse grid promises "planning around this destination", but the anchor never reaches the rec engine.
+
+Concretely:
+- `/destinations` cards link to `/plan?anchor={slug}` (`DestinationBrowseCard.tsx:74`).
+- `PreferenceWizard.tsx` reads the query param, shows an anchor pill ("Planning around Big Sur"), and writes a hidden `<input name="anchorSlug">` (`PreferenceWizard.tsx:155`).
+- BUT the hidden input is never read — the wizard submits a `RawTripInput` object without anchor (`PreferenceWizard.tsx:108-117`).
+- `RawTripInput` and `NormalizedTripInput` have no `anchorSlug` field (`types.ts:27, 38`).
+- `normalize()` drops anything outside the `RawTripInput` schema (`normalize.ts:44`).
+- `RawTripInputSchema` (zod) doesn't accept anchorSlug (`actions.ts:32`).
+- `preFilter()` can exclude the user's clicked destination by season / budget / vibe-overlap rules (`recommend.ts:96-117`).
+
+Net effect: the user clicks Big Sur, the page tells them they're planning around Big Sur, and the rec engine returns 4 unrelated "best fits" without Big Sur. Codex's call: fix this before Phase B (multi-stop), because Phase B adds value while this fixes a promise already shipped.
+
+User-locked direction (decided via interview): single focused sprint, ship end-to-end with codex review before merge.
+
+---
+
+## Phase F.1 — Schema thread-through
+
+**File:** `src/lib/types.ts`
+- `RawTripInput` adds `anchorSlug?: string` (after `notes?: string`).
+- `NormalizedTripInput` adds `anchorSlug?: string` (after `notes?: string`).
+- Bump `REC_PROMPT_VERSION` from `rec-v5-phase-e` → `rec-v5-phase-f`. The cache key embeds the full input via `stableStringify`, so adding `anchorSlug` automatically varies the hash — but the prompt also changes (Phase F.3), so a version bump is required.
+
+**File:** `src/app/plan/actions.ts`
+- `RawTripInputSchema` (zod, `actions.ts:32`) adds `anchorSlug: z.string().regex(/^[a-z0-9-]+$/).optional()`.
+- The slug is validated against the live `DESTINATIONS` set: if the value isn't a known slug, drop it silently (don't error — it's a query-param hint, not load-bearing on its own).
+
+**File:** `src/lib/normalize.ts`
+- `normalize()` (`normalize.ts:44`) preserves `raw.anchorSlug`. If the slug isn't in `DESTINATIONS`, drop it.
+
+**File:** `src/components/plan/PreferenceWizard.tsx`
+- `onSubmit` (`PreferenceWizard.tsx:108`) now includes `anchorSlug: anchorSlug || undefined` in the `raw: RawTripInput` object. The existing `<input type="hidden" name="anchorSlug">` becomes redundant — remove it.
+- The existing soft-hint via `combinedNotes` stays as belt-and-suspenders for the LLM, BUT now the structural anchor is the source of truth.
+
+## Phase F.2 — preFilter respects the anchor
+
+**File:** `src/lib/llm/recommend.ts`
+
+Two changes to `preFilter()` (`recommend.ts:87`):
+
+1. **Anchor immunity to soft filters.** If `input.anchorSlug` matches a destination's slug, that destination passes preFilter regardless of season-fit / budget-cap / vibe-overlap. The user's explicit click outranks the soft constraints. The origin-city exclusion still applies (anchoring on your own origin is meaningless).
+
+2. **Anchor-neighbor promotion.** When `anchorSlug` is set, also include the 3 nearest neighbors of the anchor (haversine, ≤350mi) in the candidate pool, even if they would otherwise fail the soft filters. Reuses the `computeNearbyMap` helper already in `prompts.ts` — refactor it into `recommend.ts` if the import doesn't work cleanly. Other candidates filter normally.
+
+**Edge case**: If anchor is invalid as origin (`origin === LAX, anchor === los-angeles`), drop the anchor — covered by F.1's slug-validation step but assert again in preFilter for defense in depth.
+
+## Phase F.3 — Ranker prompt: hard rule + signal
+
+**File:** `src/lib/llm/prompts.ts`
+
+1. **`buildUserPrefsBlock`** gains a top-of-block line when anchor is set:
+   ```
+   ANCHOR DESTINATION (user clicked from browse): {slug} — {name}, {state}
+   ```
+   This makes the anchor explicit in the user's prefs, NOT buried in `<user_notes>`.
+
+2. **`REC_SYSTEM_PROMPT`** adds a new hard rule (in the existing rules block):
+   > **Anchor: when the input names an `ANCHOR DESTINATION`, your shortlist MUST include that slug at rank 1 or 2.** The user clicked it on purpose — this is a structural commitment, not a vibe preference. The other three picks should complement the anchor (nearby, similar landscape, or providing the variety the user's other vibes call for).
+
+## Phase F.4 — Post-rank assertion + retry
+
+**File:** `src/app/trips/[id]/actions.ts`
+
+In `rankAndPersist` (`actions.ts:163`), after the response comes back from the LLM (whether cache hit or fresh rank):
+
+1. **Assertion**: if `args.input.anchorSlug` is set AND `response.picks.every(p => p.slug !== args.input.anchorSlug)`, the LLM dropped the anchor.
+2. **Retry once**: re-rank with `cacheBypass: "anchor-missing"` and an additional explicit instruction in the user prefs block. (Reuses the existing one-retry pattern from the candidate-mismatch fix.)
+3. **Last-resort force-include**: if the retry also drops the anchor, **promote the anchor to rank 2 manually**: replace the rank-4 pick's slug with the anchor's slug, regenerate that pick's `reasoning` from a deterministic template ("You picked this destination — here's why it fits with your other three"), and renumber. Log this as `meta.anchorForced = true` for observability.
+4. **Anchor in cached responses**: the cache validation step (`actions.ts:204-225`) already checks every cached pick exists in the candidate pool. Extend that check: cache is valid only if anchor is also present in the cached response when the input has an anchor.
+
+## Phase F.5 — UI confirmation badge
+
+**File:** `src/app/trips/[id]/page.tsx`
+
+When `normalized.anchorSlug` is set on the rendered trip:
+- Add a small slate-tint pill near the round header: `✦ Planned around Big Sur` (translated via i18n if zh).
+- This makes the anchor's presence visually verifiable and gives the user a moment of "yes, the system heard me".
+
+## Phase F.6 — Verification
+
+1. **`npx tsc --noEmit`** — clean
+2. **`npm run lint`** — 0 errors
+3. **`npm run build`** — clean
+4. **`npm run audit:meta`** — clean (no enrichment regressions)
+5. **Smoke A — anchor honored**: `/destinations` → click Big Sur → `/plan?anchor=big-sur-ca` → submit (5-day NYC scenic+chill+foodie) → `/trips/[id]` must show Big Sur at rank 1 or 2. Top-of-page badge shows "Planned around Big Sur".
+6. **Smoke B — anchor + season conflict**: pick Acadia (summer/fall only) with a winter departure. The anchor still appears (immunity rule), but the LLM's `why_these_four` should acknowledge the season tradeoff.
+7. **Smoke C — three different anchors**: Big Sur, Charleston, Yellowstone. Each must appear rank ≤ 2 on the resulting trip. The other 3 picks per trip should be visibly different (anchor-driven, not stock).
+8. **Smoke D — no anchor (regression)**: submit `/plan` directly without anchor → behavior unchanged from v3 (current trips render the same).
+9. **Smoke E — refine round preserves anchor**: click "Cheaper" preset on a Big Sur-anchored trip → round 2 picks should still include Big Sur unless explicitly avoided.
+10. **Smoke F — invalid anchor**: try `/plan?anchor=does-not-exist` → wizard renders without the pill, trip is unaffected, no error.
+
+## Codex review checkpoint
+
+**After F.4** — `mcp__codex__codex` reviews:
+- `recommend.ts` (preFilter changes)
+- `prompts.ts` (system prompt + user prefs block changes)
+- `actions.ts` (rankAndPersist assertion + retry + force-include)
+
+Ask:
+> Is the post-rank retry + force-include strict enough? Specifically: (a) does the cache key correctly invalidate when anchor changes between rounds, (b) what edge case in the refine round flow could still drop the anchor, (c) does the force-include's deterministic reasoning template degrade gracefully when the anchor is genuinely a poor fit (e.g. winter trip with summer-only Acadia)?
+
+## Critical files
+
+**Modify:**
+- `src/lib/types.ts` — add `anchorSlug?` to RawTripInput + NormalizedTripInput, bump REC_PROMPT_VERSION
+- `src/lib/normalize.ts` — preserve anchorSlug, drop unknown slugs
+- `src/app/plan/actions.ts` — RawTripInputSchema accepts anchorSlug, validates against DESTINATIONS
+- `src/components/plan/PreferenceWizard.tsx` — submit anchorSlug in raw object, drop the now-redundant hidden input
+- `src/lib/llm/recommend.ts` — preFilter respects anchor (immunity + neighbor promotion)
+- `src/lib/llm/prompts.ts` — REC_SYSTEM_PROMPT anchor rule, buildUserPrefsBlock anchor line
+- `src/app/trips/[id]/actions.ts` — post-rank anchor assertion + retry + force-include + cache validity check
+- `src/app/trips/[id]/page.tsx` — anchor badge (polish)
+- `src/i18n/messages/{en,zh}.json` — anchor badge string
+
+**Reuse:**
+- `computeNearbyMap` (haversine helper) from `src/lib/llm/prompts.ts` — refactor into a shared helper if needed
+- The cache-validation retry pattern from `rankAndPersist` (codex's earlier audit) — same shape for anchor-missing
+- The "applyRefinePresets" → `candidatePoolOverride` plumbing for refine rounds
+
+**Untouched:**
+- DB schema (no migration — `anchorSlug` lives inside the `normalized_input` JSONB, which already accepts arbitrary keys)
+- Phase B work (still deferred)
+- All v3 enrichment / browse / i18n surfaces
+
+## Risks + watch-outs
+
+- **Cache key drift**: handled by REC_PROMPT_VERSION bump + the cache key already embedding the full input via stableStringify.
+- **Anchor + origin collision** (origin=NYC, anchor=nyc): F.2 drops the anchor in this case; F.4 doesn't fire the assertion when anchor was never valid.
+- **Anchor + season conflict** (winter trip + summer-only Acadia): the immunity rule lets the anchor through; the LLM is expected to acknowledge in `why_these_four`. F.6 Smoke B verifies.
+- **Refine rounds**: `createRefineRound` reads `trip.normalized_input` from the DB, which now contains `anchorSlug`. The anchor flows through automatically. Verify Smoke E.
+- **Existing trips**: trips created before F ship don't have `anchorSlug`. `parseNormalizedInput` should treat missing field as `undefined` and the rec engine behavior is unchanged. No migration needed.
+- **Force-include degrades gracefully**: F.4 step 3 replaces the rank-4 pick if the retry still drops the anchor. The reasoning template is generic — codex review checkpoint flags this.
+
+## Build order (~5 hours)
+
+1. **F.1** (~30 min) — schema + types + zod + version bump
+2. **F.2** (~1 hr) — preFilter anchor immunity + neighbor promotion
+3. **F.3** (~30 min) — prompt changes (system rule + user prefs line)
+4. **F.4** (~1 hr) — post-rank assertion + retry + force-include + cache check. **Codex review at end of F.4.**
+5. **F.5** (~30 min) — anchor badge UI + i18n strings
+6. **F.6** (~30 min) — full smoke suite
+
+Total ~5 hours, end-to-end commit after F.6 passes.
+
+---
+
+# Trip Planner — Phase G: Drop Amadeus, Precomputed Direct-Flight Pricing
+
+## Context (in-flight, no plan-mode interview)
+
+User's call: stop calling the Amadeus API entirely, precompute direct-flight prices instead. Reasons:
+- Amadeus credentials were never set in `.env.local` (always `placeholder`), so every flight call returned `null` and we silently fell back to seed estimates anyway.
+- Production Amadeus is paid (~$0.003/call after a small free quota); test env returns synthetic prices.
+- The user wants prices that specifically model **direct (non-stop)** flights — 1-stop bargains misrepresent travel time.
+- A deterministic curve is reproducible, free, and good enough for the decision-conversation product (the actual booking deep-link is Skyscanner; Amadeus was only ever for the displayed estimate).
+
+## Implementation
+
+**New file:** `src/lib/seed/flight-estimator.ts`
+- `estimateDirectFlightUsd(origin, destLat, destLng)` — piecewise-linear curve in haversine miles, calibrated against typical direct economy roundtrip fares for NYC/CHI/LAX/SFO/SEA in 2025
+- Drivable threshold (<200mi) returns $0
+- Hard ceiling at $850 so transcon + Hawaii direct fares don't run away
+- Output rounded to nearest $10
+
+**`src/lib/seed/enrich-destinations.ts`**
+- `enrichOne()` overwrites `typicalCostBands.flightFromOrigin` with a freshly-computed `{NYC, CHI, LAX, SFO, SEA}` map from the curve. The original seed values (heuristic per-distance, mixed direct/non-direct) are no longer trusted.
+
+**`src/lib/hydrate.ts`**
+- Removed the Amadeus call (and the parallel hotel call). `hydrateRecommendation` now only awaits `getWeather()`. `buildCost()` simplifies — `flightUsd = destination.typicalCostBands.flightFromOrigin[input.originCode]`, source always `"estimate"`.
+
+**Removed:** `src/lib/apis/amadeus.ts` (entire file)
+**Cleaned:** `.env.local.example` Amadeus block commented out with explanation.
+
+## Verification (already passed)
+
+- `tsc --noEmit` clean
+- `npm run lint` 0 errors
+- `npm run audit:meta` clean (329 enriched destinations)
+- Synthetic test of the estimator across 22 sample (origin, dest) pairs: NYC→Boston $0 (drivable), NYC→Charleston $280, LAX→Yellowstone $300, NYC→Maui $850 (capped). All within plausible direct-flight roundtrip ranges.
+
+## Future caveats
+
+- The `source: "amadeus" | "mixed" | "estimate"` enum still allows the first two values for backward compat with any pre-Phase-G `recommendations.cost` JSONB rows. New rows will always be `"estimate"`.
+- If you ever want live prices back: restore `src/lib/apis/amadeus.ts`, re-add the parallel calls in `hydrate.ts`, and the existing `flightSource` plumbing kicks back in.
+
+---
+
+# Trip Planner — Phase H: Refine UX — "after round 2 there's no choice for round 3"
+
+## Context (user-reported bug)
+
+User flow that broke trust:
+1. Submit trip → land on `/trips/[id]` with round 1 active
+2. Click into a destination → `/trips/[id]?focus=1` — `FocusedView` opens
+3. Click "Back to all 4" → `/trips/[id]` — `RefinePanel` shows
+4. Use `Refine →` → round 2 created, `active_round_id` flips
+5. `RefinePanel.submit()` did `router.refresh()` only — URL is unchanged
+6. If the user had been on `?round=N` or `?focus=N` they land back in that historical / focused view; `RefinePanel` is hidden by `isActiveRound === false` or `refocused !== null`
+7. User: "after round 2, there's no choice (round 3) for me to keep trying"
+
+The system *can* do unlimited rounds — `createRefineRound` increments `round_number` indefinitely — but the UI was getting users stuck in non-refinable views.
+
+## Fix
+
+**`src/components/recs/RefinePanel.tsx`**
+- After `createRefineRound` succeeds, `router.replace('/trips/${tripId}')` *before* `router.refresh()`. Strips stale `?focus=N` / `?round=N` so the user lands on the clean grid view of the newly-active round, where `RefinePanel` renders.
+
+**`src/app/trips/[id]/page.tsx`**
+- Beefed up the historical-round banner from a small underlined link to a coral CTA box with a prominent "Back to current round →" button. Same destination, much harder to miss.
+
+## Verification
+
+- `tsc --noEmit` clean
+- `npm run lint` 0 errors
+- Manual: viewing `?round=1` after refining to round 2 → coral banner shows; clicking the button lands on the active-round refine surface
+
+## Out of scope
+
+- Letting users refine *from* a historical round (would create a fork — unclear semantics, defer until a real product reason emerges)
+- Hard cap on number of rounds (no plan — disk is cheap, the LLM cost cap is via cache hits)

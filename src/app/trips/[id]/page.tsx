@@ -263,11 +263,22 @@ export default async function TripPage({
               </div>
             )}
             {!isActiveRound && renderRound && (
-              <div className="mt-4 rounded-2xl border border-[var(--hairline)] bg-[var(--paper-deep)] px-4 py-2 text-xs text-[var(--ink)]" style={{ fontFamily: "var(--font-body)" }}>
-                Viewing Round {renderRound.round_number} (read-only).{" "}
+              <div
+                className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-5 py-3 text-sm"
+                style={{
+                  borderColor: "var(--accent)",
+                  background: "rgba(231,111,81,0.08)",
+                  color: "var(--ink)",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                <span>
+                  <strong style={{ fontFamily: "var(--font-display)" }}>Round {renderRound.round_number}</strong>{" "}
+                  is a historical view (read-only). Refine isn&apos;t available here — head back to the current round to keep iterating.
+                </span>
                 <Link
                   href={`/trips/${id}`}
-                  className="font-medium text-[var(--slate-primary)] underline"
+                  className="btn-accent inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold whitespace-nowrap"
                 >
                   Back to current round →
                 </Link>

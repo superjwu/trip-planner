@@ -71,10 +71,17 @@ export function RefinePanel({
         setError(res.error ?? "Refine failed");
         return;
       }
-      // Reset local state; navigate to the new round.
+      // Reset local state.
       setDecisions({});
       setPresets([]);
       setText("");
+      // Phase H fix: navigate to the clean trip URL (no query params) so the
+      // page lands on the newly-active round. Without this, a user who had
+      // clicked into ?focus=N or a historical ?round=N chip would land back
+      // on that view after refine — no RefinePanel visible — and feel stuck
+      // ("after round 2, no choice for round 3"). Replace, not push, so the
+      // back button doesn't ping-pong through stale states.
+      router.replace(`/trips/${tripId}`);
       router.refresh();
     });
   }
