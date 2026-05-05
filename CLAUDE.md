@@ -8,14 +8,18 @@ Keep it short and load-bearing — anything aspirational belongs in the README.
 A Next.js 16 web app that turns vague trip preferences into a *decision
 conversation*: 4 curated U.S. destinations with reasoning, a tradeoff
 matrix, and round-by-round refinement. Spec is in `PROJECT_PROPOSAL.md`.
-The current sprint plan is at
-`/root/.claude/plans/start-building-trip-planner-delegated-comet.md`.
+Sprint history + remaining work lives in `docs/sprints/v2-v3-plan.md`.
 
 The proposal's core promise is iteration, not generation. v1 was a
 one-shot generator; v2 introduced `recommendation_rounds` so the user can
-say "drop #3, find me alternates cheaper". When designing or reviewing
-changes, ask: **does this strengthen the decision conversation, or just
-add features around the side?**
+say "drop #3, find me alternates cheaper"; v3 added a browse-by-
+destination flow, zh/en i18n, and richer filter axes (landscape,
+experience, scenery score). When designing or reviewing changes, ask:
+**does this strengthen the decision conversation, or just add features
+around the side?**
+
+Phase B (multi-stop combos) is planned but deferred — see the v3
+section of `docs/sprints/v2-v3-plan.md`.
 
 ## Always do this before reporting a task complete
 
@@ -25,13 +29,18 @@ in this project.
 1. **`npx tsc --noEmit`** — must be empty.
 2. **`npm run lint`** — 0 errors. (Existing `<img>` warnings in
    `src/app/gallery/v*` are intentional; don't touch them.)
-3. **`npm run build`** — must finish; the route table at the end is the
+3. **`npm run audit:meta`** — must exit clean. Validates every destination
+   has valid v3 enrichment (landscape / experiences / sceneryScore) and
+   surfaces duplicate slugs / colliding names. Run after any change to
+   `destinations.ts`, `destinations-curated-extras.ts`, `destinations-meta.ts`,
+   or `enrich-destinations.ts`.
+4. **`npm run build`** — must finish; the route table at the end is the
    ground truth of what the app exposes.
-4. **Visual check via Playwright MCP** when a UI surface is touched.
+5. **Visual check via Playwright MCP** when a UI surface is touched.
    Don't trust that a TS-clean change *looks* right.
-5. **Codex review** for anything non-trivial — see "Code review with
+6. **Codex review** for anything non-trivial — see "Code review with
    Codex" below.
-6. **Confirm the dev server reflects the change.** Tailwind v4 + Next
+7. **Confirm the dev server reflects the change.** Tailwind v4 + Next
    Turbopack sometimes serve stale CSS after a tokens edit; if a style
    change doesn't render, kill `next dev`, `rm -rf .next/cache`, restart.
 
@@ -99,6 +108,12 @@ the commit. Don't silently dismiss.
   `REC_PROMPT_VERSION` in `src/lib/types.ts`; changes to the seed list
   MUST bump `SEED_VERSION`. Both are sources of cache-key drift if
   forgotten.
+- **`ENRICHED_DESTINATIONS` is the only destination export anything
+  outside `src/lib/seed/` should consume.** It runs the raw seed through
+  `enrich-destinations.ts` (override map + deterministic inference + 3-pass
+  dedup). Importing the raw `DESTINATIONS` array bypasses the v3 fields and
+  the dedup. Existing imports use `import { ENRICHED_DESTINATIONS as
+  DESTINATIONS }` — keep that pattern.
 - **All token reads/writes for `user_codex_auth` go through the
   service-role client.** RLS owners can SELECT their row but the
   encryption key never reaches RLS-scoped queries. See
@@ -108,10 +123,21 @@ the commit. Don't silently dismiss.
   after the action returns instead.
 - **Pre-filter is a hard guarantee, the prompt is a soft one.** Anything
   in `avoidedSlugs` must be excluded by `preFilter()` before rank, not
-  trusted to the LLM alone.
+  trusted to the LLM alone. The v3 vibe-overlap pre-filter follows the
+  same principle: it narrows the candidate pool *before* the LLM, so the
+  scenery-as-tiebreaker prompt rule can stay descriptive.
 - **Tradeoff scores should be deterministic** per `(destination,
   normalized input)`. The prompt instructs this; if scores swing wildly
   between rounds for the same destination, treat it as a bug, not noise.
+- **Scenery is descriptive metadata, never a numeric anchor in the
+  prompt.** The candidate block emits `scenic profile: coastal-cliffs,
+  redwood`, never `sceneryScore: 5`. Adding a numeric score back to the
+  prompt would re-introduce the LLM-anchoring bug codex flagged in v3.
+- **i18n locale is cookie-based** (`tp-locale` = `en` | `zh`). Reads
+  happen via `next-intl`'s `getLocale()` in server components — make
+  sure the locale resolves *before* the page renders, not after, or the
+  user gets a flash of English. LLM-generated content stays English in
+  v3; UI strings flip via the `EN | 中` toggle.
 
 ## Stack quick reference
 
@@ -120,12 +146,26 @@ the commit. Don't silently dismiss.
   the `extensions` schema (qualify calls as `extensions.pgp_sym_*`)
 - Per-user OAuth to OpenAI's Codex backend (NOT the public OpenAI API).
   Disable with `CODEX_OAUTH_ENABLED=0`.
+- `next-intl` cookie-based i18n (`tp-locale`) · `d3-geo` + `topojson-client` +
+  `us-atlas` for the real-US-map RouteAtlas
 - Open-Meteo (weather, no key) · Amadeus best-effort (flight/hotel) ·
   Skyscanner / Booking.com deep-links
 
-`npm run dev` is `next dev` (Turbopack). `npm run seed:sql` regenerates
-`supabase/seed/destinations.sql` from `src/lib/seed/destinations.ts` —
-treat the TS file as source of truth and never hand-edit the SQL.
+Scripts you'll actually use:
+
+- `npm run dev` — `next dev` (Turbopack)
+- `npm run audit:meta` — destination-data invariants check (run before
+  committing seed changes)
+- `npm run seed:wiki-photos` — Wikipedia REST + Commons photo prefetch
+  → `scripts/_photos.json`. Already populated for 318/326 destinations.
+- `npm run seed:zh` — Chinese-name + blurb prefetch via Wikipedia
+  langlinks + Wikidata fallback + suffix translator → `scripts/_destinations_zh.json`.
+  Idempotent; skips already-cached slugs.
+- `npm run seed:sql` — regenerates `supabase/seed/destinations.sql` from
+  the TS source. Treat the TS file as source of truth; never hand-edit
+  the SQL.
+- `npm run import:extras` — re-run the auto-import from the upstream
+  tourist-plan repo. Heavy, run rarely.
 
 Migrations live in `supabase/migrations/000N_*.sql`. Apply them via the
 Supabase MCP `apply_migration`, not `supabase db push` (this project's
@@ -158,16 +198,22 @@ path goes dark.
 - JSONB doesn't preserve key order across round-trips. Use
   `stableStringify` (sorted keys) for any cache key derived from a
   parsed JSONB value.
-- Picsum hero photo URLs are deterministic per slug but not curated;
-  some destinations get unrelated images (Big Sur → Flatiron). Acceptable
-  until the Places prefetch runs — `npm run seed:photos` once GCP billing
-  is on.
+- Hero photos resolve through `src/lib/photo.ts` in this order:
+  Wikipedia manifest (`scripts/_photos.json`) → manual `heroPhotoUrl`
+  override on the destination → Picsum fallback. 318/326 destinations
+  are covered by the Wikipedia run; the eight gaps fall back to Picsum
+  and are listed in `scripts/_photos.json` comments. `npm run seed:wiki-photos`
+  is idempotent and safe to re-run.
 
 ## When you're stuck
 
-- Look at `/root/.claude/plans/start-building-trip-planner-delegated-comet.md` first.
-- Check the most recent commits with `git log --oneline -15` for context.
-- For a UI surface, peek at `src/app/gallery/v*-pastel/page.tsx` — the
-  live styling was lifted from there and stays close to its conventions.
+- Look at `docs/sprints/v2-v3-plan.md` first for sprint context, codex
+  reviews, and known-deferred work (Phase B multi-stop is the biggest).
+- Check the most recent commits with `git log --oneline -15` for what
+  just landed.
+- For a UI surface, peek at `src/app/gallery/v54d-coastal-slate/page.tsx`
+  — the live styling was lifted from there and stays close to its
+  conventions. `src/app/gallery/atlas-edge-test` is the visual harness
+  for the RouteAtlas edge-case fixes.
 - Ask Codex (per "Code review with Codex" above) before making structural
   changes you're unsure about.
