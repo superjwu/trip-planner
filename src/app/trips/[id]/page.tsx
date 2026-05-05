@@ -33,6 +33,7 @@ import type {
 } from "@/lib/types";
 import { computeRecommendations, ensureItinerary } from "./actions";
 import { localizeDestination } from "@/lib/i18n/localizeDestination";
+import { ENRICHED_DESTINATIONS } from "@/lib/seed/enrich-destinations";
 
 export const dynamic = "force-dynamic";
 // First-visit compute is synchronous within the server-render: preFilter →
@@ -290,6 +291,31 @@ export default async function TripPage({
 
         {trip.compute_status === "ready" && recs.length > 0 && !refocused && (
           <>
+            {normalized?.anchorSlug && (() => {
+              const anchorDest = ENRICHED_DESTINATIONS.find((d) => d.slug === normalized.anchorSlug);
+              if (!anchorDest) return null;
+              const anchorLocalized = localizeDestination(anchorDest, locale);
+              return (
+                <div className="mb-12 flex justify-center">
+                  <div
+                    className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm"
+                    style={{
+                      borderColor: "var(--slate-primary)",
+                      backgroundColor: "var(--slate-tint)",
+                      color: "var(--slate-primary)",
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    <span aria-hidden>✦</span>
+                    {locale === "zh" ? "围绕" : "Planned around"}{" "}
+                    <strong style={{ fontFamily: "var(--font-display)" }}>
+                      {anchorLocalized.name}
+                    </strong>
+                    {locale === "zh" ? "策划" : ""}
+                  </div>
+                </div>
+              );
+            })()}
             <div className="mt-32">
               <RoundSwitcher
                 tripId={id}

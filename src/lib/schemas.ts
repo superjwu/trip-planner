@@ -182,6 +182,13 @@ export const NormalizedTripInputSchema = z.object({
   seasonHint: SeasonSchema,
   dislikes: z.string(),
   notes: z.string().optional(),
+  // Phase F (codex blocking fix): without this, parseNormalizedInput strips
+  // the anchor on every DB read and refine round, so even brand-new trips
+  // behave anchor-less after the first reload.
+  anchorSlug: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .optional(),
 });
 export type NormalizedTripInputT = z.infer<typeof NormalizedTripInputSchema>;
 

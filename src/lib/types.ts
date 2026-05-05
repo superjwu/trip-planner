@@ -33,6 +33,12 @@ export interface RawTripInput {
   pace?: Pace;
   dislikes?: string;
   notes?: string;
+  /**
+   * Phase F: when set, the user clicked this destination from /destinations
+   * before reaching the wizard. The rec engine treats this as a structural
+   * commitment — the slug MUST appear at rank 1 or 2.
+   */
+  anchorSlug?: string;
 }
 
 export interface NormalizedTripInput {
@@ -48,6 +54,8 @@ export interface NormalizedTripInput {
   seasonHint: "spring" | "summer" | "fall" | "winter";
   dislikes: string;
   notes?: string;
+  /** Phase F: validated against `DESTINATIONS` in `normalize()`. Undefined if missing/unknown. */
+  anchorSlug?: string;
 }
 
 /**
@@ -192,7 +200,10 @@ export const SEED_VERSION = 5;
 // Bumped to v5-phase-e when the candidate block adds landscape +
 // experiences + descriptive scenic profile, and the system prompt picks up
 // the "scenery as tiebreaker" rule. Required for cache key freshness.
-export const REC_PROMPT_VERSION = "rec-v5-phase-e";
+// Bumped to v5-phase-f when the prompt picks up the ANCHOR DESTINATION
+// hard rule. The cache key already varies on input, but the prompt itself
+// changed — explicit version bump documents the cache flush.
+export const REC_PROMPT_VERSION = "rec-v5-phase-f";
 export const ITIN_PROMPT_VERSION = "itin-v2-codex";
 
 // Codex-backend model names (per numman-ali/opencode-openai-codex-auth README).

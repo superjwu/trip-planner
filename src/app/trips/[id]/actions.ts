@@ -200,10 +200,14 @@ async function rankAndPersist(args: RankAndPersistArgs): Promise<{
     // so a stale cache row could reintroduce avoided slugs or picks
     // filtered out by presets. Validate every cached pick against the
     // current candidate pool; on mismatch, treat the cache as a miss
-    // and re-rank.
+    // and re-rank. Phase F: also require the anchor (when set) to be
+    // present in the cached response — otherwise re-rank.
     const slugSet = new Set(candidates.map((d) => d.slug));
-    const cacheValid = response.picks.every((p) => slugSet.has(p.slug));
-    if (!cacheValid) {
+    const cacheCandidatesValid = response.picks.every((p) => slugSet.has(p.slug));
+    const cacheAnchorValid =
+      !args.input.anchorSlug ||
+      response.picks.some((p) => p.slug === args.input.anchorSlug);
+    if (!cacheCandidatesValid || !cacheAnchorValid) {
       const ranked = await rankDestinationsWithRetry({
         clerkUserId: args.userId,
         input: args.input,
@@ -214,7 +218,7 @@ async function rankAndPersist(args: RankAndPersistArgs): Promise<{
       meta = {
         ...(ranked.meta as unknown as Record<string, unknown>),
         refined: !!args.refine,
-        cacheBypass: "candidate-mismatch",
+        cacheBypass: !cacheCandidatesValid ? "candidate-mismatch" : "anchor-missing",
       };
       const { error: cacheWriteErr } = await admin
         .from("rec_cache")
@@ -240,6 +244,52 @@ async function rankAndPersist(args: RankAndPersistArgs): Promise<{
       .upsert({ key, response }, { onConflict: "key" });
     if (cacheWriteErr && process.env.NODE_ENV !== "production") {
       console.warn("[rec_cache] write failed:", cacheWriteErr.message);
+    }
+  }
+
+  // Phase F: post-rank anchor enforcement. The system prompt requires the
+  // anchor at rank 1 or 2 — codex flagged that a rank-3 or rank-4 anchor
+  // should still trip the force-include because the user wants their click
+  // to be visually prominent.
+  if (args.input.anchorSlug) {
+    const anchorPick = response.picks.find((p) => p.slug === args.input.anchorSlug);
+    const anchorAtTop = anchorPick && anchorPick.rank <= 2;
+    if (!anchorAtTop) {
+      const anchorDest = DESTINATIONS.find((d) => d.slug === args.input.anchorSlug);
+      if (anchorDest) {
+        const anchorTradeoffs = computeTradeoffs(args.input, anchorDest);
+        const seasonOk =
+          anchorDest.bestSeasons.length === 0 ||
+          anchorDest.bestSeasons.includes(args.input.seasonHint);
+        const reasoning = seasonOk
+          ? `You picked ${anchorDest.name} from the browse page — keeping it as the anchor of this trip while the other three round it out.`
+          : `You picked ${anchorDest.name} from the browse page — keeping it as the anchor even though it's outside its usual ${anchorDest.bestSeasons.join("/")} window. The other three are more season-fit alternatives.`;
+        // Prepend anchor at rank 1. If the anchor was already in the picks
+        // at rank 3 or 4, remove it from the survivors so we don't duplicate.
+        const oldPicks = [...response.picks]
+          .filter((p) => p.slug !== anchorDest.slug)
+          .sort((a, b) => a.rank - b.rank);
+        const survivors = oldPicks.slice(0, 3).map((p, i) => ({ ...p, rank: i + 2 }));
+        // Codex review: stale why_these_four references the dropped picks /
+        // omits the anchor. Prepend a sentence that names the anchor so the
+        // top-of-page narrative matches the rank-1 card.
+        const amendedWhy = `${anchorDest.name} leads the list because you picked it on the browse page. ${response.why_these_four}`;
+        response = {
+          ...response,
+          why_these_four: amendedWhy,
+          picks: [
+            {
+              slug: anchorDest.slug,
+              rank: 1,
+              reasoning,
+              match_tags: ["your pick", "anchor"],
+              tradeoffs: anchorTradeoffs,
+            },
+            ...survivors,
+          ],
+        };
+        meta = { ...meta, anchorForced: true };
+      }
     }
   }
 
@@ -576,6 +626,22 @@ export async function createRefineRound(args: {
     // Map preset chips → code-side filters/boosts so refine actually changes
     // the candidate pool, not just the prompt.
     filtered = applyRefinePresets(filtered, args.feedbackPresets, input);
+
+    // Phase F (codex review): preset filters can drop the anchor (e.g.
+    // "cheaper" preset trims by median cost — an expensive anchor like Aspen
+    // would silently leave the pool). preFilter() already gave anchor + 3
+    // nearest neighbors immunity from soft filters, but applyRefinePresets
+    // runs after. Re-check: if the anchor was NOT in avoidedSlugs but was
+    // dropped by presets, restore it (and its nearest neighbors). User's
+    // explicit avoid still wins.
+    if (
+      input.anchorSlug &&
+      !args.avoidedSlugs.includes(input.anchorSlug) &&
+      !filtered.some((d) => d.slug === input.anchorSlug)
+    ) {
+      const anchor = preFilter(input).find((d) => d.slug === input.anchorSlug);
+      if (anchor) filtered = [anchor, ...filtered];
+    }
 
     if (filtered.length < 4) {
       throw new Error(

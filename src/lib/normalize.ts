@@ -6,6 +6,7 @@ import {
   type RawTripInput,
 } from "./types";
 import { MAX_TRIP_DAYS } from "./schemas";
+import { ENRICHED_DESTINATIONS } from "./seed/enrich-destinations";
 
 export function tripLengthDays(departOn: string, returnOn: string): number {
   const start = Date.parse(departOn);
@@ -41,7 +42,20 @@ export function originAirport(code: RawTripInput["origin"]): string {
   return ORIGIN_CITIES.find((c) => c.code === code)?.airport ?? "JFK";
 }
 
+/**
+ * Slug set computed once at module load — `enrich-destinations.ts` already
+ * runs dedupe so this matches the live candidate pool. We only check
+ * existence; the rec engine handles origin-collision elsewhere.
+ */
+const KNOWN_SLUGS = new Set(ENRICHED_DESTINATIONS.map((d) => d.slug));
+
 export function normalize(raw: RawTripInput): NormalizedTripInput {
+  // Phase F: drop the anchor silently if the slug isn't in the live dataset.
+  // The wizard already validates against DESTINATIONS at render time, so this
+  // is a safety net for stale URLs / hand-typed query params.
+  const anchorSlug =
+    raw.anchorSlug && KNOWN_SLUGS.has(raw.anchorSlug) ? raw.anchorSlug : undefined;
+
   return {
     originCode: raw.origin,
     originAirport: originAirport(raw.origin),
@@ -55,5 +69,6 @@ export function normalize(raw: RawTripInput): NormalizedTripInput {
     seasonHint: seasonForDate(raw.departOn),
     dislikes: (raw.dislikes ?? "").trim(),
     notes: (raw.notes ?? "").trim() || undefined,
+    anchorSlug,
   };
 }

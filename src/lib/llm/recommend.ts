@@ -84,6 +84,19 @@ const NATURE_VIBES = new Set(["scenic", "nature", "adventure"]);
  */
 const CITY_FRIENDLY_LANDSCAPES = new Set(["city", "coast", "lake", "island"]);
 
+/** Haversine distance in miles (reused from prompts.ts). */
+function haversineMi(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 3959;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
 export function preFilter(
   input: NormalizedTripInput,
   pool: SeedDestination[] = DESTINATIONS,
@@ -93,8 +106,33 @@ export function preFilter(
   const userVibes = new Set(input.vibes);
   const userHasNatureVibe = [...userVibes].some((v) => NATURE_VIBES.has(v));
 
+  // Phase F: anchor immunity + neighbor promotion. The anchor itself bypasses
+  // soft filters (season, budget, vibe-overlap) but still respects the origin
+  // exclusion. The 3 nearest neighbors (≤350mi) are also force-included so
+  // the LLM has companions for the anchor even when the season/budget would
+  // otherwise filter them.
+  const originSlug = slugForOrigin(input.originCode);
+  const anchor =
+    input.anchorSlug && input.anchorSlug !== originSlug
+      ? pool.find((d) => d.slug === input.anchorSlug)
+      : undefined;
+  const anchorNeighborSlugs = new Set<string>();
+  if (anchor) {
+    const neighbors = pool
+      .filter((d) => d.slug !== anchor.slug && d.slug !== originSlug)
+      .map((d) => ({ slug: d.slug, mi: haversineMi(anchor.lat, anchor.lng, d.lat, d.lng) }))
+      .filter((d) => d.mi <= 350)
+      .sort((a, b) => a.mi - b.mi)
+      .slice(0, 3);
+    for (const n of neighbors) anchorNeighborSlugs.add(n.slug);
+  }
+  const isAnchorOrNeighbor = (d: SeedDestination): boolean =>
+    !!anchor && (d.slug === anchor.slug || anchorNeighborSlugs.has(d.slug));
+
   return pool.filter((d) => {
-    if (d.slug === slugForOrigin(input.originCode)) return false;
+    if (d.slug === originSlug) return false;
+    // Anchor + immediate neighbors bypass every soft filter below.
+    if (isAnchorOrNeighbor(d)) return true;
     if (d.bestSeasons.length > 0 && !d.bestSeasons.includes(input.seasonHint)) {
       return false;
     }

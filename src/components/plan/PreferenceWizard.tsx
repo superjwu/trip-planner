@@ -114,6 +114,9 @@ export function PreferenceWizard() {
       pace,
       dislikes: dislikes.trim() || undefined,
       notes: combinedNotes || undefined,
+      // Phase F: anchor is now a structural commitment, not just a soft hint
+      // in `notes`. The rec engine treats it as "must include at rank 1 or 2".
+      anchorSlug: anchorDest?.slug,
     };
 
     startTransition(async () => {
@@ -152,7 +155,8 @@ export function PreferenceWizard() {
           </button>
         </div>
       )}
-      <input type="hidden" name="anchorSlug" value={anchorSlug ?? ""} />
+      {/* Phase F: hidden input removed — anchor is submitted via the typed
+          `RawTripInput` object in onSubmit, not as form data. */}
 
       {/* ── Page header ── */}
       <header className="mb-2 text-center">

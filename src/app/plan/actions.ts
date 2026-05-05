@@ -52,6 +52,13 @@ const RawTripInputSchema = z.object({
   pace: z.enum(["relaxed", "balanced", "packed"]).optional(),
   dislikes: FreeText.optional(),
   notes: FreeText.optional(),
+  // Phase F: anchor slug from /destinations → /plan?anchor=…  Pattern check
+  // here; existence check happens in normalize().
+  anchorSlug: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .max(80)
+    .optional(),
 });
 
 export type CreateTripResult =
