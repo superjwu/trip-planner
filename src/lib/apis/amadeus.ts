@@ -70,6 +70,10 @@ export async function getCheapestFlightOffer(args: {
     url.searchParams.set("returnDate", args.returnOn);
     url.searchParams.set("adults", String(args.adults ?? 1));
     url.searchParams.set("currencyCode", "USD");
+    // Direct flights only — fewer offers but more honest comparisons. With
+    // a 1-stop result a "$180 NYC → BZN" line would mislead users into
+    // thinking it's a 5h trip when it's actually 9h with a layover.
+    url.searchParams.set("nonStop", "true");
     url.searchParams.set("max", "5");
 
     const res = await fetch(url.toString(), {
