@@ -1,5 +1,5 @@
 "use client";
-import { useTransition, type MouseEvent } from "react";
+import { useState, useTransition, type MouseEvent } from "react";
 import { toggleFavoriteAction, toggleVisitedAction } from "@/app/destinations/actions";
 
 /**
@@ -7,6 +7,13 @@ import { toggleFavoriteAction, toggleVisitedAction } from "@/app/destinations/ac
  * checkmark (visited). Sits inside the card's <Link> wrapper, so each
  * button stops propagation + prevents default on click — otherwise the
  * surrounding link would navigate to /plan?anchor=… every time.
+ *
+ * Visibility tweaks:
+ * - Solid white background + a stronger drop shadow so they pop off
+ *   bright photos (forests, beaches) without needing a tint overlay.
+ * - 36×36 hit area (was 32) — easier to tap on mobile, more visible.
+ * - Hover preview: heart turns coral / checkmark turns slate before the
+ *   user commits, so the action's eventual color is obvious at a glance.
  */
 export function CardActions({
   slug,
@@ -25,15 +32,21 @@ export function CardActions({
   };
 }) {
   const [pending, startTransition] = useTransition();
+  const [favHover, setFavHover] = useState(false);
+  const [visHover, setVisHover] = useState(false);
 
   function intercept(e: MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
   }
 
+  // Heart: filled coral when active, outlined coral on hover, neutral white otherwise.
+  const favActive = isFavorite || favHover;
+  const visActive = isVisited || visHover;
+
   return (
     <div
-      className="absolute right-3 top-3 z-20 flex items-center gap-1.5"
+      className="absolute right-3 top-3 z-20 flex items-center gap-2"
       onClick={intercept}
     >
       <button
@@ -45,17 +58,30 @@ export function CardActions({
           intercept(e);
           startTransition(() => toggleFavoriteAction(slug));
         }}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition disabled:opacity-60"
+        onMouseEnter={() => setFavHover(true)}
+        onMouseLeave={() => setFavHover(false)}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-150 disabled:opacity-60 hover:scale-110"
         style={{
-          background: isFavorite ? "var(--accent)" : "rgba(255,255,255,0.92)",
-          color: isFavorite ? "#ffffff" : "var(--ink)",
-          border: "1px solid var(--hairline)",
+          background: isFavorite
+            ? "var(--accent)"
+            : favHover
+              ? "#ffffff"
+              : "rgba(255,255,255,0.96)",
+          color: isFavorite
+            ? "#ffffff"
+            : favHover
+              ? "var(--accent)"
+              : "var(--ink-soft)",
+          border: `1.5px solid ${favActive ? "var(--accent)" : "var(--hairline)"}`,
+          boxShadow: favActive
+            ? "0 6px 16px -4px rgba(231,111,81,0.45)"
+            : "0 2px 8px -2px rgba(31,41,55,0.25)",
         }}
       >
         {/* Heart glyph */}
         <svg
-          width="14"
-          height="14"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill={isFavorite ? "currentColor" : "none"}
           stroke="currentColor"
@@ -77,17 +103,30 @@ export function CardActions({
           intercept(e);
           startTransition(() => toggleVisitedAction(slug));
         }}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition disabled:opacity-60"
+        onMouseEnter={() => setVisHover(true)}
+        onMouseLeave={() => setVisHover(false)}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-150 disabled:opacity-60 hover:scale-110"
         style={{
-          background: isVisited ? "var(--slate-primary)" : "rgba(255,255,255,0.92)",
-          color: isVisited ? "#ffffff" : "var(--ink)",
-          border: "1px solid var(--hairline)",
+          background: isVisited
+            ? "var(--slate-primary)"
+            : visHover
+              ? "#ffffff"
+              : "rgba(255,255,255,0.96)",
+          color: isVisited
+            ? "#ffffff"
+            : visHover
+              ? "var(--slate-primary)"
+              : "var(--ink-soft)",
+          border: `1.5px solid ${visActive ? "var(--slate-primary)" : "var(--hairline)"}`,
+          boxShadow: visActive
+            ? "0 6px 16px -4px rgba(44,84,116,0.45)"
+            : "0 2px 8px -2px rgba(31,41,55,0.25)",
         }}
       >
         {/* Checkmark glyph */}
         <svg
-          width="14"
-          height="14"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

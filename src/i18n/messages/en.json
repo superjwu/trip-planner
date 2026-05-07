@@ -211,6 +211,10 @@
       "favoriteOff": "Save to liked",
       "visitedOn": "Visited",
       "visitedOff": "Mark as visited"
+    },
+    "legend": {
+      "like": "Like to save for later — purely a bookmark.",
+      "visited": "Mark as visited — excluded from every trip's recommendations."
     }
   },
   "common": {

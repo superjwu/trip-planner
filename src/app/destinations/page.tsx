@@ -345,7 +345,53 @@ export default async function DestinationsPage({
         </section>
 
         {/* Grid */}
-        <section className="mx-auto max-w-6xl px-6 py-16">
+        <section className="mx-auto max-w-6xl px-6 pt-8 pb-16">
+          {/* Card-action legend — explains the heart + checkmark on each card */}
+          <div
+            className="mb-8 flex flex-wrap items-center justify-center gap-4 rounded-2xl border bg-white px-5 py-3 text-xs sm:gap-6"
+            style={{ borderColor: "var(--hairline)", fontFamily: "var(--font-body)" }}
+          >
+            <span className="inline-flex items-center gap-2" style={{ color: "var(--ink-soft)" }}>
+              <span
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full"
+                style={{
+                  background: "var(--accent)",
+                  color: "#ffffff",
+                  border: "1.5px solid var(--accent)",
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </span>
+              {t("legend.like")}
+            </span>
+            <span className="inline-flex items-center gap-2" style={{ color: "var(--ink-soft)" }}>
+              <span
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full"
+                style={{
+                  background: "var(--slate-primary)",
+                  color: "#ffffff",
+                  border: "1.5px solid var(--slate-primary)",
+                }}
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
+              {t("legend.visited")}
+            </span>
+          </div>
           {filtered.length === 0 ? (
             <div className="rounded-3xl border bg-white p-12 text-center" style={{ borderColor: "var(--hairline)" }}>
               <p className="mb-4 text-lg italic" style={{ color: "var(--ink-soft)", fontFamily: "var(--font-display)" }}>
