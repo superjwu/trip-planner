@@ -6,6 +6,7 @@ import { MainNav } from "@/components/nav/MainNav";
 import { CompareHeader } from "@/components/recs/CompareHeader";
 import { DestinationCard } from "@/components/recs/DestinationCard";
 import { ExpandedDestination } from "@/components/recs/ExpandedDestination";
+import { ItineraryAutoFetch } from "@/components/recs/ItineraryAutoFetch";
 import { TradeoffMatrix } from "@/components/recs/TradeoffMatrix";
 import { RefinePanel } from "@/components/recs/RefinePanel";
 import { RoundSwitcher, type RoundSummary } from "@/components/recs/RoundSwitcher";
@@ -31,7 +32,7 @@ import type {
   SeedDestination,
   WeatherForecast,
 } from "@/lib/types";
-import { computeRecommendations, ensureItinerary } from "./actions";
+import { computeRecommendations } from "./actions";
 import { localizeDestination } from "@/lib/i18n/localizeDestination";
 import { ENRICHED_DESTINATIONS } from "@/lib/seed/enrich-destinations";
 
@@ -209,22 +210,17 @@ export default async function TripPage({
     requestedRound ?? rounds.find((r) => r.id === trip.active_round_id) ?? null;
   const isActiveRound = renderRound?.id === trip.active_round_id;
 
-  let recs =
+  const recs =
     trip.compute_status === "ready"
       ? await fetchRecs(renderRound?.id ?? null, normalized?.tripLengthDays ?? null)
       : [];
 
   const focusRank = focusRaw ? Number(focusRaw) : null;
-  const focused =
-    focusRank !== null
-      ? recs.find((r) => r.rank === focusRank) ?? null
-      : null;
-
-  // Lazy itinerary on focus.
-  if (focused && !focused.itinerary) {
-    await ensureItinerary({ tripId: id, recId: focused.id });
-    recs = await fetchRecs(renderRound?.id ?? null, normalized?.tripLengthDays ?? null);
-  }
+  // Lazy itinerary on focus — itinerary generation is a 6-15s LLM call.
+  // Awaiting it server-side blocks the entire page render and made clicking
+  // a pick feel slow. Render focused view immediately; if itinerary is
+  // missing, ItineraryAutoFetch fires the server action client-side and
+  // calls router.refresh() when done.
   const refocused =
     focusRank !== null
       ? recs.find((r) => r.rank === focusRank) ?? null
@@ -439,8 +435,12 @@ function FocusedView({ tripId, rec, locale = "en" }: { tripId: string; rec: Pars
         bookingLinks={bookingLinks}
         itinerary={rec.itinerary?.days}
         itineraryMissing={!rec.itinerary}
+        itineraryLoading={!rec.itinerary}
         locale={locale}
       />
+      {!rec.itinerary && (
+        <ItineraryAutoFetch tripId={tripId} recId={rec.id} />
+      )}
     </div>
   );
 }
