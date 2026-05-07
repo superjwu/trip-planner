@@ -129,8 +129,16 @@ export function preFilter(
   const isAnchorOrNeighbor = (d: SeedDestination): boolean =>
     !!anchor && (d.slug === anchor.slug || anchorNeighborSlugs.has(d.slug));
 
+  // Phase J: visited destinations are HARD-excluded. Stronger than season /
+  // budget / vibe-overlap soft filters — even an anchor cannot override a
+  // visited entry (normalize() already strips the anchor from visitedSlugs,
+  // so this is consistent: if the anchor is visited, the user shouldn't
+  // have been able to anchor on it anyway).
+  const visitedSet = new Set(input.visitedSlugs ?? []);
+
   return pool.filter((d) => {
     if (d.slug === originSlug) return false;
+    if (visitedSet.has(d.slug)) return false;
     // Anchor + immediate neighbors bypass every soft filter below.
     if (isAnchorOrNeighbor(d)) return true;
     if (d.bestSeasons.length > 0 && !d.bestSeasons.includes(input.seasonHint)) {

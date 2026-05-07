@@ -56,6 +56,13 @@ export function normalize(raw: RawTripInput): NormalizedTripInput {
   const anchorSlug =
     raw.anchorSlug && KNOWN_SLUGS.has(raw.anchorSlug) ? raw.anchorSlug : undefined;
 
+  // Phase J: keep only known slugs and drop the anchor itself if present
+  // (the user can't have "anchor on Big Sur AND avoid Big Sur" — the anchor
+  // wins).
+  const visitedSlugs = (raw.visitedSlugs ?? [])
+    .filter((s) => KNOWN_SLUGS.has(s))
+    .filter((s) => s !== anchorSlug);
+
   return {
     originCode: raw.origin,
     originAirport: originAirport(raw.origin),
@@ -70,5 +77,6 @@ export function normalize(raw: RawTripInput): NormalizedTripInput {
     dislikes: (raw.dislikes ?? "").trim(),
     notes: (raw.notes ?? "").trim() || undefined,
     anchorSlug,
+    visitedSlugs: visitedSlugs.length > 0 ? visitedSlugs : undefined,
   };
 }

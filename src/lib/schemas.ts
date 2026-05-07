@@ -189,6 +189,13 @@ export const NormalizedTripInputSchema = z.object({
     .string()
     .regex(/^[a-z0-9-]+$/)
     .optional(),
+  // Phase J: visited slug list — same DB-read concern as anchorSlug. Each
+  // entry is regex-checked here; existence in DESTINATIONS is enforced by
+  // normalize() (filters unknown slugs out before persisting).
+  visitedSlugs: z
+    .array(z.string().regex(/^[a-z0-9-]+$/))
+    .max(100)
+    .optional(),
 });
 export type NormalizedTripInputT = z.infer<typeof NormalizedTripInputSchema>;
 

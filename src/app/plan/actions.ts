@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { requireUserId } from "@/lib/auth";
 import { createOwnerScopedSupabase } from "@/lib/supabase/server";
 import { normalize } from "@/lib/normalize";
+import { getVisitedSlugs } from "@/lib/visited";
 import {
   REC_PROMPT_VERSION,
   SEED_VERSION,
@@ -59,6 +60,13 @@ const RawTripInputSchema = z.object({
     .regex(/^[a-z0-9-]+$/)
     .max(80)
     .optional(),
+  // Phase J: server-side. The wizard never submits this — the createTrip
+  // action reads the `tp-visited` cookie and injects the list before
+  // validation. Existence check happens in normalize().
+  visitedSlugs: z
+    .array(z.string().regex(/^[a-z0-9-]+$/).max(80))
+    .max(100)
+    .optional(),
 });
 
 export type CreateTripResult =
@@ -66,7 +74,15 @@ export type CreateTripResult =
   | { ok: false; error: string };
 
 export async function createTrip(input: RawTripInput): Promise<CreateTripResult> {
-  const parsed = RawTripInputSchema.safeParse(input);
+  // Phase J: read the visited-list cookie server-side and merge it into the
+  // raw input so RawTripInputSchema validates it. Client never has to know
+  // the cookie exists — the /settings page is the single management surface.
+  const visitedFromCookie = await getVisitedSlugs();
+  const inputWithVisited: RawTripInput = {
+    ...input,
+    visitedSlugs: visitedFromCookie.length > 0 ? visitedFromCookie : undefined,
+  };
+  const parsed = RawTripInputSchema.safeParse(inputWithVisited);
   if (!parsed.success) {
     return { ok: false, error: "Invalid trip input." };
   }

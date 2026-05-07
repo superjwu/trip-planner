@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { MainNav } from "@/components/nav/MainNav";
 import { DisconnectChatGPTButton } from "@/components/settings/DisconnectChatGPTButton";
+import { VisitedManager } from "@/components/settings/VisitedManager";
 import { isCodexOAuthEnabled } from "@/lib/llm/codex-auth";
 import { hasCodexAuth } from "@/lib/llm/codex-token";
 import { requireUserId } from "@/lib/auth";
+import { getVisitedSlugs } from "@/lib/visited";
+import { ENRICHED_DESTINATIONS as DESTINATIONS } from "@/lib/seed/enrich-destinations";
 
 export const metadata = {
   title: "Settings — Trip Planner",
@@ -29,6 +32,21 @@ export default async function SettingsPage() {
       status = { connected: false };
     }
   }
+
+  // Phase J: visited destinations are stored in the `tp-visited` cookie
+  // and excluded from preFilter on every trip compute.
+  const visitedSlugs = await getVisitedSlugs();
+  const knownBySlug = new Map(DESTINATIONS.map((d) => [d.slug, d]));
+  const visitedDests = visitedSlugs
+    .map((s) => knownBySlug.get(s))
+    .filter((d): d is NonNullable<typeof d> => Boolean(d))
+    .map((d) => ({ slug: d.slug, name: d.name, state: d.state, region: d.region }));
+  const catalog = DESTINATIONS.map((d) => ({
+    slug: d.slug,
+    name: d.name,
+    state: d.state,
+    region: d.region,
+  })).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <>
@@ -112,6 +130,32 @@ export default async function SettingsPage() {
               </Link>
             </div>
           )}
+        </section>
+
+        {/* Places you've been */}
+        <section
+          className="mt-8 rounded-3xl border border-[var(--hairline)] bg-white px-7 py-6 shadow-[0_8px_24px_-8px_rgba(31,41,55,0.08)]"
+        >
+          <p
+            className="mb-1 text-xs tracking-[0.16em] uppercase"
+            style={{
+              fontFamily: "var(--font-body-stack)",
+              color: "var(--slate-primary)",
+            }}
+          >
+            Recommendations
+          </p>
+          <h2
+            className="text-xl font-medium text-[var(--ink)]"
+            style={{ fontFamily: "var(--font-display-stack)" }}
+          >
+            Places you&apos;ve been
+          </h2>
+          <p className="mt-2 mb-5 text-sm text-[var(--ink-soft)]">
+            Anything in this list is excluded from every trip&apos;s
+            recommendations. Stored in your browser; clear it any time.
+          </p>
+          <VisitedManager visited={visitedDests} catalog={catalog} />
         </section>
 
         <p className="mt-8 text-[11px] leading-relaxed text-[var(--ink-soft)]">
