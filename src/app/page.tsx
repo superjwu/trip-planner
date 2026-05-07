@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { MainNav } from "@/components/nav/MainNav";
+import { HeroCarousel } from "@/components/hero/HeroCarousel";
 import {
-  BlobTerracotta,
-  BlobSunYellow,
   LeafDot,
   FloatingAccentDot,
 } from "@/components/hero/BlobAccents";
@@ -11,6 +10,48 @@ import { ENRICHED_DESTINATIONS as DESTINATIONS } from "@/lib/seed/enrich-destina
 import { destinationPhotoUrl } from "@/lib/photo";
 
 const STEP_SLUGS = ["big-sur-ca", "yellowstone-np", "charleston-sc"] as const;
+
+// Curated National-Park / scenic photos for the landing carousel. Stable
+// Unsplash URLs — kept inline rather than going through the seed/picsum
+// fallback so the landing has real, recognizable park imagery.
+const HERO_SLIDES = [
+  {
+    name: "Yosemite",
+    region: "Sierra Nevada · CA",
+    imageUrl:
+      "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
+    name: "Grand Canyon",
+    region: "Colorado Plateau · AZ",
+    imageUrl:
+      "https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
+    name: "Zion",
+    region: "Southern Utah",
+    imageUrl:
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
+    name: "Acadia",
+    region: "Mount Desert Island · ME",
+    imageUrl:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
+    name: "Olympic",
+    region: "Pacific Northwest · WA",
+    imageUrl:
+      "https://images.unsplash.com/photo-1465056836041-7f43ac27dcb5?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
+    name: "Glacier",
+    region: "Northern Rockies · MT",
+    imageUrl:
+      "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=2000&q=80",
+  },
+];
 
 export default async function Home() {
   const t = await getTranslations("landing");
@@ -24,78 +65,7 @@ export default async function Home() {
   return (
     <>
       <MainNav />
-
-      {/* ── Hero ─────────────────────────────────────────────── */}
-      <section
-        className="relative overflow-hidden"
-        style={{ background: "var(--paper)" }}
-      >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(800px 480px at 75% 25%, rgba(44,84,116,0.10), transparent 70%), radial-gradient(700px 420px at 12% 85%, rgba(231,111,81,0.08), transparent 70%)",
-          }}
-        />
-        <BlobTerracotta />
-        <BlobSunYellow />
-
-        <div className="relative mx-auto w-full max-w-5xl px-6 py-28 md:py-40">
-          <p
-            className="mb-5 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em]"
-            style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
-          >
-            <LeafDot />
-            <span>{t("kicker")}</span>
-            <LeafDot />
-          </p>
-
-          <h1
-            className="font-light leading-[1.02] tracking-[-0.02em] text-[3.2rem] sm:text-7xl md:text-8xl"
-            style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
-          >
-            {t.rich("headline", {
-              em: (chunks) => (
-                <em style={{ fontStyle: "italic", color: "var(--slate-primary)" }}>{chunks}</em>
-              ),
-            })}
-          </h1>
-
-          <p
-            className="mt-8 max-w-xl text-lg italic md:text-xl"
-            style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
-          >
-            {t("dek")}
-          </p>
-
-          <div className="mt-10 flex flex-col items-start gap-3">
-            <Link
-              href="/plan"
-              className="btn-accent inline-block px-10 py-4 text-base"
-              style={{ fontFamily: "var(--font-body-stack)" }}
-            >
-              {t("ctaPrimary")} →
-            </Link>
-            <p
-              className="text-xs italic"
-              style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink-soft)" }}
-            >
-              {t.rich("ctaSecondary", {
-                link: (chunks) => (
-                  <Link
-                    href="/trips/demo"
-                    className="underline hover:opacity-70"
-                    style={{ color: "var(--slate-primary)" }}
-                  >
-                    {chunks}
-                  </Link>
-                ),
-              })}
-            </p>
-          </div>
-        </div>
-      </section>
+      <HeroCarousel slides={HERO_SLIDES} />
 
       {/* ── How it works — alternating editorial blocks ─────────────── */}
       <section
