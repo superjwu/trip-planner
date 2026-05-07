@@ -149,29 +149,61 @@ export function RouteAtlas({
   const insideViewBox = (b: Box, margin = 2) =>
     b.x >= margin && b.y >= margin && b.x + b.w <= width - margin && b.y + b.h <= height - margin;
 
-  // Approx label width — name vs state, take the wider one.
+  // Inflate a box by `pad` on every side so collision checks reserve a
+  // visible breathing-room buffer between adjacent labels.
+  const inflate = (b: Box, pad: number): Box => ({
+    x: b.x - pad,
+    y: b.y - pad,
+    w: b.w + pad * 2,
+    h: b.h + pad * 2,
+  });
+
+  // Approx label width — name vs state, take the wider one. The 7.0
+  // multiplier matches DM Sans @ 11px more accurately than the old 6.4
+  // (which under-counted and let labels touch).
   const labelBoxFor = (
     side: Side,
     x: number,
     y: number,
     name: string,
     stateLine: string,
+    yOffset = 0,
   ): { textX: number; textY: number; anchor: "start" | "end" | "middle"; box: Box } => {
-    const nameW = name.length * 6.4;
-    const stateW = stateLine.length * 6.6;
+    const nameW = name.length * 7.0;
+    const stateW = stateLine.length * 7.0;
     const w = Math.max(nameW, stateW) + 4;
     const h = 22; // two stacked lines
     if (side === "right") {
-      return { textX: x + 14, textY: y + 4.5, anchor: "start", box: { x: x + 14, y: y - 7, w, h } };
+      return {
+        textX: x + 14,
+        textY: y + 4.5 + yOffset,
+        anchor: "start",
+        box: { x: x + 14, y: y - 7 + yOffset, w, h },
+      };
     }
     if (side === "left") {
-      return { textX: x - 14, textY: y + 4.5, anchor: "end", box: { x: x - 14 - w, y: y - 7, w, h } };
+      return {
+        textX: x - 14,
+        textY: y + 4.5 + yOffset,
+        anchor: "end",
+        box: { x: x - 14 - w, y: y - 7 + yOffset, w, h },
+      };
     }
     if (side === "top") {
-      return { textX: x, textY: y - 18, anchor: "middle", box: { x: x - w / 2, y: y - 32, w, h } };
+      return {
+        textX: x,
+        textY: y - 18 + yOffset,
+        anchor: "middle",
+        box: { x: x - w / 2, y: y - 32 + yOffset, w, h },
+      };
     }
     // bottom
-    return { textX: x, textY: y + 22, anchor: "middle", box: { x: x - w / 2, y: y + 14, w, h } };
+    return {
+      textX: x,
+      textY: y + 22 + yOffset,
+      anchor: "middle",
+      box: { x: x - w / 2, y: y + 14 + yOffset, w, h },
+    };
   };
 
   // Reserved boxes: origin marker (concentric rings, r=14) + origin label.
@@ -189,13 +221,29 @@ export function RouteAtlas({
   }
 
   type PlacedPick = (typeof projectedPicks)[number] & {
-    layout: { textX: number; textY: number; anchor: "start" | "end" | "middle"; side: Side };
+    layout: {
+      textX: number;
+      textY: number;
+      anchor: "start" | "end" | "middle";
+      side: Side;
+      /** When set, draw a leader line from marker to label start. */
+      leader?: { x1: number; y1: number; x2: number; y2: number };
+    };
   };
 
   // Place by rank order so #1 gets the most-preferred slot.
   const sortedPicks = [...projectedPicks].sort(
     (a, b) => (a.rank ?? 99) - (b.rank ?? 99),
   );
+
+  // Vertical offsets to try after the four base sides fail. Used when picks
+  // cluster (e.g. four Northeast picks all wanting `right`) so labels can
+  // stagger vertically with leader lines instead of stacking on top of
+  // each other.
+  const Y_OFFSETS = [24, -24, 48, -48, 72, -72];
+  // Padding in pixels around each placed box for collision detection. Forces
+  // visible breathing room between neighboring labels.
+  const COLLIDE_PAD = 4;
 
   const placedPicks: PlacedPick[] = [];
   for (const p of sortedPicks) {
@@ -208,37 +256,80 @@ export function RouteAtlas({
       ? ["right", "left", "top", "bottom"]
       : ["left", "right", "top", "bottom"];
 
-    let chosen: ReturnType<typeof labelBoxFor> & { side: Side } | null = null;
+    let chosen:
+      | (ReturnType<typeof labelBoxFor> & { side: Side; yOffset: number })
+      | null = null;
+
+    // Pass 1: each of four sides at base position.
     for (const side of sides) {
       const candidate = labelBoxFor(side, p.x, p.y, p.name, stateLine);
       if (!insideViewBox(candidate.box)) continue;
-      const collides = reservedBoxes.some((r) => overlaps(candidate.box, r));
+      const collides = reservedBoxes.some((r) =>
+        overlaps(inflate(candidate.box, COLLIDE_PAD), r),
+      );
       if (!collides) {
-        chosen = { ...candidate, side };
+        chosen = { ...candidate, side, yOffset: 0 };
         break;
       }
     }
-    // Fallback: take the first in-bounds side even if it overlaps (rare with
-    // ≤4 picks, but never crash). Last resort: the original right side.
+
+    // Pass 2: clustered fallback — same preferred side at offset y.
+    // Used when 4+ picks compete for the same neighborhood (e.g. NE
+    // cluster). The label moves down/up from the marker; we draw a
+    // leader line so the user can still trace label → pin.
+    if (!chosen) {
+      for (const yOff of Y_OFFSETS) {
+        for (const side of sides.slice(0, 2)) {
+          // only horizontal sides for offset retries
+          const candidate = labelBoxFor(side, p.x, p.y, p.name, stateLine, yOff);
+          if (!insideViewBox(candidate.box)) continue;
+          const collides = reservedBoxes.some((r) =>
+            overlaps(inflate(candidate.box, COLLIDE_PAD), r),
+          );
+          if (!collides) {
+            chosen = { ...candidate, side, yOffset: yOff };
+            break;
+          }
+        }
+        if (chosen) break;
+      }
+    }
+
+    // Pass 3: any in-bounds side (overlap allowed). Rare.
     if (!chosen) {
       for (const side of sides) {
         const candidate = labelBoxFor(side, p.x, p.y, p.name, stateLine);
         if (insideViewBox(candidate.box)) {
-          chosen = { ...candidate, side };
+          chosen = { ...candidate, side, yOffset: 0 };
           break;
         }
       }
     }
     if (!chosen) {
       const fallback = labelBoxFor(sides[0], p.x, p.y, p.name, stateLine);
-      chosen = { ...fallback, side: sides[0] };
+      chosen = { ...fallback, side: sides[0], yOffset: 0 };
     }
 
     reservedBoxes.push(chosen.box);
-    placedPicks.push({
-      ...p,
-      layout: { textX: chosen.textX, textY: chosen.textY, anchor: chosen.anchor, side: chosen.side },
-    });
+    const layout: PlacedPick["layout"] = {
+      textX: chosen.textX,
+      textY: chosen.textY,
+      anchor: chosen.anchor,
+      side: chosen.side,
+    };
+    if (chosen.yOffset !== 0 && (chosen.side === "right" || chosen.side === "left")) {
+      // leader from marker edge to label start, so reader can trace which
+      // pin the offset label belongs to.
+      const leaderX1 = chosen.side === "right" ? p.x + 9 : p.x - 9;
+      const leaderX2 = chosen.side === "right" ? chosen.textX - 2 : chosen.textX + 2;
+      layout.leader = {
+        x1: leaderX1,
+        y1: p.y,
+        x2: leaderX2,
+        y2: chosen.textY - 4,
+      };
+    }
+    placedPicks.push({ ...p, layout });
   }
 
   return (
@@ -284,6 +375,18 @@ export function RouteAtlas({
         const stateLine = p.isTerritory ? `${p.state} · INSET` : p.state;
         return (
           <g key={`pick-${p.slug}`}>
+            {p.layout.leader && (
+              <line
+                x1={p.layout.leader.x1}
+                y1={p.layout.leader.y1}
+                x2={p.layout.leader.x2}
+                y2={p.layout.leader.y2}
+                stroke={p.hue}
+                strokeWidth={1}
+                strokeOpacity={0.55}
+                strokeLinecap="round"
+              />
+            )}
             <circle cx={p.x} cy={p.y} r={9} fill="#F4F6F8" stroke={p.hue} strokeWidth={2.5} />
             <circle cx={p.x} cy={p.y} r={3.5} fill={p.hue} />
             <text
