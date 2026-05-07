@@ -1,167 +1,300 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { MainNav } from "@/components/nav/MainNav";
-import { HeroCarousel } from "@/components/hero/HeroCarousel";
+import {
+  BlobTerracotta,
+  BlobSunYellow,
+  LeafDot,
+  FloatingAccentDot,
+} from "@/components/hero/BlobAccents";
+import { ENRICHED_DESTINATIONS as DESTINATIONS } from "@/lib/seed/enrich-destinations";
+import { destinationPhotoUrl } from "@/lib/photo";
 
-// Curated National-Park / scenic photos for the landing carousel. Unsplash
-// hosts are stable and these specific photo IDs resolve. Kept inline rather
-// than going through the seed/picsum fallback so the landing has real,
-// recognizable park imagery instead of random nature stock.
-const HERO_SLIDES = [
-  {
-    name: "Yosemite",
-    region: "Sierra Nevada · CA",
-    imageUrl:
-      "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=2000&q=80",
-  },
-  {
-    name: "Grand Canyon",
-    region: "Colorado Plateau · AZ",
-    imageUrl:
-      "https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?auto=format&fit=crop&w=2000&q=80",
-  },
-  {
-    name: "Zion",
-    region: "Southern Utah",
-    imageUrl:
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2000&q=80",
-  },
-  {
-    name: "Acadia",
-    region: "Mount Desert Island · ME",
-    imageUrl:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80",
-  },
-  {
-    name: "Olympic",
-    region: "Pacific Northwest · WA",
-    imageUrl:
-      "https://images.unsplash.com/photo-1465056836041-7f43ac27dcb5?auto=format&fit=crop&w=2000&q=80",
-  },
-  {
-    name: "Glacier",
-    region: "Northern Rockies · MT",
-    imageUrl:
-      "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=2000&q=80",
-  },
-];
+const STEP_SLUGS = ["big-sur-ca", "yellowstone-np", "charleston-sc"] as const;
 
-export default function Home() {
-  const slides = HERO_SLIDES;
+export default async function Home() {
+  const t = await getTranslations("landing");
+
+  const stepDests = STEP_SLUGS.map((slug) => {
+    const d = DESTINATIONS.find((x) => x.slug === slug);
+    if (!d) throw new Error(`landing: missing seed destination ${slug}`);
+    return d;
+  });
 
   return (
     <>
       <MainNav />
-      <HeroCarousel slides={slides} />
 
-      {/* ── How it works section ── */}
+      {/* ── Hero ─────────────────────────────────────────────── */}
       <section
-        className="mx-auto w-full max-w-5xl px-6 py-20"
-        style={{ backgroundColor: "var(--paper)" }}
+        className="relative overflow-hidden"
+        style={{ background: "var(--paper)" }}
       >
-        {/* Kicker */}
-        <p
-          className="mb-3 text-xs font-semibold tracking-[0.22em] uppercase"
-          style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
-        >
-          How it works
-        </p>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(800px 480px at 75% 25%, rgba(44,84,116,0.10), transparent 70%), radial-gradient(700px 420px at 12% 85%, rgba(231,111,81,0.08), transparent 70%)",
+          }}
+        />
+        <BlobTerracotta />
+        <BlobSunYellow />
 
-        {/* Section headline — DM Sans display, italic accent word */}
-        <h2
-          className="text-3xl font-light leading-tight sm:text-4xl"
-          style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
-        >
-          Tell us a few things, get{" "}
-          <em style={{ fontStyle: "italic" }}>four destinations</em>{" "}
-          that actually fit.
-        </h2>
+        <div className="relative mx-auto w-full max-w-5xl px-6 py-28 md:py-40">
+          <p
+            className="mb-5 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em]"
+            style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
+          >
+            <LeafDot />
+            <span>{t("kicker")}</span>
+            <LeafDot />
+          </p>
 
-        {/* Step cards */}
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <h1
+            className="font-light leading-[1.02] tracking-[-0.02em] text-[3.2rem] sm:text-7xl md:text-8xl"
+            style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+          >
+            {t.rich("headline", {
+              em: (chunks) => (
+                <em style={{ fontStyle: "italic", color: "var(--slate-primary)" }}>{chunks}</em>
+              ),
+            })}
+          </h1>
+
+          <p
+            className="mt-8 max-w-xl text-lg italic md:text-xl"
+            style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+          >
+            {t("dek")}
+          </p>
+
+          <div className="mt-10 flex flex-col items-start gap-3">
+            <Link
+              href="/plan"
+              className="btn-accent inline-block px-10 py-4 text-base"
+              style={{ fontFamily: "var(--font-body-stack)" }}
+            >
+              {t("ctaPrimary")} →
+            </Link>
+            <p
+              className="text-xs italic"
+              style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink-soft)" }}
+            >
+              {t.rich("ctaSecondary", {
+                link: (chunks) => (
+                  <Link
+                    href="/trips/demo"
+                    className="underline hover:opacity-70"
+                    style={{ color: "var(--slate-primary)" }}
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── How it works — alternating editorial blocks ─────────────── */}
+      <section
+        className="mx-auto w-full max-w-6xl px-6 py-24 md:py-32"
+        style={{ background: "var(--paper)" }}
+      >
+        <div className="mx-auto max-w-2xl text-center">
+          <p
+            className="mb-3 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em]"
+            style={{ fontFamily: "var(--font-body-stack)", color: "var(--slate-primary)" }}
+          >
+            <LeafDot />
+            <span>{t("howKicker")}</span>
+            <LeafDot />
+          </p>
+          <h2
+            className="text-4xl font-light leading-tight md:text-5xl"
+            style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+          >
+            {t.rich("howHeadline", {
+              em: (chunks) => <em style={{ fontStyle: "italic" }}>{chunks}</em>,
+            })}
+          </h2>
+        </div>
+
+        <div className="mt-20 flex flex-col gap-24 md:gap-32">
           <Step
             n="01"
-            title="Tell us your shape"
-            body="Origin city, dates, vibes (scenic, foodie, chill), budget band, pace. Two minutes, no account guesswork."
+            stepLabel={t("step1Label")}
+            title={t.rich("step1Title", {
+              em: (chunks) => <em style={{ fontStyle: "italic" }}>{chunks}</em>,
+            })}
+            body={t("step1Body")}
+            destination={stepDests[0]}
+            imageOnRight={false}
           />
           <Step
             n="02"
-            title="See four destinations"
-            body="A model ranks our curated U.S. seed list against your priorities. Each pick comes with a why and a tradeoff matrix."
+            stepLabel={t("step2Label")}
+            title={t.rich("step2Title", {
+              em: (chunks) => <em style={{ fontStyle: "italic" }}>{chunks}</em>,
+            })}
+            body={t("step2Body")}
+            destination={stepDests[1]}
+            imageOnRight={true}
           />
           <Step
             n="03"
-            title="Refine + book"
-            body="Keep, pass, or ask for cheaper / less crowded — round 2 lands in seconds. Day-by-day itinerary, cost, weather, booking links."
+            stepLabel={t("step3Label")}
+            title={t.rich("step3Title", {
+              em: (chunks) => <em style={{ fontStyle: "italic" }}>{chunks}</em>,
+            })}
+            body={t("step3Body")}
+            destination={stepDests[2]}
+            imageOnRight={false}
           />
         </div>
+      </section>
 
-        {/* Single coral CTA */}
-        <div className="mt-12 flex flex-col items-center gap-3">
-          <Link
-            href="/plan"
-            className="btn-accent inline-block px-10 py-4 text-base"
-            style={{ fontFamily: "var(--font-body-stack)" }}
-          >
-            Plan a trip →
-          </Link>
+      {/* ── Closing CTA strip ─────────────────────────────────────────── */}
+      <section
+        className="relative mx-auto w-full px-6 py-24 md:py-28"
+        style={{ background: "var(--paper-deep)" }}
+      >
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-[1px]"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, var(--slate-primary) 30%, var(--accent) 70%, transparent)",
+          }}
+        />
+        <div className="mx-auto max-w-2xl text-center">
           <p
-            className="text-xs"
-            style={{ fontFamily: "var(--font-display-stack)", fontStyle: "italic", color: "var(--ink-soft)" }}
+            className="text-2xl italic md:text-3xl"
+            style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
           >
-            Browse the{" "}
-            <Link
-              href="/trips/demo"
-              className="underline hover:opacity-70"
-              style={{ color: "var(--slate-primary)" }}
-            >
-              demo result
-            </Link>{" "}
-            without signing up.
+            {t("closingLine")}
           </p>
+          <div className="mt-8">
+            <Link
+              href="/plan"
+              className="btn-accent inline-block px-10 py-4 text-base"
+              style={{ fontFamily: "var(--font-body-stack)" }}
+            >
+              {t("ctaPrimary")} →
+            </Link>
+          </div>
         </div>
       </section>
     </>
   );
 }
 
+interface StepDest {
+  slug: string;
+  name: string;
+  state: string;
+  heroPhotoUrl?: string;
+}
+
 function Step({
   n,
+  stepLabel,
   title,
   body,
+  destination,
+  imageOnRight,
 }: {
   n: string;
-  title: string;
+  stepLabel: string;
+  title: React.ReactNode;
   body: string;
+  destination: StepDest;
+  imageOnRight: boolean;
 }) {
-  return (
-    <div
-      className="rounded-3xl border px-7 py-7 shadow-[0_20px_40px_-20px_rgba(31,41,55,0.10)]"
-      style={{
-        backgroundColor: "#ffffff",
-        borderColor: "var(--hairline)",
-      }}
-    >
-      {/* Step number — slate-primary italic display */}
-      <p
-        className="text-3xl font-light"
-        style={{ fontFamily: "var(--font-display-stack)", fontStyle: "italic", color: "var(--slate-primary)" }}
+  const photo = destinationPhotoUrl(destination);
+  const imageCol = (
+    <div className="relative">
+      <FloatingAccentDot
+        className={
+          imageOnRight
+            ? "absolute -left-3 top-6 h-5 w-5 rounded-full"
+            : "absolute -right-3 bottom-6 h-5 w-5 rounded-full"
+        }
+      />
+      <div
+        className="overflow-hidden"
+        style={{
+          aspectRatio: "4 / 5",
+          borderRadius: "2rem",
+          boxShadow: "0 30px 60px -25px rgba(31,41,55,0.20)",
+        }}
       >
-        {n}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photo}
+          alt={destination.name}
+          loading="eager"
+          decoding="async"
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <p
+        className="mt-3 text-xs italic"
+        style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+      >
+        {destination.name} · {destination.state}
       </p>
-      {/* Step title */}
+    </div>
+  );
+  const contentCol = (
+    <div className="flex flex-col">
+      <div className="flex items-baseline gap-3">
+        <p
+          className="text-6xl font-light italic md:text-7xl"
+          style={{ fontFamily: "var(--font-display-stack)", color: "var(--slate-primary)" }}
+        >
+          {n}
+        </p>
+        <span className="inline-flex items-center gap-2">
+          <LeafDot />
+          <span
+            className="text-[10px] uppercase tracking-[0.28em]"
+            style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+          >
+            {stepLabel}
+          </span>
+        </span>
+      </div>
       <h3
-        className="mt-3 text-lg font-medium"
+        className="mt-4 text-3xl font-light leading-snug md:text-4xl"
         style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
       >
         {title}
       </h3>
-      {/* Step body */}
       <p
-        className="mt-2 text-sm leading-relaxed"
+        className="mt-5 max-w-md text-base leading-relaxed"
         style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
       >
         {body}
       </p>
+    </div>
+  );
+
+  return (
+    <div className="grid items-center gap-10 md:grid-cols-12 md:gap-16">
+      <div className={imageOnRight ? "md:order-2 md:col-span-5" : "md:col-span-5"}>
+        {imageCol}
+      </div>
+      <div
+        className={
+          imageOnRight
+            ? "md:order-1 md:col-span-7 md:pr-8"
+            : "md:col-span-7 md:pl-8"
+        }
+      >
+        {contentCol}
+      </div>
     </div>
   );
 }

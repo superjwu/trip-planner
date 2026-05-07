@@ -462,7 +462,7 @@ function ResultsGrid({
       >
         The destinations
       </p>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+      <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-2">
         {recs.map((r) => {
           const pick: RecommendationPick = {
             slug: r.destination_slug,
@@ -471,7 +471,7 @@ function ResultsGrid({
             matchTags: r.match_tags,
           };
           return (
-            <Link key={r.id} href={`/trips/${tripId}?focus=${r.rank}`} className="block">
+            <Link key={r.id} href={`/trips/${tripId}?focus=${r.rank}`} className="block h-full">
               <DestinationCard
                 pick={pick}
                 destination={r.destination}
@@ -550,7 +550,7 @@ function ComputingState() {
   return (
     <section className="mt-8">
       <GeneratingProgress />
-      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+      <div className="mt-6 grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <article
             key={i}

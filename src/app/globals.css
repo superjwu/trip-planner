@@ -102,6 +102,11 @@ body {
   background: var(--paper);
   color: var(--ink);
   min-height: 100vh;
+  /* Prevent absolutely-positioned decoration (e.g. landing blobs) from
+     introducing horizontal scroll on small viewports. `overflow-x: clip`
+     does not establish a scroll container, so it doesn't interfere with
+     Next.js App Router scroll restoration the way `hidden` would. */
+  overflow-x: clip;
 }
 
 body {

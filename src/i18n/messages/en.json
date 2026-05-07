@@ -215,5 +215,24 @@
     "next": "Next",
     "save": "Save",
     "cancel": "Cancel"
+  },
+  "landing": {
+    "kicker": "from coast to canyon",
+    "headline": "Four destinations that <em>actually</em> fit.",
+    "dek": "Tell us how you travel — we surface four routes worth arguing about, then refine, round by round, until one feels right.",
+    "ctaPrimary": "Plan a trip",
+    "ctaSecondary": "Or browse the <link>demo result</link> without signing up.",
+    "howKicker": "how it works",
+    "howHeadline": "Three steps. <em>No</em> guesswork.",
+    "step1Label": "step 01 · shape",
+    "step1Title": "Tell us how you <em>travel</em>.",
+    "step1Body": "Origin city, dates, vibes (scenic, foodie, chill), budget band, pace. Two minutes — no account guesswork, no quiz fatigue.",
+    "step2Label": "step 02 · see four",
+    "step2Title": "See four destinations <em>worth arguing</em> about.",
+    "step2Body": "A model ranks our curated U.S. seed list against your priorities. Each pick comes with reasoning, a tradeoff matrix, and the season fit.",
+    "step3Label": "step 03 · refine",
+    "step3Title": "Refine until <em>one</em> feels right.",
+    "step3Body": "Keep, pass, or ask for cheaper / less crowded — round 2 lands in seconds. Day-by-day itinerary, costs, weather, booking links.",
+    "closingLine": "Choose the coast. Begin gently."
   }
 }

@@ -20,7 +20,7 @@ export function DestinationCard({ pick, destination, cost, weather, expanded, on
 
   return (
     <article
-      className={`relative flex cursor-pointer flex-col overflow-hidden bg-white transition-shadow ${
+      className={`relative flex h-full cursor-pointer flex-col overflow-hidden bg-white transition-shadow ${
         expanded ? "ring-2 ring-[var(--accent)]" : ""
       }`}
       style={{
@@ -59,7 +59,7 @@ export function DestinationCard({ pick, destination, cost, weather, expanded, on
       <div className="flex flex-1 flex-col gap-3 px-5 py-4">
         <div>
           <h3
-            className="text-2xl font-semibold leading-tight"
+            className="line-clamp-2 text-2xl font-semibold leading-tight"
             style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
           >
             {name}
@@ -78,14 +78,14 @@ export function DestinationCard({ pick, destination, cost, weather, expanded, on
         </div>
 
         <p
-          className="text-sm leading-relaxed"
+          className="line-clamp-3 text-sm leading-relaxed"
           style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink)" }}
         >
           {pick.reasoning}
         </p>
 
-        <div className="flex flex-wrap gap-1.5">
-          {pick.matchTags.map((tag) => (
+        <div className="flex max-h-[1.85rem] flex-wrap gap-1.5 overflow-hidden">
+          {pick.matchTags.slice(0, 4).map((tag) => (
             <span
               key={tag}
               className={`rounded-full px-2.5 py-1 text-xs font-medium ${tagClass(tag)}`}
@@ -114,22 +114,20 @@ export function DestinationCard({ pick, destination, cost, weather, expanded, on
               {cost ? `$${cost.totalUsd.toLocaleString()}` : "—"}
             </p>
           </div>
-          {weather && (
-            <div className="text-right">
-              <p
-                className="text-[10px] uppercase tracking-[0.18em]"
-                style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
-              >
-                Forecast
-              </p>
-              <p
-                className="text-sm font-semibold tabular-nums"
-                style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
-              >
-                {weather.highF}° / {weather.lowF}°F
-              </p>
-            </div>
-          )}
+          <div className="text-right">
+            <p
+              className="text-[10px] uppercase tracking-[0.18em]"
+              style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+            >
+              Forecast
+            </p>
+            <p
+              className="text-sm font-semibold tabular-nums"
+              style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+            >
+              {weather ? `${weather.highF}° / ${weather.lowF}°F` : "—"}
+            </p>
+          </div>
         </div>
       </div>
     </article>
