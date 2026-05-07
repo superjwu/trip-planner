@@ -26,7 +26,7 @@ export function HeroCarousel({ slides, intervalMs = 5500 }: Props) {
 
   return (
     <section
-      className="relative isolate flex min-h-[88vh] flex-col items-center justify-center overflow-hidden text-center"
+      className="relative isolate flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden text-center"
     >
       <div aria-hidden className="absolute inset-0 -z-10">
         {slides.map((slide, i) => (
