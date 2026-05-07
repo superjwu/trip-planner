@@ -194,6 +194,31 @@ body {
   will-change: transform;
 }
 
+/* ─── VIP badge shine — diagonal highlight sweeping every 3s ─── */
+@keyframes vip-shine {
+  0%   { transform: translateX(-120%) skewX(-20deg); }
+  60%  { transform: translateX(180%)  skewX(-20deg); }
+  100% { transform: translateX(180%)  skewX(-20deg); }
+}
+.vip-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 65%,
+    transparent 100%
+  );
+  animation: vip-shine 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vip-shine::after { animation: none; }
+}
+
 /* ─── Scrollbar trim — slate-tinted ────────────────────────── */
 .scroll-trim {
   scrollbar-width: thin;

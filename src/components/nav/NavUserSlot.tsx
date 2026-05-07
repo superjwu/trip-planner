@@ -1,5 +1,6 @@
 "use client";
 import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/nextjs";
+import { VipBadge } from "./VipBadge";
 
 /**
  * Right-aligned account slot in the nav. Shows Clerk's UserButton
@@ -13,8 +14,9 @@ import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/nextjs";
  */
 export function NavUserSlot({ signInLabel }: { signInLabel: string }) {
   return (
-    <div className="ml-2 flex items-center">
+    <div className="ml-2 flex items-center gap-2">
       <SignedIn>
+        <VipBadge />
         <UserButton
           appearance={{
             elements: {
