@@ -205,6 +205,12 @@
       "header": "No destinations match.",
       "body": "Try clearing one filter.",
       "cta": "Clear filters"
+    },
+    "actions": {
+      "favoriteOn": "Liked",
+      "favoriteOff": "Save to liked",
+      "visitedOn": "Visited",
+      "visitedOff": "Mark as visited"
     }
   },
   "common": {

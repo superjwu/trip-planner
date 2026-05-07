@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { EnrichedDestination, Landscape } from "@/lib/types";
 import { destinationPhotoUrl } from "@/lib/photo";
 import { localizeDestination } from "@/lib/i18n/localizeDestination";
+import { CardActions } from "./CardActions";
 
 const TAG_TONE: Record<string, string> = {
   foodie: "tag-foodie",
@@ -56,9 +57,20 @@ function tripCostFromNYC(d: EnrichedDestination): number {
 export function DestinationBrowseCard({
   destination,
   locale = "en",
+  isFavorite = false,
+  isVisited = false,
+  actionLabels,
 }: {
   destination: EnrichedDestination;
   locale?: string;
+  isFavorite?: boolean;
+  isVisited?: boolean;
+  actionLabels: {
+    favoriteOn: string;
+    favoriteOff: string;
+    visitedOn: string;
+    visitedOff: string;
+  };
 }) {
   const photo = destinationPhotoUrl(destination);
   const cost = tripCostFromNYC(destination);
@@ -72,12 +84,26 @@ export function DestinationBrowseCard({
   return (
     <Link
       href={`/plan?anchor=${destination.slug}`}
-      className="group flex h-full flex-col overflow-hidden rounded-3xl border bg-white transition-all duration-200 hover:-translate-y-0.5"
+      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-white transition-all duration-200 hover:-translate-y-0.5"
       style={{
         borderColor: "var(--hairline)",
         boxShadow: "var(--shadow-md)",
       }}
     >
+      <CardActions
+        slug={destination.slug}
+        isFavorite={isFavorite}
+        isVisited={isVisited}
+        labels={actionLabels}
+      />
+      {isVisited && (
+        <span
+          className="absolute left-3 bottom-3 z-10 rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider text-white"
+          style={{ background: "var(--slate-primary)", fontFamily: "var(--font-body)" }}
+        >
+          {actionLabels.visitedOn}
+        </span>
+      )}
       <div className="relative aspect-[3/2] w-full flex-shrink-0 overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

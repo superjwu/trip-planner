@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { NavUserSlot } from "./NavUserSlot";
+import { isClerkConfigured } from "@/lib/clerk-config";
 
 export async function MainNav() {
   const t = await getTranslations("nav");
+  const showUser = isClerkConfigured();
 
   return (
     <header
@@ -52,6 +55,9 @@ export async function MainNav() {
       <Link href="/plan" className="btn-accent px-5 py-2 text-sm font-semibold">
         {t("newTrip")}
       </Link>
+
+      {/* Account avatar (Clerk) — sign-out + manage-account dropdown */}
+      {showUser && <NavUserSlot signInLabel={t("signIn")} />}
     </header>
   );
 }

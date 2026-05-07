@@ -3,6 +3,8 @@ import { MainNav } from "@/components/nav/MainNav";
 import { ENRICHED_DESTINATIONS as DESTINATIONS } from "@/lib/seed/enrich-destinations";
 import { destinationPhotoUrl } from "@/lib/photo";
 import { DestinationBrowseCard } from "@/components/destinations/DestinationBrowseCard";
+import { getVisitedSlugs } from "@/lib/visited";
+import { getFavoriteSlugs } from "@/lib/favorites";
 import type { EnrichedDestination, Experience, Landscape } from "@/lib/types";
 import { getTranslations, getLocale } from "next-intl/server";
 import { localizeDestination } from "@/lib/i18n/localizeDestination";
@@ -71,6 +73,14 @@ export default async function DestinationsPage({
 }) {
   const params = await searchParams;
   const t = await getTranslations("dest");
+  const visitedSet = new Set(await getVisitedSlugs());
+  const favoriteSet = new Set(await getFavoriteSlugs());
+  const actionLabels = {
+    favoriteOn: t("actions.favoriteOn"),
+    favoriteOff: t("actions.favoriteOff"),
+    visitedOn: t("actions.visitedOn"),
+    visitedOff: t("actions.visitedOff"),
+  };
   const locale = await getLocale();
   const q = params.q?.toLowerCase().trim() ?? "";
   const landscape = (LANDSCAPES.includes(params.landscape as Landscape) ? params.landscape : "") as Landscape | "";
@@ -347,7 +357,13 @@ export default async function DestinationsPage({
             <ul className="grid auto-rows-fr grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filtered.map((d) => (
                 <li key={d.slug}>
-                  <DestinationBrowseCard destination={d} locale={locale} />
+                  <DestinationBrowseCard
+                    destination={d}
+                    locale={locale}
+                    isFavorite={favoriteSet.has(d.slug)}
+                    isVisited={visitedSet.has(d.slug)}
+                    actionLabels={actionLabels}
+                  />
                 </li>
               ))}
             </ul>
