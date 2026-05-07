@@ -7,6 +7,7 @@ import { CompareHeader } from "@/components/recs/CompareHeader";
 import { DestinationCard } from "@/components/recs/DestinationCard";
 import { ExpandedDestination } from "@/components/recs/ExpandedDestination";
 import { ItineraryAutoFetch } from "@/components/recs/ItineraryAutoFetch";
+import { ScrollToTopOnNav } from "@/components/recs/ScrollToTopOnNav";
 import { TradeoffMatrix } from "@/components/recs/TradeoffMatrix";
 import { RefinePanel } from "@/components/recs/RefinePanel";
 import { RoundSwitcher, type RoundSummary } from "@/components/recs/RoundSwitcher";
@@ -236,6 +237,7 @@ export default async function TripPage({
 
   return (
     <>
+      <ScrollToTopOnNav />
       <MainNav />
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10" style={{ backgroundColor: "var(--paper)" }}>
         {normalized && (
