@@ -29,6 +29,7 @@ import type {
   CostBreakdown,
   ItineraryDay,
   NormalizedTripInput,
+  ParsedStop,
   RecommendationPick,
   SeedDestination,
   WeatherForecast,
@@ -69,6 +70,11 @@ interface RecRowRaw {
   match_tags: string[];
   tradeoffs: unknown;
   destination_snapshot: unknown;
+  // Phase B: migration 0007 adds these. Backfill turns every pre-Phase-B
+  // row into a 1-stop array. New rows after B.4 land carry the LLM-emitted
+  // route shape.
+  stops: unknown;
+  stop_snapshots: unknown;
   hydration: unknown;
   booking_links: unknown;
   itinerary: unknown;
@@ -83,6 +89,10 @@ interface ParsedRec {
   match_tags: string[];
   tradeoffs: import("@/lib/types").Tradeoffs | null;
   destination: SeedDestination;
+  // Phase B: 1–3 stops per rec. stops[0].destination === destination for
+  // back-compat with the single-destination UI surfaces that haven't been
+  // migrated yet (B.5 work).
+  stops: ParsedStop[];
   hydration: { weather: WeatherForecast; cost: CostBreakdown } | null;
   booking_links: BookingLinks | null;
   itinerary: { days: ItineraryDay[] } | null;
@@ -95,6 +105,16 @@ const RecRowSchema = z.object({
   reasoning: z.string(),
   match_tags: z.array(z.string()),
 });
+
+// Phase B: the stops column shape from the DB. The migration backfill
+// shape mirrors what the LLM emits via the schema's preprocess.
+const DbStopSchema = z.object({
+  slug: z.string(),
+  order: z.number().int().min(1).max(3),
+  days: z.number().int().min(1).max(14).nullable(),
+});
+const DbStopArraySchema = z.array(DbStopSchema).min(1).max(3);
+const DbStopSnapshotsSchema = z.array(SeedDestinationSchema).min(1).max(3);
 
 function parseRec(raw: RecRowRaw, expectedDays: number | null): ParsedRec | null {
   const head = RecRowSchema.safeParse(raw);
@@ -111,6 +131,35 @@ function parseRec(raw: RecRowRaw, expectedDays: number | null): ParsedRec | null
   }
 
   const tradeoffs = TradeoffsSchema.safeParse(raw.tradeoffs);
+
+  // Phase B: prefer DB-persisted stops over synthesis. parseRec stays
+  // resilient to three cases:
+  //   1. Pre-migration rows (no `stops` / `stop_snapshots` columns at all)
+  //      — Supabase returns the keys as undefined; both safeParse calls
+  //      fail; we synthesize a 1-stop array from `destination_snapshot`.
+  //   2. Post-migration backfilled rows — `stops` and `stop_snapshots`
+  //      are present as a 1-stop pair built from `destination_snapshot`.
+  //      Parse succeeds and we zip them.
+  //   3. Multi-stop rows persisted by the new rankAndPersist — same as
+  //      (2) but length 2 or 3.
+  // Single-stop legacy rows (no `stop_snapshots`) zip to the anchor
+  // snapshot they already have on the row.
+  const dbStops = DbStopArraySchema.safeParse(raw.stops);
+  const dbStopSnapshots = DbStopSnapshotsSchema.safeParse(raw.stop_snapshots);
+  let stops: ParsedStop[];
+  if (dbStops.success && dbStopSnapshots.success && dbStops.data.length === dbStopSnapshots.data.length) {
+    stops = dbStops.data.map((s, i) => ({
+      slug: s.slug,
+      order: s.order,
+      days: s.days,
+      destination: dbStopSnapshots.data[i],
+    }));
+  } else {
+    stops = [
+      { slug: head.data.destination_slug, order: 1, days: null, destination: dest.data },
+    ];
+  }
+
   return {
     id: head.data.id,
     rank: head.data.rank,
@@ -121,6 +170,7 @@ function parseRec(raw: RecRowRaw, expectedDays: number | null): ParsedRec | null
       ? (tradeoffs.data as import("@/lib/types").Tradeoffs)
       : null,
     destination: dest.data,
+    stops,
     hydration: hydration.success ? hydration.data : null,
     booking_links: booking.success ? booking.data : null,
     itinerary,
@@ -144,7 +194,11 @@ async function fetchRecs(roundId: string | null, expectedDays: number | null) {
   const sb = await createOwnerScopedSupabase();
   const { data } = await sb
     .from("recommendations")
-    .select("id, rank, destination_slug, reasoning, match_tags, tradeoffs, destination_snapshot, hydration, booking_links, itinerary")
+    // Phase B: switched from an explicit field list to `*` so missing
+    // columns (pre-migration `stops` / `stop_snapshots`) don't 500 the
+    // whole trip page. parseRec already safe-parses every field; unknown
+    // extras are ignored.
+    .select("*")
     .eq("round_id", roundId)
     .order("rank", { ascending: true });
   const rows = (data as RecRowRaw[]) ?? [];
@@ -378,6 +432,13 @@ export default async function TripPage({
                       lat: r.destination.lat,
                       lng: r.destination.lng,
                       rank: r.rank,
+                      // Phase B: pass the chain of stop coords so the
+                      // atlas can draw the multi-leg polyline. Single-stop
+                      // routes have length 1; the atlas treats them as
+                      // before.
+                      stops: r.stops.map(
+                        (s) => [s.destination.lng, s.destination.lat] as [number, number],
+                      ),
                     }))}
                   />
                 </div>
@@ -435,6 +496,7 @@ function FocusedView({ tripId, rec, locale = "en" }: { tripId: string; rec: Pars
         cost={cost}
         weather={weather}
         bookingLinks={bookingLinks}
+        stops={rec.stops}
         itinerary={rec.itinerary?.days}
         itineraryMissing={!rec.itinerary}
         itineraryLoading={!rec.itinerary}
@@ -480,6 +542,7 @@ function ResultsGrid({
                 cost={r.hydration?.cost}
                 weather={r.hydration?.weather}
                 locale={locale}
+                stops={r.stops}
               />
             </Link>
           );

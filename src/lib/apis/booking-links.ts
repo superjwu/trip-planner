@@ -42,6 +42,29 @@ export function googleFlightsUrl(args: {
 }
 
 /**
+ * Phase B: Google Flights multi-city search URL for routes with 2+ stops.
+ * The Skyscanner deep-link format doesn't cleanly support multi-city
+ * search; Google Flights accepts a free-form natural-language search
+ * query that surfaces multi-city results in the existing UI.
+ *
+ * `segments[i]` is { fromIata, toIata, on } in trip order. The caller
+ * supplies the inter-segment dates (origin → stops[0], stop[0] → stop[1],
+ * ..., stop[N-1] → origin) so this function doesn't have to allocate
+ * days itself.
+ */
+export function googleFlightsMultiCityUrl(args: {
+  segments: { fromIata: string; toIata: string; on: string }[];
+}): string {
+  if (args.segments.length === 0) {
+    return "https://www.google.com/travel/flights";
+  }
+  const parts = args.segments.map(
+    (s) => `${s.fromIata.toUpperCase()}+to+${s.toIata.toUpperCase()}+on+${s.on}`,
+  );
+  return `https://www.google.com/travel/flights?q=Flights+${parts.join("+then+")}`;
+}
+
+/**
  * Booking.com search URL with destination + dates pre-filled.
  */
 export function bookingComLodgingUrl(args: {

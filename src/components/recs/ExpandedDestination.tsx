@@ -2,6 +2,7 @@ import type {
   BookingLinks as BookingLinksT,
   CostBreakdown as CostBreakdownT,
   ItineraryDay,
+  ParsedStop,
   RecommendationPick,
   SeedDestination,
   WeatherForecast,
@@ -24,6 +25,11 @@ interface Props {
   itineraryLoading?: boolean;
   onClose?: () => void;
   locale?: string;
+  /**
+   * Phase B: stops on this route, ordered. When length > 1 a "The Route"
+   * section renders between the reasoning card and the attractions grid.
+   */
+  stops?: ParsedStop[];
 }
 
 export function ExpandedDestination({
@@ -37,9 +43,11 @@ export function ExpandedDestination({
   itineraryLoading,
   onClose,
   locale = "en",
+  stops,
 }: Props) {
   const photo = destinationPhotoUrl(destination);
   const { name, nameEn, blurb } = localizeDestination(destination, locale);
+  const isMultiStop = stops !== undefined && stops.length > 1;
 
   return (
     <section
@@ -136,6 +144,82 @@ export function ExpandedDestination({
               ))}
             </div>
           </div>
+
+          {/* Phase B: The Route — only shows for multi-stop combos.
+              Single-stop routes (today's default) skip this section. */}
+          {isMultiStop && stops ? (
+            <div className="mt-7">
+              <h3
+                className="text-xl font-semibold mb-4"
+                style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+              >
+                The Route
+              </h3>
+              <ol className="space-y-3">
+                {stops.map((stop) => {
+                  const { name: stopName, blurb: stopBlurb } = localizeDestination(
+                    stop.destination,
+                    locale,
+                  );
+                  return (
+                    <li
+                      key={stop.slug}
+                      className="flex items-start gap-3 rounded-2xl px-4 py-3"
+                      style={{
+                        background: "var(--paper-deep)",
+                        border: "1px solid var(--hairline)",
+                      }}
+                    >
+                      <span
+                        className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
+                        style={{
+                          background: "var(--accent)",
+                          color: "white",
+                          fontFamily: "var(--font-display-stack)",
+                        }}
+                      >
+                        {stop.order}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                          <p
+                            className="text-base font-semibold"
+                            style={{ fontFamily: "var(--font-display-stack)", color: "var(--ink)" }}
+                          >
+                            {stopName}
+                          </p>
+                          <p
+                            className="text-xs italic"
+                            style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+                          >
+                            {stop.destination.region} · {stop.destination.state}
+                          </p>
+                          {stop.days ? (
+                            <span
+                              className="ml-auto rounded-full px-2.5 py-0.5 text-xs font-medium tabular-nums"
+                              style={{
+                                background: "var(--slate-tint)",
+                                color: "var(--slate-primary)",
+                                fontFamily: "var(--font-body-stack)",
+                              }}
+                            >
+                              {stop.days} {stop.days === 1 ? "day" : "days"}
+                            </span>
+                          ) : null}
+                        </div>
+                        <p
+                          className="mt-1 line-clamp-2 text-sm leading-relaxed"
+                          style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+                        >
+                          {stopBlurb}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          ) : null}
 
           {/* What you'll see — 3-col white rounded mini-cards */}
           <div className="mt-7">
@@ -278,7 +362,7 @@ export function ExpandedDestination({
 
           {/* Cost breakdown */}
           {cost ? (
-            <CostBreakdown cost={cost} />
+            <CostBreakdown cost={cost} stops={stops} />
           ) : (
             <div
               className="rounded-2xl px-5 py-4 bg-white"

@@ -39,6 +39,14 @@ export interface AtlasPick {
   lng: number;
   rank?: number;
   hue?: string; // optional accent color override per pick
+  /**
+   * Phase B: when set with length > 1, the atlas renders a multi-leg
+   * route line (origin → stops[0] → stops[1] → ...) instead of a single
+   * origin → anchor line. The anchor keeps its labeled circle; subsequent
+   * stops get small numbered dots in the same hue.
+   * Each entry is [lng, lat] to match d3-geo's coordinate order.
+   */
+  stops?: [number, number][];
 }
 
 interface RouteAtlasProps {
@@ -119,11 +127,24 @@ export function RouteAtlas({
       const p = picks[entry.idx];
       const xy = entry.xy ?? territorySlots.get(entry.idx);
       if (!xy) return null;
+      // Phase B: project any additional stops (past the anchor at index 0).
+      // Drop unprojectable ones silently — territory routing already gates
+      // most edge cases at the anchor level; intermediate stops in
+      // multi-stop combos are by-design in the contiguous US (proximity
+      // rule limits them to ≤250mi of each other).
+      const additionalStopsXY: [number, number][] = [];
+      if (p.stops && p.stops.length > 1) {
+        for (let i = 1; i < p.stops.length; i++) {
+          const projected = projection(p.stops[i]) as [number, number] | null;
+          if (projected) additionalStopsXY.push(projected);
+        }
+      }
       return {
         ...p,
         x: xy[0],
         y: xy[1],
         isTerritory: entry.isTerritory,
+        additionalStopsXY,
         hue:
           p.hue ??
           DEFAULT_RANK_HUES[((p.rank ?? entry.idx + 1) - 1) % DEFAULT_RANK_HUES.length],
@@ -354,21 +375,66 @@ export function RouteAtlas({
         ))}
       </g>
 
-      {/* Route lines */}
-      {projectedPicks.map((p) => (
-        <line
-          key={`route-${p.slug}`}
-          x1={origin[0]}
-          y1={origin[1]}
-          x2={p.x}
-          y2={p.y}
-          stroke={p.hue}
-          strokeWidth={1.6}
-          strokeOpacity={0.7}
-          strokeDasharray="5 4"
-          strokeLinecap="round"
-        />
-      ))}
+      {/* Route lines. Phase B: multi-stop routes render as a polyline
+          origin → stops[0] → stops[1] → ... ; single-stop routes stay as
+          a single dashed segment. */}
+      {projectedPicks.map((p) => {
+        if (p.additionalStopsXY.length === 0) {
+          return (
+            <line
+              key={`route-${p.slug}`}
+              x1={origin[0]}
+              y1={origin[1]}
+              x2={p.x}
+              y2={p.y}
+              stroke={p.hue}
+              strokeWidth={1.6}
+              strokeOpacity={0.7}
+              strokeDasharray="5 4"
+              strokeLinecap="round"
+            />
+          );
+        }
+        const points = [
+          `${origin[0]},${origin[1]}`,
+          `${p.x},${p.y}`,
+          ...p.additionalStopsXY.map(([x, y]) => `${x},${y}`),
+        ].join(" ");
+        return (
+          <polyline
+            key={`route-${p.slug}`}
+            points={points}
+            fill="none"
+            stroke={p.hue}
+            strokeWidth={1.6}
+            strokeOpacity={0.7}
+            strokeDasharray="5 4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        );
+      })}
+
+      {/* Phase B: secondary-stop dots for multi-stop routes. Smaller than
+          the anchor marker so the anchor stays visually primary. */}
+      {projectedPicks.map((p) =>
+        p.additionalStopsXY.map(([x, y], i) => (
+          <g key={`stop-${p.slug}-${i + 1}`}>
+            <circle cx={x} cy={y} r={6} fill="#F4F6F8" stroke={p.hue} strokeWidth={2} />
+            <text
+              x={x}
+              y={y + 3}
+              textAnchor="middle"
+              fontSize={8}
+              fill={p.hue}
+              fontFamily="var(--font-display, system-ui)"
+              fontWeight={700}
+            >
+              {i + 2}
+            </text>
+          </g>
+        )),
+      )}
 
       {/* Pick markers + collision-avoided labels */}
       {placedPicks.map((p) => {

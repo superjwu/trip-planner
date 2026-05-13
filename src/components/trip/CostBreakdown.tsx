@@ -1,6 +1,17 @@
-import type { CostBreakdown as CostBreakdownT } from "@/lib/types";
+import type { CostBreakdown as CostBreakdownT, ParsedStop } from "@/lib/types";
 
-export function CostBreakdown({ cost }: { cost: CostBreakdownT }) {
+export function CostBreakdown({
+  cost,
+  stops,
+}: {
+  cost: CostBreakdownT;
+  /**
+   * Phase B: when supplied alongside `cost.perStopCosts`, the breakdown
+   * renders per-stop rows labeled with each stop's name + days. Without
+   * `stops` (e.g. legacy callers) the per-stop block falls back to slug.
+   */
+  stops?: ParsedStop[];
+}) {
   const rows: { label: string; value: number; source?: "amadeus" | "estimate" }[] = [
     { label: "Flight", value: cost.flightUsd, source: cost.flightSource },
     { label: "Lodging", value: cost.lodgingUsd, source: cost.lodgingSource },
@@ -13,6 +24,14 @@ export function CostBreakdown({ cost }: { cost: CostBreakdownT }) {
       : cost.source === "mixed"
         ? "Partial live"
         : "Estimate";
+
+  // Phase B: multi-stop trips get a per-stop breakdown block + transit row.
+  // Single-stop trips (perStopCosts undefined) render exactly as before.
+  const isMultiStop =
+    Array.isArray(cost.perStopCosts) && cost.perStopCosts.length > 1;
+  const stopNameBySlug = new Map(
+    (stops ?? []).map((s) => [s.slug, s.destination.name] as const),
+  );
 
   return (
     <div className="rounded-3xl border border-[var(--hairline)] bg-white p-6 shadow-[0_30px_60px_-20px_rgba(31,41,55,0.15)]">
@@ -79,6 +98,52 @@ export function CostBreakdown({ cost }: { cost: CostBreakdownT }) {
           </div>
         ))}
       </div>
+
+      {/* Phase B: per-stop breakdown — only for multi-stop routes. */}
+      {isMultiStop && cost.perStopCosts ? (
+        <div className="mt-4 rounded-2xl bg-[var(--paper-deep)] px-4 py-3">
+          <p
+            className="mb-2 text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--slate-primary)]"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
+            By stop
+          </p>
+          <div className="space-y-1.5">
+            {cost.perStopCosts.map((s) => {
+              const subtotal = s.lodgingUsd + s.foodUsd + s.activitiesUsd;
+              const name = stopNameBySlug.get(s.slug) ?? s.slug;
+              return (
+                <div
+                  key={s.slug}
+                  className="flex items-baseline justify-between text-sm"
+                  style={{ fontFamily: "var(--font-body)" }}
+                >
+                  <p className="text-[var(--ink)]">
+                    <span className="font-medium">{name}</span>
+                    <span className="ml-2 text-xs text-[var(--ink-soft)]">
+                      · {s.days} {s.days === 1 ? "day" : "days"}
+                    </span>
+                  </p>
+                  <p className="tabular-nums font-medium text-[var(--ink)]">
+                    ${subtotal.toLocaleString()}
+                  </p>
+                </div>
+              );
+            })}
+            {typeof cost.interStopDriveUsd === "number" && cost.interStopDriveUsd > 0 ? (
+              <div
+                className="mt-1 flex items-baseline justify-between border-t border-[var(--hairline)] pt-1.5 text-sm"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
+                <p className="text-[var(--ink-soft)]">Inter-stop drive</p>
+                <p className="tabular-nums text-[var(--ink-soft)]">
+                  ${cost.interStopDriveUsd.toLocaleString()}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       {/* Total row */}
       <div className="mt-px rounded-2xl bg-[var(--slate-tint)] px-4 py-3 flex items-baseline justify-between">

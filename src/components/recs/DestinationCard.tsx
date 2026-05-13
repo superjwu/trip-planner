@@ -1,4 +1,10 @@
-import type { CostBreakdown, RecommendationPick, SeedDestination, WeatherForecast } from "@/lib/types";
+import type {
+  CostBreakdown,
+  ParsedStop,
+  RecommendationPick,
+  SeedDestination,
+  WeatherForecast,
+} from "@/lib/types";
 import { destinationPhotoUrl } from "@/lib/photo";
 import { PhotoCredit } from "./PhotoCredit";
 import { tagClass } from "@/lib/ui/tag-tones";
@@ -12,11 +18,32 @@ interface Props {
   expanded?: boolean;
   onToggle?: () => void;
   locale?: string;
+  /**
+   * Phase B: the route's stops, ordered. Single-stop routes (default
+   * today) render unchanged — when the parent passes a multi-stop array,
+   * the rank chip and a companion-stop chip strip light up below the name.
+   */
+  stops?: ParsedStop[];
 }
 
-export function DestinationCard({ pick, destination, cost, weather, expanded, onToggle, locale = "en" }: Props) {
+export function DestinationCard({
+  pick,
+  destination,
+  cost,
+  weather,
+  expanded,
+  onToggle,
+  locale = "en",
+  stops,
+}: Props) {
   const photo = destinationPhotoUrl(destination);
   const { name, nameEn } = localizeDestination(destination, locale);
+
+  // Phase B: companion stops are anything past the anchor. `stops` is
+  // undefined on call sites that haven't been migrated yet (e.g. the
+  // /trips/demo preview); we treat that as a 1-stop route.
+  const companionStops = stops && stops.length > 1 ? stops.slice(1) : [];
+  const isMultiStop = companionStops.length > 0;
 
   return (
     <article
@@ -41,7 +68,8 @@ export function DestinationCard({ pick, destination, cost, weather, expanded, on
         />
         <span className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/30 to-transparent" />
         <PhotoCredit destination={destination} />
-        {/* Rank chip — slate-primary tint */}
+        {/* Rank chip — slate-primary tint. Phase B: appends stop count
+            for multi-stop routes ("Pick #2 · 2 stops"). */}
         <span
           className="absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold"
           style={{
@@ -53,6 +81,7 @@ export function DestinationCard({ pick, destination, cost, weather, expanded, on
           }}
         >
           Pick #{pick.rank}
+          {isMultiStop ? ` · ${(stops?.length ?? 1)} stops` : null}
         </span>
       </div>
 
@@ -76,6 +105,29 @@ export function DestinationCard({ pick, destination, cost, weather, expanded, on
             {destination.region} · {destination.state}
           </p>
         </div>
+
+        {isMultiStop ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {companionStops.map((stop) => {
+              const { name: stopName } = localizeDestination(stop.destination, locale);
+              return (
+                <span
+                  key={stop.slug}
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
+                  style={{
+                    background: "transparent",
+                    color: "var(--accent)",
+                    border: "1px solid var(--accent)",
+                    fontFamily: "var(--font-body-stack)",
+                  }}
+                >
+                  + {stopName}
+                  {stop.days ? ` · ${stop.days}d` : null}
+                </span>
+              );
+            })}
+          </div>
+        ) : null}
 
         <p
           className="line-clamp-3 text-sm leading-relaxed"

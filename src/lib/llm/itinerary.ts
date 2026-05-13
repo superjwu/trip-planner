@@ -39,6 +39,8 @@ export async function generateItinerary(args: {
   input: NormalizedTripInput;
   destination: SeedDestination;
   tripLengthDays: number;
+  /** Phase B: when length > 1, prompt becomes the multi-stop variant. */
+  stops?: SeedDestination[];
 }): Promise<ItineraryResult> {
   const auth = await resolveCodexAuth(args.clerkUserId);
   const tool: CodexTool = {
@@ -61,6 +63,7 @@ export async function generateItinerary(args: {
           input: args.input,
           destination: args.destination,
           tripLengthDays: args.tripLengthDays,
+          stops: args.stops,
         }),
       ],
     }),
@@ -100,6 +103,8 @@ export async function generateItineraryWithRetry(args: {
   input: NormalizedTripInput;
   destination: SeedDestination;
   tripLengthDays: number;
+  /** Phase B: forwarded to the multi-stop prompt variant. */
+  stops?: SeedDestination[];
 }): Promise<ItineraryResult> {
   try {
     return await generateItinerary(args);

@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+// Hard cap: keep tripLengthDays compatible with ItineraryDaySchema.day (max 14).
+// The product targets 3-7 day trips; allow up to 14 for slack. Declared up
+// here (not near NormalizedTripInputSchema) because Phase B's StopSchema also
+// references it and Zod schemas are constructed eagerly at module-load time.
+export const MAX_TRIP_DAYS = 14;
+
 // ─────────────────────────────────────────────────────────────
 // LLM output schemas — every Claude response is validated before persist.
 // ─────────────────────────────────────────────────────────────
@@ -13,13 +19,81 @@ export const TradeoffsSchema = z.object({
 });
 export type Tradeoffs = z.infer<typeof TradeoffsSchema>;
 
-export const RecommendationPickSchema = z.object({
+// Phase B: a single stop in a 1–3 stop combo. `order` is 1-indexed; `days`
+// is the user-facing day allocation for this stop (null when unspecified —
+// the itinerary writer fills it in). Stop slugs must be valid destination
+// slugs; that's enforced post-parse against the candidate pool because Zod
+// has no access to that list.
+export const StopSchema = z.object({
   slug: z.string().min(1),
-  rank: z.number().int().min(1).max(4),
-  reasoning: z.string().min(20).max(400),
-  match_tags: z.array(z.string()).min(1).max(6),
-  tradeoffs: TradeoffsSchema,
+  order: z.number().int().min(1).max(3),
+  days: z.number().int().min(1).max(MAX_TRIP_DAYS).nullable(),
 });
+export type Stop = z.infer<typeof StopSchema>;
+
+// Transition helper: until B.3 updates the ranker prompt to emit `stops`,
+// the LLM keeps returning the old single-slug shape. Synthesize a 1-stop
+// combo from the top-level slug so legacy responses still validate. After
+// B.3 lands and the LLM emits real `stops`, this is a no-op for new picks.
+function synthesizeStopsFromLegacyPick(raw: unknown): unknown {
+  if (typeof raw !== "object" || raw === null) return raw;
+  const r = raw as { slug?: unknown; stops?: unknown };
+  if (r.stops === undefined && typeof r.slug === "string") {
+    return { ...r, stops: [{ slug: r.slug, order: 1, days: null }] };
+  }
+  return raw;
+}
+
+export const RecommendationPickSchema = z
+  .preprocess(synthesizeStopsFromLegacyPick, z.object({
+    slug: z.string().min(1),
+    rank: z.number().int().min(1).max(4),
+    reasoning: z.string().min(20).max(400),
+    match_tags: z.array(z.string()).min(1).max(6),
+    tradeoffs: TradeoffsSchema,
+    // Phase B: 1–3 ordered stops. Single-stop combos are the default; the
+    // top-level `slug` stays the anchor and must equal stops[0].slug.
+    stops: z.array(StopSchema).min(1).max(3),
+  }))
+  .superRefine((value, ctx) => {
+    // stops[0].slug is the structural anchor; the top-level slug mirrors it
+    // for back-compat with parseRec / persistence.
+    if (value.stops[0]?.slug !== value.slug) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["stops", 0, "slug"],
+        message: `stops[0].slug (${value.stops[0]?.slug}) must equal pick.slug (${value.slug})`,
+      });
+    }
+    // `order` must be 1..stops.length, no gaps, no duplicates.
+    const seenOrders = new Set<number>();
+    const seenSlugs = new Set<string>();
+    for (const [i, stop] of value.stops.entries()) {
+      if (stop.order !== i + 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["stops", i, "order"],
+          message: `stop order must be sequential 1..${value.stops.length}; got ${stop.order} at index ${i}`,
+        });
+      }
+      if (seenOrders.has(stop.order)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["stops", i, "order"],
+          message: `duplicate stop order ${stop.order}`,
+        });
+      }
+      if (seenSlugs.has(stop.slug)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["stops", i, "slug"],
+          message: `duplicate stop slug ${stop.slug} within a single pick`,
+        });
+      }
+      seenOrders.add(stop.order);
+      seenSlugs.add(stop.slug);
+    }
+  });
 
 export const RecommendationResponseSchema = z
   .object({
@@ -165,10 +239,6 @@ export const SeasonSchema = z.enum(["spring", "summer", "fall", "winter"]);
 export const UserStatusSchema = z.enum(["draft", "saved", "archived"]);
 export type UserStatus = z.infer<typeof UserStatusSchema>;
 
-// Hard cap: keep tripLengthDays compatible with ItineraryDaySchema.day (max 14).
-// The product targets 3-7 day trips; allow up to 14 for slack.
-export const MAX_TRIP_DAYS = 14;
-
 export const NormalizedTripInputSchema = z.object({
   originCode: OriginCityCodeSchema,
   originAirport: z.string(),
@@ -206,6 +276,14 @@ export const WeatherForecastSchema = z.object({
   summary: z.string(),
 });
 
+export const PerStopCostSchema = z.object({
+  slug: z.string(),
+  days: z.number(),
+  lodgingUsd: z.number(),
+  foodUsd: z.number(),
+  activitiesUsd: z.number(),
+});
+
 export const CostBreakdownSchema = z.object({
   flightUsd: z.number(),
   lodgingUsd: z.number(),
@@ -215,6 +293,11 @@ export const CostBreakdownSchema = z.object({
   source: z.enum(["amadeus", "estimate", "mixed"]),
   flightSource: z.enum(["amadeus", "estimate"]).optional(),
   lodgingSource: z.enum(["amadeus", "estimate"]).optional(),
+  // Phase B: optional multi-stop fields. Both undefined on single-stop
+  // costs persisted by the v3 path, so back-compat with older trips is
+  // automatic via Zod's strip-on-parse semantics for optional fields.
+  interStopDriveUsd: z.number().optional(),
+  perStopCosts: z.array(PerStopCostSchema).optional(),
 });
 
 export const HydrationSchema = z.object({
@@ -252,7 +335,7 @@ export const REC_TOOL_PARAMETERS_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["slug", "rank", "reasoning", "match_tags", "tradeoffs"],
+        required: ["slug", "rank", "reasoning", "match_tags", "tradeoffs", "stops"],
         properties: {
           slug: { type: "string", minLength: 1 },
           rank: { type: "integer", minimum: 1, maximum: 4 },
@@ -262,6 +345,27 @@ export const REC_TOOL_PARAMETERS_SCHEMA = {
             minItems: 1,
             maxItems: 6,
             items: { type: "string" },
+          },
+          stops: {
+            type: "array",
+            minItems: 1,
+            maxItems: 3,
+            description:
+              "Ordered stops for this route (1–3). stops[0].slug MUST equal pick.slug. Single-stop routes are valid for short trips; 2–3 stops are encouraged for 4+ day trips when the stops are geographically close. `days` is the user-facing day allocation per stop; null is acceptable when the LLM defers to the itinerary writer.",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["slug", "order", "days"],
+              properties: {
+                slug: { type: "string", minLength: 1 },
+                order: { type: "integer", minimum: 1, maximum: 3 },
+                days: {
+                  type: ["integer", "null"],
+                  minimum: 1,
+                  maximum: 14,
+                },
+              },
+            },
           },
           tradeoffs: {
             type: "object",

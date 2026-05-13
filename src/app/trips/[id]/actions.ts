@@ -12,6 +12,7 @@ import {
   estimateTripCostUsd,
 } from "@/lib/llm/recommend";
 import { computeTradeoffs } from "@/lib/llm/tradeoffs";
+import { validateStops } from "@/lib/llm/multi-stop";
 import type { RefineContext } from "@/lib/llm/prompts";
 import { ENRICHED_DESTINATIONS as DESTINATIONS } from "@/lib/seed/enrich-destinations";
 import {
@@ -38,6 +39,7 @@ interface RecRowRaw {
   rank: number;
   destination_slug: string;
   destination_snapshot: unknown;
+  stop_snapshots: unknown;
   itinerary: unknown;
 }
 
@@ -284,6 +286,10 @@ async function rankAndPersist(args: RankAndPersistArgs): Promise<{
               reasoning,
               match_tags: ["your pick", "anchor"],
               tradeoffs: anchorTradeoffs,
+              // Phase B: single-stop combo for the anchor-forced pick.
+              // Multi-stop force-include is left to a future refinement —
+              // the anchor itself is the structural commitment.
+              stops: [{ slug: anchorDest.slug, order: 1, days: null }],
             },
             ...survivors,
           ],
@@ -303,15 +309,45 @@ async function rankAndPersist(args: RankAndPersistArgs): Promise<{
     })
     .eq("id", args.roundId);
 
-  // Hydrate each pick in parallel (weather + cost + booking links).
+  // Phase B post-rank cross-cutting validation: every stop slug in the
+  // candidate pool, day allocations consistent with trip length. Log to
+  // meta for observability; don't retry — the schema's preprocess + the
+  // ranker's retry path already cover the structural failure modes.
+  const stopErrors = validateStops({
+    response,
+    candidates,
+    tripLengthDays: args.input.tripLengthDays,
+  });
+  if (stopErrors.length > 0) {
+    meta = { ...meta, stopValidationErrors: stopErrors };
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[multi-stop] validation issues:", stopErrors);
+    }
+  }
+
+  // Phase B: resolve every stop's slug to a hydrated SeedDestination.
+  // `stops` is guaranteed by the schema's preprocess: legacy single-slug
+  // picks become 1-stop arrays at parse time, so this iteration handles
+  // both pre- and post-B.3 LLM output uniformly.
   const hydratedPicks = await Promise.all(
     response.picks.map(async (pick) => {
-      const dest = DESTINATIONS.find((d) => d.slug === pick.slug)!;
+      const anchor = DESTINATIONS.find((d) => d.slug === pick.slug)!;
+      const stopDests: SeedDestination[] = pick.stops.map((stop) => {
+        // First stop's destination MUST equal the anchor (schema-enforced),
+        // so we reuse `anchor` to keep the SeedDestination objects identity-
+        // equal where possible. Other stops are looked up; if a slug
+        // somehow isn't in DESTINATIONS (post-validateStops failure) we
+        // fall back to anchor — degrades to a single-stop cost shape
+        // rather than crashing the insert.
+        if (stop.slug === pick.slug) return anchor;
+        return DESTINATIONS.find((d) => d.slug === stop.slug) ?? anchor;
+      });
       const bundle = await hydrateRecommendation({
         input: args.input,
-        destination: dest,
+        destination: anchor,
+        stops: stopDests,
       });
-      return { pick, dest, bundle };
+      return { pick, anchor, stopDests, bundle };
     }),
   );
 
@@ -319,17 +355,25 @@ async function rankAndPersist(args: RankAndPersistArgs): Promise<{
   // rounds' rows alone.
   await sb.from("recommendations").delete().eq("round_id", args.roundId);
 
-  const rows = hydratedPicks.map(({ pick, dest, bundle }) => ({
+  const rows = hydratedPicks.map(({ pick, anchor, stopDests, bundle }) => ({
     trip_id: args.tripId,
     round_id: args.roundId,
     rank: pick.rank,
     destination_slug: pick.slug,
     reasoning: pick.reasoning,
     match_tags: pick.match_tags,
-    // Tradeoffs computed in code from (input, destination) — coherent across
-    // rounds. The LLM-emitted `pick.tradeoffs` is ignored.
-    tradeoffs: computeTradeoffs(args.input, dest),
-    destination_snapshot: dest,
+    // Tradeoffs computed in code from (input, anchor) — coherent across
+    // rounds. The LLM-emitted `pick.tradeoffs` is ignored. For multi-stop
+    // routes we score the route by its anchor; the LLM's prompt already
+    // tells it to score routes by worst-case stop, so the meta is
+    // consistent enough.
+    tradeoffs: computeTradeoffs(args.input, anchor),
+    destination_snapshot: anchor,
+    // Phase B: persist the structured stops array + frozen per-stop
+    // snapshots so the trip page can re-render the route without
+    // re-resolving slugs against the live DESTINATIONS list.
+    stops: pick.stops,
+    stop_snapshots: stopDests,
     hydration: { weather: bundle.weather, cost: bundle.cost },
     booking_links: bundle.bookingLinks,
     itinerary: null,
@@ -459,7 +503,7 @@ export async function ensureItinerary(args: {
 
   const { data: rec, error: recErr } = await sb
     .from("recommendations")
-    .select("id, trip_id, rank, destination_slug, destination_snapshot, itinerary")
+    .select("id, trip_id, rank, destination_slug, destination_snapshot, stop_snapshots, itinerary")
     .eq("id", args.recId)
     .maybeSingle<RecRowRaw>();
   if (recErr || !rec) {
@@ -498,6 +542,17 @@ export async function ensureItinerary(args: {
     };
   }
 
+  // Phase B: read stop_snapshots if present and length > 1 — the itinerary
+  // writer routes to the multi-stop prompt variant. Malformed snapshots
+  // silently fall back to single-stop (the legacy path).
+  let stops: SeedDestination[] | undefined;
+  const stopSnapshotsParsed = SeedDestinationSchema.array().safeParse(
+    rec.stop_snapshots,
+  );
+  if (stopSnapshotsParsed.success && stopSnapshotsParsed.data.length > 1) {
+    stops = stopSnapshotsParsed.data;
+  }
+
   try {
     const userId = await requireUserId();
     const { response } = await generateItineraryWithRetry({
@@ -505,6 +560,7 @@ export async function ensureItinerary(args: {
       input,
       destination,
       tripLengthDays: input.tripLengthDays,
+      stops,
     });
     await sb
       .from("recommendations")
