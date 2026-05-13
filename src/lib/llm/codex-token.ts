@@ -66,7 +66,7 @@ interface ResolvedCodexAuth {
 
 function masterKey(): string {
   const k = process.env.CODEX_TOKEN_ENCRYPTION_KEY;
-  if (!k || k.length < 16) {
+  if (!k || k.length < 32) {
     if (isAuthBypassEnabled()) {
       // Memory-fallback path doesn't actually use this, but the helpers still
       // call masterKey() when they try Supabase first. Return a sentinel so we
@@ -74,7 +74,7 @@ function masterKey(): string {
       return "dev-bypass-no-encryption-key";
     }
     throw new Error(
-      "CODEX_TOKEN_ENCRYPTION_KEY is missing or too short. Set a 32+ char random string in .env.local.",
+      "CODEX_TOKEN_ENCRYPTION_KEY missing or too short (need ≥32 chars). Generate with `openssl rand -hex 32`.",
     );
   }
   return k;

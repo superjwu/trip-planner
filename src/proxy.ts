@@ -24,7 +24,7 @@ const clerkHandler = clerkMiddleware(async (auth, req) => {
 // operator has explicitly opted into DEV_BYPASS_AUTH=1. Misconfigured prod
 // (Clerk unset) hits the explicit error response below instead of running
 // against the admin client.
-export default function middleware(req: NextRequest) {
+export default function proxy(req: NextRequest) {
   if (isAuthBypassEnabled()) {
     return NextResponse.next();
   }

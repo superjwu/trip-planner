@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: typecheck · lint · audit · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Audit destination metadata
+        run: npm run audit:meta
+
+      - name: npm audit (prod deps, high+)
+        # Fails on a high/critical vuln in production deps. Dev-only vulns
+        # (e.g. eslint/tsx transitives) don't block CI.
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build
+        # Build needs NEXT_PUBLIC_* vars present at compile time. Real values
+        # are not needed for the build to succeed — Clerk/Supabase clients
+        # only fail at runtime when called with placeholders.
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci-placeholder-key
+          CLERK_SECRET_KEY: sk_test_ci-placeholder-key
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL: /sign-in
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL: /sign-up
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role-key
+          CODEX_OAUTH_ENABLED: "0"
+          CODEX_TOKEN_ENCRYPTION_KEY: ci-placeholder-key-must-be-thirty-two-chars-long
+          OAUTH_COOKIE_SIGNING_KEY: ci-placeholder-key-must-be-thirty-two-chars-long
+        run: npm run build

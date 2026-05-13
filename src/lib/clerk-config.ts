@@ -23,6 +23,10 @@ export function isClerkConfigured(): boolean {
  * session is present.
  */
 export function isAuthBypassEnabled(): boolean {
+  // Hard prod guard: dev-bypass is dev-only, period. A misconfigured prod
+  // deploy (Clerk key truncated / copy-paste error) won't silently run as
+  // the shared dev identity backed by service-role.
+  if (process.env.NODE_ENV === "production") return false;
   if (isClerkConfigured()) return false;
   return process.env.DEV_BYPASS_AUTH === "1";
 }

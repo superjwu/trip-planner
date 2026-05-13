@@ -12,7 +12,9 @@
     "seed:sql": "tsx scripts/generate-seed-sql.ts",
     "import:extras": "tsx scripts/import-tourist-plan-extras.ts",
     "seed:zh": "tsx scripts/prefetch-zh-translations.ts",
-    "audit:meta": "tsx scripts/audit-enrichment.ts"
+    "audit:meta": "tsx scripts/audit-enrichment.ts",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.34.1",
@@ -20,7 +22,7 @@
     "@types/d3-geo": "^3.1.0",
     "@types/topojson-client": "^3.1.5",
     "d3-geo": "^3.1.1",
-    "next": "16.2.4",
+    "next": "^16.2.6",
     "next-intl": "^4.11.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -36,6 +38,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "husky": "^9.1.7",
     "tailwindcss": "^4",
     "tsx": "^4.20.7",
     "typescript": "^5"

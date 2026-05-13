@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+# Enforce the routine documented in CLAUDE.md — must pass before committing.
+# Bypass with `git commit --no-verify` only when you have a genuine reason and
+# can explain it; otherwise fix the underlying cause.
+
+set -e
+
+echo "→ typecheck (tsc --noEmit)"
+npm run -s typecheck
+
+echo "→ lint"
+npm run -s lint
+
+echo "→ audit:meta"
+npm run -s audit:meta
