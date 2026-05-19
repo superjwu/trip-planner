@@ -7,6 +7,7 @@ import { CompareHeader } from "@/components/recs/CompareHeader";
 import { DestinationCard } from "@/components/recs/DestinationCard";
 import { ExpandedDestination } from "@/components/recs/ExpandedDestination";
 import { ItineraryAutoFetch } from "@/components/recs/ItineraryAutoFetch";
+import { HoverPrefetchItinerary } from "@/components/recs/HoverPrefetchItinerary";
 import { ScrollToTopOnNav } from "@/components/recs/ScrollToTopOnNav";
 import { TradeoffMatrix } from "@/components/recs/TradeoffMatrix";
 import { RefinePanel } from "@/components/recs/RefinePanel";
@@ -349,7 +350,12 @@ export default async function TripPage({
         )}
 
         {trip.compute_status === "ready" && refocused && (
-          <FocusedView tripId={id} rec={refocused} locale={locale} />
+          <FocusedView
+            tripId={id}
+            rec={refocused}
+            locale={locale}
+            tripLengthDays={normalized?.tripLengthDays}
+          />
         )}
 
         {trip.compute_status === "ready" && recs.length > 0 && !refocused && (
@@ -470,7 +476,17 @@ export default async function TripPage({
   );
 }
 
-function FocusedView({ tripId, rec, locale = "en" }: { tripId: string; rec: ParsedRec; locale?: string }) {
+function FocusedView({
+  tripId,
+  rec,
+  locale = "en",
+  tripLengthDays,
+}: {
+  tripId: string;
+  rec: ParsedRec;
+  locale?: string;
+  tripLengthDays?: number;
+}) {
   const pick: RecommendationPick = {
     slug: rec.destination_slug,
     rank: rec.rank,
@@ -500,6 +516,7 @@ function FocusedView({ tripId, rec, locale = "en" }: { tripId: string; rec: Pars
         itinerary={rec.itinerary?.days}
         itineraryMissing={!rec.itinerary}
         itineraryLoading={!rec.itinerary}
+        tripLengthDays={tripLengthDays}
         locale={locale}
       />
       {!rec.itinerary && (
@@ -535,16 +552,18 @@ function ResultsGrid({
             matchTags: r.match_tags,
           };
           return (
-            <Link key={r.id} href={`/trips/${tripId}?focus=${r.rank}`} className="block h-full">
-              <DestinationCard
-                pick={pick}
-                destination={r.destination}
-                cost={r.hydration?.cost}
-                weather={r.hydration?.weather}
-                locale={locale}
-                stops={r.stops}
-              />
-            </Link>
+            <HoverPrefetchItinerary key={r.id} tripId={tripId} recId={r.id}>
+              <Link href={`/trips/${tripId}?focus=${r.rank}`} className="block h-full">
+                <DestinationCard
+                  pick={pick}
+                  destination={r.destination}
+                  cost={r.hydration?.cost}
+                  weather={r.hydration?.weather}
+                  locale={locale}
+                  stops={r.stops}
+                />
+              </Link>
+            </HoverPrefetchItinerary>
           );
         })}
       </div>
@@ -575,8 +594,8 @@ function CompactGrid({
         {recs
           .filter((r) => r.rank !== activeRank)
           .map((r) => (
+            <HoverPrefetchItinerary key={r.id} tripId={tripId} recId={r.id}>
             <Link
-              key={r.id}
               href={`/trips/${tripId}?focus=${r.rank}`}
               className="group flex items-center gap-3 rounded-3xl border border-[var(--hairline)] bg-white px-4 py-3 shadow-[0_4px_12px_-4px_rgba(31,41,55,0.08)] transition hover:border-[var(--slate-primary)] hover:shadow-[0_8px_20px_-8px_rgba(44,84,116,0.15)]"
             >
@@ -605,6 +624,7 @@ function CompactGrid({
               </div>
               <span className="text-[var(--slate-primary)] transition group-hover:translate-x-0.5">→</span>
             </Link>
+            </HoverPrefetchItinerary>
           ))}
       </div>
     </section>

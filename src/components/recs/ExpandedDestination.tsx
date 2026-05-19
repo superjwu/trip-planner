@@ -23,6 +23,8 @@ interface Props {
   itinerary?: ItineraryDay[];
   itineraryMissing?: boolean;
   itineraryLoading?: boolean;
+  /** Drives the skeleton row count while itinerary drafts. Defaults to 5. */
+  tripLengthDays?: number;
   onClose?: () => void;
   locale?: string;
   /**
@@ -41,6 +43,7 @@ export function ExpandedDestination({
   itinerary,
   itineraryMissing,
   itineraryLoading,
+  tripLengthDays,
   onClose,
   locale = "en",
   stops,
@@ -265,12 +268,7 @@ export function ExpandedDestination({
               Day-by-day itinerary
             </h3>
             {itineraryLoading && (
-              <p
-                className="mt-3 animate-pulse text-sm"
-                style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
-              >
-                Drafting your itinerary…
-              </p>
+              <ItineraryDraftingSkeleton tripLengthDays={tripLengthDays ?? 5} />
             )}
             {!itineraryLoading && itineraryMissing && !itinerary && (
               <p
@@ -408,5 +406,75 @@ export function ExpandedDestination({
         </aside>
       </div>
     </section>
+  );
+}
+
+/**
+ * Skeleton shown while the day-by-day LLM call is in flight (typically
+ * 6–12s on gpt-5.5 reasoning=low). Renders N placeholder day rows whose
+ * layout matches the real day rows, plus an italic wait-time hint and a
+ * coral progress bar with a staggered pulse — so the wait feels like
+ * "drafting" instead of a blank pause.
+ */
+function ItineraryDraftingSkeleton({ tripLengthDays }: { tripLengthDays: number }) {
+  const clamped = Math.max(1, Math.min(14, tripLengthDays));
+  const days = Array.from({ length: clamped }, (_, i) => i + 1);
+  return (
+    <div>
+      <p
+        className="mb-4 text-xs italic"
+        style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+      >
+        Drafting your day-by-day · usually 6–12 seconds.
+      </p>
+      <ol className="space-y-0">
+        {days.map((d, i) => (
+          <li key={d}>
+            <div className="flex gap-4 py-5">
+              <div
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums"
+                style={{
+                  background: "var(--paper-deep)",
+                  color: "var(--ink-soft)",
+                  fontFamily: "var(--font-display-stack)",
+                }}
+              >
+                {d}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div
+                  className="h-4 w-2/3 rounded animate-pulse"
+                  style={{
+                    background: "var(--paper-deep)",
+                    animationDelay: `${i * 90}ms`,
+                  }}
+                />
+                <div
+                  className="mt-2 h-3 w-full rounded animate-pulse"
+                  style={{
+                    background: "var(--paper-deep)",
+                    animationDelay: `${i * 90 + 60}ms`,
+                  }}
+                />
+                <div
+                  className="mt-2 h-3 w-5/6 rounded animate-pulse"
+                  style={{
+                    background: "var(--paper-deep)",
+                    animationDelay: `${i * 90 + 120}ms`,
+                  }}
+                />
+              </div>
+            </div>
+            {i < days.length - 1 && (
+              <div
+                aria-hidden="true"
+                className="ml-5 h-px"
+                style={{ background: "var(--hairline)" }}
+              />
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
