@@ -214,8 +214,10 @@ function TripList({
                 .map((r) => r.destination_name ?? r.destination_slug)
                 .join(" · ")
             : t.compute_status === "computing"
-              ? "Picking destinations…"
-              : "Not yet computed";
+              ? "Picking destinations… ~20–40s"
+              : t.compute_status === "pending"
+                ? "Ready to compute — opens in ~20–40s"
+                : "Not yet computed";
         const title =
           top?.destination_name ??
           (t.normalized_input

@@ -78,7 +78,9 @@
     "notesHint": "Optional",
     "notesPlaceholder": "e.g. anniversary trip, traveling with toddler, dietary needs",
     "creating": "Creating trip…",
-    "show4": "Show me 4 destinations →"
+    "show4": "Show me 4 destinations →",
+    "submitWaitHint": "Usually 20–40 seconds — we ask ChatGPT to rank routes against your preferences and score the tradeoffs.",
+    "submitWaitHintPending": "Picking your four picks. This takes 20–40 seconds — don't refresh."
   },
   "trip": {
     "yourTrip": "Your trip",

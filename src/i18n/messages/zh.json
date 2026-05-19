@@ -78,7 +78,9 @@
     "notesHint": "可选",
     "notesPlaceholder": "例如：纪念日旅行、带幼儿出行、饮食要求",
     "creating": "正在创建行程…",
-    "show4": "展示4个目的地 →"
+    "show4": "展示4个目的地 →",
+    "submitWaitHint": "通常需要 20–40 秒——我们让 ChatGPT 根据你的偏好排序路线、给出权衡评分。",
+    "submitWaitHintPending": "正在为你挑选 4 个目的地,大约需要 20–40 秒——请不要刷新。"
   },
   "trip": {
     "yourTrip": "您的行程",

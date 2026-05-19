@@ -128,6 +128,18 @@ export function GeneratingProgress({ pollEnabled = true }: { pollEnabled?: boole
           {phase.label}
         </p>
 
+        {/* Expected duration hint — swaps to a reassurance line once we
+            cross the typical 50s envelope so the user doesn't think the
+            page is stuck. */}
+        <p
+          className="mt-1 text-[11px] leading-relaxed"
+          style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+        >
+          {elapsedS > 50
+            ? "Still working — large prompts can take a moment. We'll show your picks the instant the model finishes."
+            : "Most trips finish in 20–40s. Multi-stop combos can run to ~50s."}
+        </p>
+
         <div
           aria-hidden="true"
           className="slate-rule-pulse mt-4 h-0.5 w-12 rounded-full"

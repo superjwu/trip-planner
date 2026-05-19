@@ -379,6 +379,14 @@ export function PreferenceWizard() {
       >
         {pending ? t("creating") : t("show4")}
       </button>
+      {/* Wait-time expectation — Phase B made compute 15–45s, the wizard
+          stayed silent. */}
+      <p
+        className="mt-3 text-center text-xs italic"
+        style={{ fontFamily: "var(--font-body-stack)", color: "var(--ink-soft)" }}
+      >
+        {pending ? t("submitWaitHintPending") : t("submitWaitHint")}
+      </p>
     </form>
   );
 }
