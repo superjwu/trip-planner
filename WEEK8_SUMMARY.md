@@ -171,5 +171,5 @@ npm run audit:meta
 
 ---
 
-*Generated 2026-05-19. See `CLAUDE.md` for the project guide and
+*See `CLAUDE.md` for the project guide and
 `docs/sprints/v2-v3-plan.md` for sprint context.*
