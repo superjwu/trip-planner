@@ -23,7 +23,12 @@ import {
 import type { NormalizedTripInput, SeedDestination } from "@/lib/types";
 import { hydrateRecommendation } from "@/lib/hydrate";
 import { generateItineraryWithRetry } from "@/lib/llm/itinerary";
-import { CodexNotConnectedError, CodexAuthExpiredError, CodexRateLimitError } from "@/lib/llm/codex-auth";
+import {
+  CodexNotConnectedError,
+  CodexAuthExpiredError,
+  CodexRateLimitError,
+  CodexRefreshTransientError,
+} from "@/lib/llm/codex-auth";
 
 interface TripRowRaw {
   id: string;
@@ -467,6 +472,12 @@ function friendlyComputeError(err: unknown): string {
   }
   if (err instanceof CodexAuthExpiredError) {
     return "Your ChatGPT connection expired. Reconnect to continue.";
+  }
+  if (err instanceof CodexRefreshTransientError) {
+    // Distinct from the above: the tokens are still good, OpenAI just
+    // hiccuped. Telling the user to reconnect here would make them redo the
+    // device-code dance for nothing.
+    return "Couldn't reach ChatGPT just now. Try again in a moment.";
   }
   if (err instanceof CodexRateLimitError) {
     return "Your ChatGPT account hit a rate limit. Try again in a minute.";

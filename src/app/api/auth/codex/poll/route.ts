@@ -3,12 +3,13 @@ import { cookies } from "next/headers";
 import { requireUserId } from "@/lib/auth";
 import {
   CodexOAuthError,
-  decodeChatgptAccountId,
   exchangeAuthorizationCode,
   isCodexOAuthEnabled,
   pollDeviceAuth,
+  resolveChatgptAccountId,
 } from "@/lib/llm/codex-auth";
 import { persistCodexAuth } from "@/lib/llm/codex-token";
+import { SupabaseFailure } from "@/lib/supabase/errors";
 import { verifyCookie } from "@/lib/cookie-sign";
 
 export const runtime = "nodejs";
@@ -98,7 +99,10 @@ export async function POST() {
       authorizationCode: codeResp.authorizationCode,
       codeVerifier: codeResp.codeVerifier,
     });
-    const chatgptAccountId = decodeChatgptAccountId(tokens.accessToken);
+    const chatgptAccountId = resolveChatgptAccountId({
+      idToken: tokens.idToken,
+      accessToken: tokens.accessToken,
+    });
     await persistCodexAuth({
       clerkUserId: userId,
       accessToken: tokens.accessToken,
@@ -114,6 +118,22 @@ export async function POST() {
       return NextResponse.json(
         { error: err.message, code: err.code },
         { status: 502 },
+      );
+    }
+    // A storage failure here means the OAuth dance itself succeeded and we
+    // couldn't save the result. Say exactly which knob to turn instead of
+    // bubbling up a bare "TypeError: fetch failed" / "Invalid API key".
+    if (err instanceof SupabaseFailure) {
+      const { code, summary, hint, operation, projectHost } = err.detail;
+      return NextResponse.json(
+        {
+          error: `${summary} ${hint}`,
+          code,
+          stage: "persist",
+          operation,
+          projectHost,
+        },
+        { status: 500 },
       );
     }
     return NextResponse.json({ error: err.message, code: "poll_failed" }, { status: 500 });

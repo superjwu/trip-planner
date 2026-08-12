@@ -58,10 +58,33 @@ export class CodexNotConnectedError extends Error {
   }
 }
 
+export type RefreshFailureReason = "expired" | "reused" | "revoked" | "unknown";
+
+/**
+ * Permanent refresh failure: the stored refresh token can never work again, so
+ * the only cure is a fresh device-code login.
+ *
+ * Upstream codex separates these from transient failures in
+ * `auth/manager.rs::classify_refresh_token_failure`. We used to collapse both
+ * into this class, which told the user to reconnect after a one-off 5xx from
+ * OpenAI when a plain retry would have worked.
+ */
 export class CodexAuthExpiredError extends Error {
-  constructor() {
+  constructor(readonly reason: RefreshFailureReason = "unknown") {
     super("ChatGPT auth token expired and refresh failed.");
     this.name = "CodexAuthExpiredError";
+  }
+}
+
+/**
+ * Retryable refresh failure (5xx, timeout, transport error). The stored tokens
+ * are still believed good — the caller should surface "try again", not
+ * "reconnect", and must NOT delete the row.
+ */
+export class CodexRefreshTransientError extends Error {
+  constructor(detail: string) {
+    super(`ChatGPT token refresh failed temporarily: ${detail}`);
+    this.name = "CodexRefreshTransientError";
   }
 }
 
@@ -180,14 +203,18 @@ export async function exchangeAuthorizationCode(args: {
     id_token?: string;
     expires_in?: number;
   };
-  if (!json.access_token || !json.refresh_token || typeof json.expires_in !== "number") {
-    throw new CodexOAuthError("Token exchange missing fields", "bad_response");
+  // `expires_in` is NOT part of the contract — upstream codex's TokenResponse
+  // deserializes only id_token/access_token/refresh_token and derives lifetime
+  // from the JWT. Hard-requiring it here made us one response-shape change away
+  // from failing every login.
+  if (!json.access_token || !json.refresh_token) {
+    throw new CodexOAuthError("Token exchange missing access/refresh token", "bad_response");
   }
   return {
     accessToken: json.access_token,
     refreshToken: json.refresh_token,
     idToken: json.id_token,
-    expiresAt: new Date(Date.now() + json.expires_in * 1000),
+    expiresAt: resolveAccessTokenExpiry(json.expires_in, json.access_token),
   };
 }
 
@@ -196,56 +223,176 @@ export async function exchangeAuthorizationCode(args: {
  */
 export async function refreshAccessToken(refreshToken: string): Promise<OAuthTokens> {
   const url = `${BASE_URL}/oauth/token`;
-  const res = await fetchWithTimeout(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded", ...COMMON_HEADERS },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      client_id: CLIENT_ID,
-      refresh_token: refreshToken,
-    }).toString(),
-  });
-  if (!res.ok) {
-    throw new CodexAuthExpiredError();
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(url, {
+      method: "POST",
+      // Upstream codex posts the refresh grant as JSON
+      // (`auth/manager.rs::request_chatgpt_token_refresh`). The
+      // authorization_code exchange above stays form-encoded, matching
+      // `server.rs::exchange_code_for_tokens`.
+      headers: { "Content-Type": "application/json", Accept: "application/json", ...COMMON_HEADERS },
+      body: JSON.stringify({
+        client_id: CLIENT_ID,
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+      }),
+    });
+  } catch (e) {
+    // Timeout / DNS / connection reset — the refresh token is untouched.
+    throw new CodexRefreshTransientError((e as Error).message);
   }
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    const reason = classifyRefreshFailure(body);
+    // 401 or a recognised permanent code => the token is dead for good.
+    // Anything else (5xx, 429, unknown) is worth retrying.
+    if (res.status === 401 || reason !== "unknown") {
+      throw new CodexAuthExpiredError(reason);
+    }
+    throw new CodexRefreshTransientError(`${res.status} ${body.slice(0, 200)}`);
+  }
+
   const json = (await res.json()) as {
     access_token?: string;
     refresh_token?: string;
+    id_token?: string;
     expires_in?: number;
   };
-  if (!json.access_token || typeof json.expires_in !== "number") {
-    throw new CodexAuthExpiredError();
+  if (!json.access_token) {
+    throw new CodexAuthExpiredError("unknown");
   }
   return {
     accessToken: json.access_token,
+    // OpenAI invalidates a refresh token on use, so keep the new one when it
+    // ships and only fall back to the old one if the response omits it.
     refreshToken: json.refresh_token ?? refreshToken,
-    expiresAt: new Date(Date.now() + json.expires_in * 1000),
+    idToken: json.id_token,
+    expiresAt: resolveAccessTokenExpiry(json.expires_in, json.access_token),
   };
 }
 
 /**
- * Decode the access_token JWT and extract `chatgpt_account_id` from the
- * https://api.openai.com/auth claim block.
+ * Map an OAuth error body onto a permanent-failure reason, mirroring
+ * upstream's `classify_refresh_token_failure`. "unknown" means "not provably
+ * permanent" — treat as transient.
  */
-export function decodeChatgptAccountId(accessToken: string): string {
-  const parts = accessToken.split(".");
-  if (parts.length !== 3) throw new CodexOAuthError("Malformed JWT", "bad_jwt");
+function classifyRefreshFailure(body: string): RefreshFailureReason {
+  if (!body.trim()) return "unknown";
+  let code: string | undefined;
+  try {
+    const parsed = JSON.parse(body) as { error?: unknown; code?: unknown };
+    if (typeof parsed.error === "string") code = parsed.error;
+    else if (parsed.error && typeof parsed.error === "object") {
+      code = (parsed.error as { code?: string }).code;
+    }
+    if (!code && typeof parsed.code === "string") code = parsed.code;
+  } catch {
+    return "unknown";
+  }
+  switch (code?.toLowerCase()) {
+    case "refresh_token_expired":
+      return "expired";
+    case "refresh_token_reused":
+      return "reused";
+    case "refresh_token_invalidated":
+      return "revoked";
+    default:
+      return "unknown";
+  }
+}
+
+/** Decode a JWT's payload segment. Returns null rather than throwing. */
+function decodeJwtPayload(jwt: string): Record<string, unknown> | null {
+  const parts = jwt.split(".");
+  if (parts.length !== 3 || !parts[1]) return null;
   // base64url -> base64
   const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
   const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
-  let payload: Record<string, unknown>;
   try {
-    payload = JSON.parse(Buffer.from(padded, "base64").toString("utf-8"));
+    return JSON.parse(Buffer.from(padded, "base64").toString("utf-8"));
   } catch {
-    throw new CodexOAuthError("JWT payload not JSON", "bad_jwt");
+    return null;
   }
+}
+
+/**
+ * Absolute expiry from a JWT's standard `exp` claim (seconds since epoch).
+ * This is how upstream codex derives token lifetime — see
+ * `token_data.rs::parse_jwt_expiration`. Its token responses don't carry
+ * `expires_in` at all.
+ */
+export function jwtExpiresAt(jwt: string): Date | null {
+  const payload = decodeJwtPayload(jwt);
+  const exp = payload?.["exp"];
+  if (typeof exp !== "number" || !Number.isFinite(exp)) return null;
+  return new Date(exp * 1000);
+}
+
+/**
+ * Pick an absolute expiry for an access token, in order of trust:
+ *   1. `expires_in` from the token response, when present
+ *   2. the access token's own `exp` claim
+ *   3. a deliberately short fallback
+ *
+ * The fallback is short on purpose: guessing *too soon* costs one extra
+ * refresh round-trip, guessing too late hands the Codex backend a dead token
+ * and surfaces as a spurious 401.
+ */
+const FALLBACK_ACCESS_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+export function resolveAccessTokenExpiry(
+  expiresIn: unknown,
+  accessToken: string,
+): Date {
+  if (typeof expiresIn === "number" && Number.isFinite(expiresIn) && expiresIn > 0) {
+    return new Date(Date.now() + expiresIn * 1000);
+  }
+  const fromJwt = jwtExpiresAt(accessToken);
+  if (fromJwt && fromJwt.getTime() > Date.now()) return fromJwt;
+  return new Date(Date.now() + FALLBACK_ACCESS_TOKEN_TTL_MS);
+}
+
+/**
+ * Extract `chatgpt_account_id` from the `https://api.openai.com/auth` claim
+ * block of a JWT. Returns null when absent.
+ */
+function readChatgptAccountId(jwt: string): string | null {
+  const payload = decodeJwtPayload(jwt);
+  if (!payload) return null;
   const auth = (payload["https://api.openai.com/auth"] ?? {}) as {
     chatgpt_account_id?: string;
   };
-  if (!auth.chatgpt_account_id) {
-    throw new CodexOAuthError("JWT missing chatgpt_account_id", "no_account_id");
+  return auth.chatgpt_account_id ?? null;
+}
+
+/**
+ * Resolve the account id required by the `chatgpt-account-id` request header.
+ *
+ * Upstream codex reads this from the **id_token**
+ * (`server.rs` -> `parse_chatgpt_jwt_claims(&id_token)`), not the access
+ * token, and treats it as optional. We prefer the id_token for that reason and
+ * fall back to the access token, which is where we used to look exclusively.
+ */
+export function resolveChatgptAccountId(tokens: {
+  idToken?: string;
+  accessToken: string;
+}): string {
+  const fromId = tokens.idToken ? readChatgptAccountId(tokens.idToken) : null;
+  const accountId = fromId ?? readChatgptAccountId(tokens.accessToken);
+  if (!accountId) {
+    throw new CodexOAuthError(
+      "Neither the id_token nor the access_token carried chatgpt_account_id.",
+      "no_account_id",
+    );
   }
-  return auth.chatgpt_account_id;
+  return accountId;
+}
+
+/** @deprecated Prefer {@link resolveChatgptAccountId}, which checks id_token first. */
+export function decodeChatgptAccountId(accessToken: string): string {
+  return resolveChatgptAccountId({ accessToken });
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {

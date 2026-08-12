@@ -13,12 +13,13 @@
  * on every server restart. Never engaged in production.
  */
 import { createAdminSupabase } from "@/lib/supabase/server";
+import { SupabaseFailure, supabaseFailure } from "@/lib/supabase/errors";
 import { isAuthBypassEnabled } from "@/lib/clerk-config";
 import {
   CodexAuthExpiredError,
   CodexNotConnectedError,
-  decodeChatgptAccountId,
   refreshAccessToken,
+  resolveChatgptAccountId,
 } from "./codex-auth";
 
 const REFRESH_WINDOW_MS = 60_000; // refresh if expiring within 60s
@@ -41,6 +42,9 @@ const DEV_MEMORY: Map<string, MemoryTokenRecord> = (() => {
 })();
 
 function isFetchFailure(err: unknown): boolean {
+  // Prefer the classified code — the raw message is now wrapped by
+  // supabaseFailure(), so substring-matching it would silently stop matching.
+  if (err instanceof SupabaseFailure) return err.code === "supabase_unreachable";
   const msg = err instanceof Error ? err.message : String(err);
   return /fetch failed|ENOTFOUND|getaddrinfo|ECONNREFUSED|EAI_AGAIN/i.test(msg);
 }
@@ -103,7 +107,7 @@ export async function resolveCodexAuth(clerkUserId: string): Promise<ResolvedCod
       p_clerk_user_id: clerkUserId,
       p_key: key,
     });
-    if (error) throw new Error(`codex_auth_read failed: ${error.message}`);
+    if (error) throw supabaseFailure(error, "codex_auth_read");
     // PostgREST wraps TABLE-returning RPC results as an array; our function
     // returns 0 or 1 rows so we just take the first.
     const rows = (data as Array<typeof row & object> | null) ?? [];
@@ -137,7 +141,12 @@ export async function resolveCodexAuth(clerkUserId: string): Promise<ResolvedCod
   const fresh = await refreshAccessToken(row.refresh_token);
   const newAccountId = (() => {
     try {
-      return decodeChatgptAccountId(fresh.accessToken);
+      // Prefer the refreshed id_token, matching upstream codex; keep the
+      // previously stored id if this response carried neither claim.
+      return resolveChatgptAccountId({
+        idToken: fresh.idToken,
+        accessToken: fresh.accessToken,
+      });
     } catch {
       return row.chatgpt_account_id;
     }
@@ -168,7 +177,7 @@ export async function resolveCodexAuth(clerkUserId: string): Promise<ResolvedCod
           p_expected_old_expires: row.access_token_expires_at,
         },
       );
-      if (writeErr) throw new Error(`codex_auth_upsert_cas failed: ${writeErr.message}`);
+      if (writeErr) throw supabaseFailure(writeErr, "codex_auth_upsert_cas");
       if (rowsUpdated === 0) {
         // Someone else refreshed first. Re-read and return their token.
         const reread = await admin.rpc("codex_auth_read", {
@@ -186,7 +195,14 @@ export async function resolveCodexAuth(clerkUserId: string): Promise<ResolvedCod
         throw new CodexAuthExpiredError();
       }
     } catch (err) {
-      if (!shouldFallbackToMemory(err)) throw new CodexAuthExpiredError();
+      if (!shouldFallbackToMemory(err)) {
+        // The refresh already succeeded, so OpenAI has invalidated the old
+        // refresh token — but we failed to store the new one. The stored row
+        // is now unusable and only a reconnect fixes it. Log the real cause;
+        // "expired" alone sends operators hunting in the wrong place.
+        console.error("[codex-token] refresh succeeded but persist failed:", err);
+        throw new CodexAuthExpiredError("unknown");
+      }
       logDevFallback("resolveCodexAuth refresh-write", err);
       DEV_MEMORY.set(clerkUserId, {
         accessToken: fresh.accessToken,
@@ -224,7 +240,7 @@ export async function persistCodexAuth(args: {
       p_chatgpt_account_id: args.chatgptAccountId,
       p_key: masterKey(),
     });
-    if (error) throw new Error(`codex_auth_upsert failed: ${error.message}`);
+    if (error) throw supabaseFailure(error, "codex_auth_upsert");
   } catch (err) {
     if (!shouldFallbackToMemory(err)) throw err;
     logDevFallback("persistCodexAuth", err);
@@ -244,7 +260,7 @@ export async function deleteCodexAuth(clerkUserId: string): Promise<void> {
       .from("user_codex_auth")
       .delete()
       .eq("clerk_user_id", clerkUserId);
-    if (error) throw new Error(`deleteCodexAuth failed: ${error.message}`);
+    if (error) throw supabaseFailure(error, "deleteCodexAuth");
   } catch (err) {
     if (!shouldFallbackToMemory(err)) throw err;
     logDevFallback("deleteCodexAuth", err);
@@ -265,11 +281,17 @@ export async function hasCodexAuth(clerkUserId: string): Promise<{
 }> {
   const admin = createAdminSupabase();
   try {
-    const { data } = await admin
+    const { data, error } = await admin
       .from("user_codex_auth")
       .select("chatgpt_account_id, access_token_expires_at")
       .eq("clerk_user_id", clerkUserId)
       .maybeSingle();
+    // Previously this destructured `data` only. A dead/misconfigured Supabase
+    // then rendered as a clean "not connected", so /plan showed the Connect
+    // gate forever with no clue why — which is exactly how a deleted project
+    // and a placeholder service-role key stayed invisible. Throw instead, and
+    // let the dev-fallback logic below decide whether it's recoverable.
+    if (error) throw supabaseFailure(error, "hasCodexAuth.select");
     if (!data) {
       // Even on success we may have only the memory record (mixed mode)
       const mem = DEV_MEMORY.get(clerkUserId);
